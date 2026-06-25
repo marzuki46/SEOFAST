@@ -19,11 +19,11 @@
 @if($schemaType !== 'None')
 <script type="application/ld+json">
 {
-  "@context": "https://schema.org",
-  "@type": "{{ $schemaType }}",
+  "@@context": "https://schema.org",
+  "@@type": "{{ $schemaType }}",
   "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "{{ request()->url() }}"
+    "@@type": "WebPage",
+    "@@id": "{{ request()->url() }}"
   },
   "headline": "{{ $page->title }}",
   "description": "{{ $page->meta_description }}",
@@ -32,15 +32,15 @@
   "dateModified": "{{ $page->updated_at->toIso8601String() }}",
   "inLanguage": "id",
   "author": {
-    "@type": "Person",
+    "@@type": "Person",
     "name": "{{ $authorName }}",
     "url": "{{ route('home') }}"
   },
   "publisher": {
-    "@type": "Organization",
+    "@@type": "Organization",
     "name": "{{ $orgName }}",
     "logo": {
-      "@type": "ImageObject",
+      "@@type": "ImageObject",
       "url": "{{ $orgLogo }}"
     }
   }
