@@ -191,9 +191,8 @@
                             <span>{{ $post->published_at ? $post->published_at->format('M d, Y') : 'Draft' }}</span>
                         </div>
                         
-                        <!-- Title -->
                         <h3 class="font-outfit font-bold text-xl text-slate-900 mb-3 line-clamp-2 group-hover:text-brand-indigo transition-colors">
-                            <a href="{{ route('blog.show', $post->slug) }}">{{ $post->title }}</a>
+                            <a href="{{ route('blog.show', $post->slug ?? '#') }}">{{ $post->title }}</a>
                         </h3>
                         
                         <!-- Description -->
@@ -203,7 +202,7 @@
                         
                         <!-- Footer Link -->
                         <div class="flex items-center justify-end pt-4 border-t border-slate-100">
-                            <a href="{{ route('blog.show', $post->slug) }}" class="text-xs font-bold text-slate-800 group-hover:text-brand-indigo transition-colors flex items-center gap-1">
+                            <a href="{{ route('blog.show', $post->slug ?? '#') }}" class="text-xs font-bold text-slate-800 group-hover:text-brand-indigo transition-colors flex items-center gap-1">
                                 Read Article 
                                 <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
