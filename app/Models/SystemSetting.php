@@ -14,17 +14,18 @@ class SystemSetting extends Model
      */
     public static function get(string $key, mixed $default = null): mixed
     {
-        $setting = Cache::remember("system_setting_{$key}", 3600, function () use ($key) {
-            return static::where('key', $key)->first();
+        $settingData = Cache::remember("system_setting_{$key}", 3600, function () use ($key) {
+            $row = static::where('key', $key)->first();
+            return $row ? ['type' => $row->type, 'value' => $row->value] : null;
         });
 
-        if (!$setting) return $default;
+        if (!$settingData) return $default;
 
-        return match($setting->type) {
-            'boolean' => (bool) $setting->value,
-            'integer' => (int) $setting->value,
-            'json'    => json_decode($setting->value, true),
-            default   => $setting->value,
+        return match($settingData['type']) {
+            'boolean' => (bool) $settingData['value'],
+            'integer' => (int) $settingData['value'],
+            'json'    => json_decode($settingData['value'], true),
+            default   => $settingData['value'],
         };
     }
 
