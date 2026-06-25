@@ -197,7 +197,7 @@
                         <h3 class="font-outfit font-bold text-2xl text-slate-900 mb-6">Related Articles in this Silo</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             @foreach($relatedPosts as $rel)
-                                <a href="{{ route('blog.show', $rel->slug) }}" class="p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between group">
+                                <a href="{{ route('blog.show', $rel->slug ?: 'draft') }}" class="p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between group">
                                     <div>
                                         <span class="text-[10px] text-brand-indigo font-mono uppercase font-semibold mb-2 block">
                                             {{ $rel->hierarchy_level }}
