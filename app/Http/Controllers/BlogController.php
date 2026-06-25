@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Content;
+use App\Models\SiloBlueprint;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class BlogController extends Controller
+{
+    /**
+     * Display the blog home page with articles and categories.
+     */
+    public function index(Request $request): View
+    {
+        $query = Content::where('status', 'published')
+            ->orderBy('published_at', 'desc');
+
+        if ($request->filled('q')) {
+            $search = $request->input('q');
+            $query->where(function ($q) use ($search) {
+                $q->where('meta_title', 'like', "%{$search}%")
+                  ->orWhere('target_keyword', 'like', "%{$search}%")
+                  ->orWhere('body_raw', 'like', "%{$search}%");
+            });
+        }
+
+        $posts = $query->paginate(6);
+        $categories = SiloBlueprint::withCount('contents')->get();
+        $recentPosts = Content::where('status', 'published')
+            ->orderBy('published_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('blog.index', compact('posts', 'categories', 'recentPosts'));
+    }
+
+    /**
+     * Display a single blog post.
+     */
+    public function show(string $slug): View
+    {
+        $locale = app()->getLocale();
+        
+        $post = Content::where("slug->{$locale}", $slug)
+            ->where('status', 'published')
+            ->first();
+
+        // If not found in the current locale (e.g., English slug hasn't been generated yet),
+        // fallback to checking the default 'id' slug so it doesn't 404, while still displaying in English.
+        if (!$post && $locale !== 'id') {
+            $post = Content::where("slug->id", $slug)
+                ->where('status', 'published')
+                ->first();
+        }
+
+        if (!$post) {
+            abort(404);
+        }
+
+        // Get related cluster posts (excluding current post)
+        $relatedPosts = Content::where('silo_blueprint_id', $post->silo_blueprint_id)
+            ->where('id', '!=', $post->id)
+            ->where('status', 'published')
+            ->orderBy('published_at', 'desc')
+            ->take(3)
+            ->get();
+
+        $categories = SiloBlueprint::withCount('contents')->get();
+
+        // Fetch parent categories or silo blueprint info
+        $category = $post->siloBlueprint;
+
+        return view('blog.show', compact('post', 'relatedPosts', 'categories', 'category'));
+    }
+
+    /**
+     * Display blog posts filtered by category (silo).
+     */
+    public function category(string $slug): View
+    {
+        // Find silo blueprint that matches the slug on-the-fly
+        $category = SiloBlueprint::all()->first(function ($silo) use ($slug) {
+            return $silo->slug === $slug;
+        });
+
+        if (!$category) {
+            abort(404, 'Category not found');
+        }
+
+        $posts = Content::where('silo_blueprint_id', $category->id)
+            ->where('status', 'published')
+            ->orderBy('published_at', 'desc')
+            ->paginate(6);
+
+        $categories = SiloBlueprint::withCount('contents')->get();
+        $recentPosts = Content::where('status', 'published')
+            ->orderBy('published_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('blog.category', compact('category', 'posts', 'categories', 'recentPosts'));
+    }
+}
