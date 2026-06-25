@@ -103,7 +103,7 @@
                     <label for="schema_type" class="block text-sm font-semibold text-slate-700 mb-1">Schema Markup Type</label>
                     <select name="schema_type" id="schema_type" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 outline-none">
                         @php
-                            $currentSchema = old('schema_type', $content->seoMeta?->schema['@type'] ?? \App\Models\SystemSetting::get('seo_schema_default_type', 'Article'));
+                            $currentSchema = old('schema_type', $content->seoMeta?->schema['@'.'type'] ?? \App\Models\SystemSetting::get('seo_schema_default_type', 'Article'));
                         @endphp
                         <option value="Article" {{ $currentSchema == 'Article' ? 'selected' : '' }}>Article / BlogPosting</option>
                         <option value="LocalBusiness" {{ $currentSchema == 'LocalBusiness' ? 'selected' : '' }}>Local Business</option>
