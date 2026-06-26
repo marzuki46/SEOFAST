@@ -19,7 +19,8 @@ class SitemapController extends Controller
             ->orderByDesc('crawl_priority_score')
             ->get(['slug', 'published_at', 'crawl_priority_score', 'hierarchy_level']);
 
-        $categories = SiloBlueprint::withoutGlobalScopes()->get(['slug', 'updated_at']);
+        // SiloBlueprint has no slug column — slug is a computed accessor from silo_name
+        $categories = SiloBlueprint::withoutGlobalScopes()->get(['silo_name', 'updated_at']);
         $products = \App\Models\Product::withoutGlobalScopes()->where('is_active', true)->get(['slug', 'updated_at']);
         $pages = \App\Models\Page::withoutGlobalScopes()->where('is_published', true)->get(['slug', 'updated_at']);
 
@@ -108,7 +109,7 @@ class SitemapController extends Controller
         $content  = "User-agent: *\n";
         $content .= "Allow: /\n";
         $content .= "Disallow: /admin/\n";
-        $content .= "Disallow: /login\n";
+        $content .= "Disallow: /master/adminis-trator\n";
         $content .= "Disallow: /dashboard\n";
         $content .= "Disallow: /buyer/\n";
         $content .= "Disallow: /ghost/\n\n";
