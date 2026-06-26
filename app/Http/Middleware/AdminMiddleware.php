@@ -32,6 +32,17 @@ class AdminMiddleware
             ]);
         }
 
-        return $next($request);
+        $response = $next($request);
+
+        // Prevent Cloudflare and Browser from caching Admin Pages
+        if (method_exists($response, 'header')) {
+            $response->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
+            $response->header('Pragma', 'no-cache');
+            $response->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
+            $response->header('CDN-Cache-Control', 'no-store');
+            $response->header('Cloudflare-CDN-Cache-Control', 'no-store');
+        }
+
+        return $response;
     }
 }
