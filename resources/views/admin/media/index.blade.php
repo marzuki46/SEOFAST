@@ -135,7 +135,6 @@
                         <!-- Update Form -->
                         <form id="modal-form" method="POST" action="" onsubmit="saveMedia(event)">
                             @csrf
-                            @method('PUT')
                             
                             <div class="space-y-4">
                                 <div>
@@ -298,16 +297,13 @@
         btn.disabled = true;
 
         const formData = new FormData(form);
-        const payload = Object.fromEntries(formData.entries());
 
         fetch(form.action, {
-            method: 'PUT', // Send true HTTP PUT
-            body: JSON.stringify(payload),
+            method: 'POST',
+            body: formData,
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': payload._token
+                'X-Requested-With': 'XMLHttpRequest'
             }
         }).then(response => {
             if (!response.ok && response.status !== 422) {
