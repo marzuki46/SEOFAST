@@ -77,6 +77,10 @@ class MediaController extends Controller
             }
         }
 
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'uploaded' => $uploaded]);
+        }
+
         return back()->with('success', count($uploaded) . ' image(s) processed and uploaded successfully.');
     }
 

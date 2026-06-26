@@ -41,7 +41,7 @@
 <!-- Upload Form -->
 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm mb-8 overflow-hidden">
     <div class="p-6">
-        <form action="{{ route('admin.media.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+        <form id="upload-form" action="{{ route('admin.media.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4" onsubmit="uploadMedia(event)">
             @csrf
             
             <div class="w-full">
@@ -74,9 +74,19 @@
 </div>
 
 <!-- Media Grid (10 per row on lg) -->
-<div class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-4 mb-8">
+<div id="media-grid" class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-4 mb-8">
     @forelse($media as $item)
-        <div id="media-item-{{ $item->id }}" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-brand-indigo transition-all" onclick="openMediaModal({{ $item->toJson() }})">
+        <div id="media-item-{{ $item->id }}" 
+             class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-brand-indigo transition-all"
+             data-id="{{ $item->id }}"
+             data-url="{{ $item->url }}"
+             data-filename="{{ $item->filename }}"
+             data-title="{{ $item->title }}"
+             data-alt="{{ $item->alt_text }}"
+             data-desc="{{ $item->description }}"
+             data-size="{{ $item->size }}"
+             data-date="{{ $item->created_at }}"
+             onclick="openMediaModalFromEl(this)">
             <!-- Image Thumbnail -->
             <div class="aspect-square bg-slate-100 relative group">
                 <img src="{{ $item->url }}" alt="{{ $item->alt_text }}" class="w-full h-full object-cover">
@@ -207,25 +217,24 @@
         }
     }
 
-    function openMediaModal(media) {
+    function openMediaModalFromEl(el) {
         document.getElementById('media-modal').classList.remove('hidden');
         
-        document.getElementById('modal-img').src = media.url;
-        document.getElementById('modal-filename').textContent = media.filename;
+        document.getElementById('modal-img').src = el.getAttribute('data-url');
+        document.getElementById('modal-filename').textContent = el.getAttribute('data-filename');
         
-        const date = new Date(media.created_at);
+        const dateStr = el.getAttribute('data-date');
+        const date = new Date(dateStr);
         document.getElementById('modal-date').textContent = date.toLocaleDateString() + ' at ' + date.toLocaleTimeString();
-        document.getElementById('modal-size').textContent = (media.size / 1024).toFixed(1) + ' KB';
+        document.getElementById('modal-size').textContent = (parseInt(el.getAttribute('data-size')) / 1024).toFixed(1) + ' KB';
         
-        document.getElementById('modal-title-input').value = media.title || '';
-        document.getElementById('modal-alt-input').value = media.alt_text || '';
-        document.getElementById('modal-desc-input').value = media.description || '';
-        document.getElementById('modal-url-input').value = media.url;
+        document.getElementById('modal-title-input').value = el.getAttribute('data-title') || '';
+        document.getElementById('modal-alt-input').value = el.getAttribute('data-alt') || '';
+        document.getElementById('modal-desc-input').value = el.getAttribute('data-desc') || '';
+        document.getElementById('modal-url-input').value = el.getAttribute('data-url');
         
-        // Update Form Action (using relative URL to prevent HTTP/HTTPS mixed content proxy issues)
-        document.getElementById('modal-form').action = '/media/' + media.id;
-
-        document.getElementById('delete-id').value = media.id;
+        document.getElementById('modal-form').action = '/media/' + el.getAttribute('data-id');
+        document.getElementById('delete-id').value = el.getAttribute('data-id');
     }
 
     function closeMediaModal() {
@@ -251,9 +260,8 @@
             btn.textContent = 'Deleting...';
             btn.disabled = true;
 
-            // Use relative URL to prevent HTTPS/HTTP proxy redirect issues
             fetch('/media', {
-                method: 'POST', // POST with _method=DELETE handles it
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -307,8 +315,7 @@
             }
         }).then(response => {
             if (!response.ok && response.status !== 422) {
-                // If it's a 500 or 404 HTML response, trying to parse JSON will fail and go to catch
-                // But we still want to try parsing JSON for 422 validation errors.
+                throw new Error('Network response was ' + response.status);
             }
             return response.json();
         }).then(data => {
@@ -316,11 +323,17 @@
                 btn.textContent = 'Saved!';
                 btn.classList.replace('bg-brand-indigo', 'bg-emerald-600');
                 
-                // Update the onclick data so if reopened, it has new data
+                // Update the DOM element dataset and image Alt tag immediately
                 const el = document.getElementById('media-item-' + data.media.id);
                 if (el) {
-                    // Update the onclick attribute string with new json
-                    el.setAttribute('onclick', `openMediaModal(${JSON.stringify(data.media).replace(/"/g, '&quot;')})`);
+                    el.setAttribute('data-title', data.media.title || '');
+                    el.setAttribute('data-alt', data.media.alt_text || '');
+                    el.setAttribute('data-desc', data.media.description || '');
+                    
+                    const img = el.querySelector('img');
+                    if (img) {
+                        img.alt = data.media.alt_text || '';
+                    }
                 }
 
                 setTimeout(() => {
@@ -341,6 +354,98 @@
             console.error('Save error:', err);
             alert('An error occurred while saving: ' + err.message);
             btn.textContent = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    function uploadMedia(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn = form.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        const fileInput = document.getElementById('files');
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Please select at least one image to upload.');
+            return;
+        }
+
+        btn.innerHTML = `
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Uploading...
+        `;
+        btn.disabled = true;
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was ' + response.status);
+            }
+            return response.json();
+        }).then(data => {
+            if (data.success && data.uploaded) {
+                // Clear file input
+                fileInput.value = '';
+                document.getElementById('file-list').classList.add('hidden');
+                
+                // Get the grid container
+                const grid = document.getElementById('media-grid');
+                
+                // If there's a "No media files" placeholder, remove it
+                const placeholder = grid.querySelector('.col-span-full');
+                if (placeholder) {
+                    grid.innerHTML = '';
+                }
+
+                // Prepend each uploaded media to the grid
+                data.uploaded.forEach(item => {
+                    const div = document.createElement('div');
+                    div.id = 'media-item-' + item.id;
+                    div.className = 'bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-brand-indigo transition-all';
+                    
+                    // Set all dataset attributes
+                    div.setAttribute('data-id', item.id);
+                    div.setAttribute('data-url', item.url);
+                    div.setAttribute('data-filename', item.filename);
+                    div.setAttribute('data-title', item.title || '');
+                    div.setAttribute('data-alt', item.alt_text || '');
+                    div.setAttribute('data-desc', item.description || '');
+                    div.setAttribute('data-size', item.size);
+                    div.setAttribute('data-date', item.created_at);
+                    
+                    div.onclick = function() { openMediaModalFromEl(this); };
+
+                    div.innerHTML = `
+                        <div class="aspect-square bg-slate-100 relative group">
+                            <img src="${item.url}" alt="${item.alt_text || ''}" class="w-full h-full object-cover">
+                        </div>
+                    `;
+                    
+                    // Prepend to grid
+                    grid.insertBefore(div, grid.firstChild);
+                });
+
+                alert(data.uploaded.length + ' image(s) processed and uploaded successfully.');
+            } else {
+                alert('Upload failed: ' + (data.message || 'Unknown error'));
+            }
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }).catch(err => {
+            console.error('Upload error:', err);
+            alert('An error occurred during upload: ' + err.message);
+            btn.innerHTML = originalText;
             btn.disabled = false;
         });
     }
