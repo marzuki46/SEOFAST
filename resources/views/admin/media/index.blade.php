@@ -265,12 +265,12 @@
                     id: id
                 })
             }).then(res => res.json()).then(data => {
-                if(data.success) {
+                if(res.ok && data.success) {
                     const el = document.getElementById('media-item-' + id);
                     if(el) el.remove();
                     closeMediaModal();
                 } else {
-                    alert('Failed to delete media.');
+                    alert('Failed to delete media: ' + (data.message || 'Unknown error'));
                     btn.textContent = originalText;
                     btn.disabled = false;
                 }
@@ -302,7 +302,7 @@
                 'X-Requested-With': 'XMLHttpRequest'
             }
         }).then(res => res.json()).then(data => {
-            if(data.success) {
+            if(res.ok && data.success) {
                 btn.textContent = 'Saved!';
                 btn.classList.replace('bg-brand-indigo', 'bg-emerald-600');
                 
@@ -319,7 +319,11 @@
                     btn.disabled = false;
                 }, 2000);
             } else {
-                alert('Failed to update details.');
+                let errorMsg = data.message || 'Unknown error';
+                if (data.errors) {
+                    errorMsg += '\n' + Object.values(data.errors).map(e => e.join(', ')).join('\n');
+                }
+                alert('Failed to update details: ' + errorMsg);
                 btn.textContent = originalText;
                 btn.disabled = false;
             }
