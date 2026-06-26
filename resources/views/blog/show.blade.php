@@ -193,7 +193,6 @@
                         <h3 class="font-outfit font-bold text-2xl text-slate-900 mb-6">Related Articles</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             @foreach($relatedPosts as $rel)
-                                @if(!$rel->title) @continue @endif
                                 <a href="{{ route('blog.show', $rel->slug ?: $rel->getTranslation('slug', 'id', false)) }}"
                                    class="p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between group">
                                     <div>
@@ -203,11 +202,9 @@
                                         <h4 class="font-outfit font-bold text-slate-900 text-sm group-hover:text-brand-indigo transition-colors line-clamp-2 mb-2">
                                             {{ $rel->title }}
                                         </h4>
-                                        @if($rel->meta_description)
-                                            <p class="text-slate-500 text-xs leading-relaxed line-clamp-2">
-                                                {{ $rel->meta_description }}
-                                            </p>
-                                        @endif
+                                        <p class="text-slate-500 text-xs leading-relaxed line-clamp-2">
+                                            {{ $rel->excerpt }}
+                                        </p>
                                     </div>
                                     <span class="mt-4 text-xs font-bold text-brand-indigo flex items-center gap-1">
                                         Read Article
@@ -234,6 +231,23 @@
                         </ul>
                     </nav>
                 </div>
+
+                <!-- Recent Posts in this Silo -->
+                @if($relatedPosts->count() > 0)
+                <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <h3 class="font-outfit font-bold text-slate-900 mb-4 text-xs tracking-wider uppercase">Also in {{ $category ? $category->silo_name : 'this category' }}</h3>
+                    <div class="space-y-4">
+                        @foreach($relatedPosts as $recent)
+                            <div class="flex flex-col gap-1">
+                                <span class="text-[10px] text-slate-500 font-mono uppercase">{{ $recent->published_at ? $recent->published_at->format('M d, Y') : '' }}</span>
+                                <a href="{{ route('blog.show', $recent->slug ?: $recent->getTranslation('slug', 'id', false)) }}" class="text-sm text-slate-700 hover:text-brand-indigo font-medium line-clamp-2 transition-colors">
+                                    {{ $recent->title }}
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </div>
 
         </div>
