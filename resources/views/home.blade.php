@@ -23,7 +23,7 @@
         </p>
         
         <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <a href="{{ route('login') }}" class="w-full sm:w-auto text-base font-bold text-white bg-gradient-to-r from-brand-indigo to-brand-purple hover:scale-105 active:scale-95 transition-all px-8 py-4 rounded-2xl shadow-xl shadow-brand-indigo/25">
+            <a href="{{ route('buyer.login') }}" class="w-full sm:w-auto text-base font-bold text-white bg-gradient-to-r from-brand-indigo to-brand-purple hover:scale-105 active:scale-95 transition-all px-8 py-4 rounded-2xl shadow-xl shadow-brand-indigo/25">
                 Start For Free
             </a>
             <a href="#features" class="w-full sm:w-auto text-base font-bold text-slate-700 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-8 py-4 rounded-2xl transition-all">
@@ -257,7 +257,7 @@
                         </li>
                     </ul>
                 </div>
-                <a href="{{ route('login') }}" class="w-full py-3 rounded-xl border border-slate-200 text-center font-bold text-slate-800 hover:bg-slate-50 bg-white transition-all">
+                <a href="{{ route('buyer.login') }}" class="w-full py-3 rounded-xl border border-slate-200 text-center font-bold text-slate-800 hover:bg-slate-50 bg-white transition-all">
                     Get Started
                 </a>
             </div>
@@ -289,7 +289,7 @@
                         </li>
                     </ul>
                 </div>
-                <a href="{{ route('login') }}" class="w-full py-3 rounded-xl bg-gradient-to-r from-brand-indigo to-brand-purple text-center font-bold text-white hover:opacity-90 transition-all shadow-lg shadow-brand-indigo/15">
+                <a href="{{ route('buyer.login') }}" class="w-full py-3 rounded-xl bg-gradient-to-r from-brand-indigo to-brand-purple text-center font-bold text-white hover:opacity-90 transition-all shadow-lg shadow-brand-indigo/15">
                     Start Pro Trial
                 </a>
             </div>
@@ -318,7 +318,7 @@
                         </li>
                     </ul>
                 </div>
-                <a href="{{ route('login') }}" class="w-full py-3 rounded-xl border border-slate-200 text-center font-bold text-slate-800 hover:bg-slate-50 bg-white transition-all">
+                <a href="{{ route('buyer.login') }}" class="w-full py-3 rounded-xl border border-slate-200 text-center font-bold text-slate-800 hover:bg-slate-50 bg-white transition-all">
                     Contact Sales
                 </a>
             </div>

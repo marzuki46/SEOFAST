@@ -260,46 +260,46 @@ class SeoHelper
      */
     public static function resolveInternalLinks(string $html, string $targetLocale = 'id'): string
     {
-        if ($targetLocale === 'id') {
-            return $html; // Default language, no need to resolve translations
-        }
 
         $appUrl = rtrim(config('app.url'), '/');
         $blogPrefix = \App\Models\SystemSetting::get('permalink_blog', 'blog');
         
         // Find all <a> tags with href
-        return preg_replace_callback('/<a\s+[^>]*href=["\']([^"\']+)["\'][^>]*>/i', function ($matches) use ($appUrl, $blogPrefix, $targetLocale) {
+        return preg_replace_callback('/<a\s+[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)<\/a>/i', function ($matches) use ($appUrl, $blogPrefix, $targetLocale) {
             $fullAnchorTag = $matches[0];
             $href = $matches[1];
+            $anchorText = $matches[2];
 
             // Only process absolute internal URLs or relative internal URLs starting with /blog/
             $isInternal = str_starts_with($href, $appUrl) || str_starts_with($href, '/' . $blogPrefix . '/');
             
             if ($isInternal) {
                 // Extract the slug
-                // Example href: https://seofast.test/blog/cara-seo or /blog/cara-seo
                 $path = str_replace($appUrl, '', $href);
                 $path = ltrim($path, '/');
                 
                 if (str_starts_with($path, $blogPrefix . '/')) {
                     $originalSlug = substr($path, strlen($blogPrefix) + 1);
                     
-                    // Look up the content by the original (Indonesian) slug
-                    // Since the injected links during Phase 4 are always using the ID slug
                     $post = \App\Models\Content::where("slug->id", $originalSlug)->first();
                     
                     if ($post) {
-                        // Always force the link to the target locale (e.g., /en/blog/...)
-                        // If translated slug exists, use it. Otherwise, fallback to original slug but STILL use the /en/ prefix.
-                        $translatedSlug = $post->getTranslation('slug', $targetLocale, false) ?: $originalSlug;
-                        
-                        $newHref = url("/{$targetLocale}/{$blogPrefix}/{$translatedSlug}");
-                        return str_replace($href, $newHref, $fullAnchorTag);
+                        // If the target post is NOT published, hide the link to prevent 404s and exposing drafts
+                        if ($post->status !== 'published') {
+                            return $anchorText;
+                        }
+
+                        if ($targetLocale !== 'id') {
+                            // Always force the link to the target locale (e.g., /en/blog/...)
+                            $translatedSlug = $post->getTranslation('slug', $targetLocale, false) ?: $originalSlug;
+                            $newHref = url("/{$targetLocale}/{$blogPrefix}/{$translatedSlug}");
+                            return str_replace($href, $newHref, $fullAnchorTag);
+                        }
                     }
                 }
             }
 
-            return $fullAnchorTag; // Return unmodified if no translation found
+            return $fullAnchorTag; // Return unmodified if no translation needed or not internal
         }, $html);
     }
 }

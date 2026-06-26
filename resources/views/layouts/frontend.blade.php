@@ -233,18 +233,24 @@
                     </div>
                 @endif
 
-                @auth
+                @auth('web')
                     <a href="{{ route('dashboard') }}" class="text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-5 py-2.5 rounded-xl transition-all shadow-sm">
-                        Dashboard
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">
-                        Sign In
-                    </a>
-                    <a href="{{ route('login') }}" class="text-sm font-semibold text-white bg-gradient-to-r from-brand-indigo to-brand-purple hover:opacity-90 px-5 py-2.5 rounded-xl transition-all shadow-md shadow-brand-indigo/10">
-                        Get Started
+                        Admin Panel
                     </a>
                 @endauth
+                @auth('buyer')
+                    <a href="{{ route('buyer.dashboard') }}" class="text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-5 py-2.5 rounded-xl transition-all shadow-sm">
+                        Dashboard
+                    </a>
+                @endauth
+                @if(!auth('web')->check() && !auth('buyer')->check())
+                    <a href="{{ route('buyer.login') }}" class="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">
+                        Sign In
+                    </a>
+                    <a href="{{ route('buyer.register') }}" class="text-sm font-semibold text-white bg-gradient-to-r from-brand-indigo to-brand-purple hover:opacity-90 px-5 py-2.5 rounded-xl transition-all shadow-md shadow-brand-indigo/10">
+                        Get Started
+                    </a>
+                @endif
             </div>
         </nav>
     </header>

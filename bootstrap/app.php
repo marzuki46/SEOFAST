@@ -25,6 +25,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'admin/midtrans/callback',
         ]);
+
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('buyer') || $request->is('buyer/*')) {
+                return route('buyer.login');
+            }
+            return route('login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -41,7 +41,7 @@
                                 
                                 <!-- Title -->
                                 <h2 class="font-outfit font-bold text-xl text-slate-900 mb-3 line-clamp-2 group-hover:text-brand-indigo transition-colors">
-                                    <a href="{{ route('blog.show', $post->slug ?: 'draft') }}">{{ $post->title }}</a>
+                                    <a href="{{ route('blog.show', $post->slug ?: $post->getTranslation('slug', 'id', false)) }}">{{ $post->title }}</a>
                                 </h2>
                                 
                                 <!-- Snippet -->
@@ -55,7 +55,7 @@
                                         <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                         Indexed
                                     </div>
-                                    <a href="{{ route('blog.show', $post->slug ?: 'draft') }}" class="text-xs font-bold text-slate-800 group-hover:text-brand-indigo transition-colors flex items-center gap-1">
+                                    <a href="{{ route('blog.show', $post->slug ?: $post->getTranslation('slug', 'id', false)) }}" class="text-xs font-bold text-slate-800 group-hover:text-brand-indigo transition-colors flex items-center gap-1">
                                         Read More
                                         <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -138,7 +138,7 @@
                         @foreach($recentPosts as $recent)
                             <div class="flex flex-col gap-1">
                                 <span class="text-[10px] text-slate-500 font-mono uppercase">{{ $recent->published_at ? $recent->published_at->format('M d, Y') : '' }}</span>
-                                <a href="{{ route('blog.show', $recent->slug ?: 'draft') }}" class="text-sm text-slate-700 hover:text-brand-indigo font-medium line-clamp-2 transition-colors">
+                                <a href="{{ route('blog.show', $recent->slug ?: $recent->getTranslation('slug', 'id', false)) }}" class="text-sm text-slate-700 hover:text-brand-indigo font-medium line-clamp-2 transition-colors">
                                     {{ $recent->title }}
                                 </a>
                             </div>

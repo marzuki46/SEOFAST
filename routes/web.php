@@ -73,10 +73,20 @@ if ($projectPrefix) {
     });
 }
 
-// Authentication Routes
+// Authentication Routes (Admin)
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
+    Route::get('/master/adminis-trator', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/master/adminis-trator', [LoginController::class, 'authenticate'])->name('login.authenticate');
+});
+
+// Buyer Public Authentication Routes (Moved to root level for easier access)
+Route::middleware('guest:buyer')->name('buyer.')->group(function () {
+    Route::get('/login', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'login'])->name('login.post');
+    Route::get('/register', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'register'])->name('register.post');
+    Route::get('/auth/google/buyer', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'googleRedirect'])->name('auth.google');
+    Route::get('/auth/google/buyer/callback', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'googleCallback'])->name('auth.google.callback');
 });
 
 use App\Http\Controllers\Admin\GscAdminController;
@@ -211,19 +221,27 @@ Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthContro
 
 // Buyer Portal Routes
 Route::prefix('buyer')->name('buyer.')->group(function () {
-    // Public — belum login
-    Route::middleware('guest:buyer')->group(function () {
-        Route::get('/login', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'showLogin'])->name('login');
-        Route::post('/login', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'login'])->name('login.post');
-        Route::get('/register', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'showRegister'])->name('register');
-        Route::post('/register', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'register'])->name('register.post');
-        Route::get('/auth/google', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'googleRedirect'])->name('auth.google');
-        Route::get('/auth/google/callback', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'googleCallback'])->name('auth.google.callback');
-    });
+    // Public — belum login (Already moved to root /login & /register)
 
     // Protected — sudah login sebagai buyer
-    Route::middleware('auth:buyer')->group(function () {
-        Route::post('/logout', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'logout'])->name('logout');
+    Route::middleware(['auth:buyer', 'verified'])->group(function () {
+        Route::post('/logout', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'logout'])->name('logout')->withoutMiddleware('verified');
+        
+        // Email Verification Routes
+        Route::get('/email/verify', [\App\Http\Controllers\Buyer\BuyerVerificationController::class, 'show'])
+            ->withoutMiddleware('verified')
+            ->name('verification.notice');
+            
+        Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\Buyer\BuyerVerificationController::class, 'verify'])
+            ->middleware(['signed'])
+            ->withoutMiddleware('verified')
+            ->name('verification.verify');
+            
+        Route::post('/email/verification-notification', [\App\Http\Controllers\Buyer\BuyerVerificationController::class, 'send'])
+            ->middleware(['throttle:6,1'])
+            ->withoutMiddleware('verified')
+            ->name('verification.send');
+
         Route::get('/dashboard', [\App\Http\Controllers\Buyer\BuyerDashboardController::class, 'index'])->name('dashboard');
         Route::get('/orders', [\App\Http\Controllers\Buyer\BuyerOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [\App\Http\Controllers\Buyer\BuyerOrderController::class, 'show'])->name('orders.show');

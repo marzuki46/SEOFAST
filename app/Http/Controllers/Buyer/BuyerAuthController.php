@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Auth\Events\Registered;
 
 class BuyerAuthController extends Controller
 {
@@ -49,6 +50,8 @@ class BuyerAuthController extends Controller
             'email'    => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        event(new Registered($buyer));
 
         Auth::guard('buyer')->login($buyer);
 

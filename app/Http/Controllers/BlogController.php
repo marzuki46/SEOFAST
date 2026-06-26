@@ -27,7 +27,9 @@ class BlogController extends Controller
         }
 
         $posts = $query->paginate(6);
-        $categories = SiloBlueprint::withCount('contents')->get();
+        $categories = SiloBlueprint::withCount(['contents' => function ($query) {
+            $query->where('status', 'published');
+        }])->get();
         $recentPosts = Content::where('status', 'published')
             ->orderBy('published_at', 'desc')
             ->take(5)
@@ -67,7 +69,9 @@ class BlogController extends Controller
             ->take(3)
             ->get();
 
-        $categories = SiloBlueprint::withCount('contents')->get();
+        $categories = SiloBlueprint::withCount(['contents' => function ($query) {
+            $query->where('status', 'published');
+        }])->get();
 
         // Fetch parent categories or silo blueprint info
         $category = $post->siloBlueprint;
@@ -94,7 +98,9 @@ class BlogController extends Controller
             ->orderBy('published_at', 'desc')
             ->paginate(6);
 
-        $categories = SiloBlueprint::withCount('contents')->get();
+        $categories = SiloBlueprint::withCount(['contents' => function ($query) {
+            $query->where('status', 'published');
+        }])->get();
         $recentPosts = Content::where('status', 'published')
             ->orderBy('published_at', 'desc')
             ->take(5)
