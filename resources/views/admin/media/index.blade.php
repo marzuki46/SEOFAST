@@ -223,9 +223,8 @@
         document.getElementById('modal-desc-input').value = media.description || '';
         document.getElementById('modal-url-input').value = media.url;
         
-        // Update Form Action
-        const updateUrl = `{{ url(config('app.url').'/media') }}/${media.id}`;
-        document.getElementById('modal-form').action = `{{ route('admin.media.index') }}/${media.id}`;
+        // Update Form Action (using relative URL to prevent HTTP/HTTPS mixed content proxy issues)
+        document.getElementById('modal-form').action = '/media/' + media.id;
 
         document.getElementById('delete-id').value = media.id;
     }
@@ -253,7 +252,8 @@
             btn.textContent = 'Deleting...';
             btn.disabled = true;
 
-            fetch('{{ route('admin.media.destroy') }}', {
+            // Use relative URL to prevent HTTPS/HTTP proxy redirect issues
+            fetch('/media', {
                 method: 'POST', // POST with _method=DELETE handles it
                 headers: {
                     'Content-Type': 'application/json',
@@ -275,7 +275,8 @@
                     btn.disabled = false;
                 }
             }).catch(err => {
-                alert('An error occurred.');
+                console.error(err);
+                alert('An error occurred. Check browser console.');
                 btn.textContent = originalText;
                 btn.disabled = false;
             });
@@ -323,7 +324,8 @@
                 btn.disabled = false;
             }
         }).catch(err => {
-            alert('An error occurred while saving.');
+            console.error('Save error:', err);
+            alert('An error occurred while saving: ' + err.message);
             btn.textContent = originalText;
             btn.disabled = false;
         });
