@@ -261,4 +261,4 @@ Route::prefix('buyer')->name('buyer.')->group(function () {
         Route::put('/profile', [\App\Http\Controllers\Buyer\BuyerProfileController::class, 'update'])->name('profile.update');
     });
 });
-Route::get('/{slug}', [\App\Http\Controllers\PageController::class, 'show'])->name('page.show');
+Route::get('/{slug}', [\App\Http\Controllers\PageController::class, 'show'])->where('slug', '.*')->name('page.show');
