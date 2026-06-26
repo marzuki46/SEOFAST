@@ -146,6 +146,21 @@ class Content extends Model
     }
 
     /**
+     * Get excerpt or fallback snippet.
+     */
+    public function getExcerptAttribute(): string
+    {
+        if (!empty($this->meta_description)) {
+            return $this->meta_description;
+        }
+
+        // Fallback to stripping markdown/HTML from the body
+        $text = strip_tags(preg_replace('/#+/', '', $this->body_raw));
+        $text = preg_replace('/\[([^\]]+)\]\([^)]+\)/', '$1', $text); // Remove markdown links but keep text
+        return \Illuminate\Support\Str::words($text, 25, '...');
+    }
+
+    /**
      * Convert body_raw markdown to styled HTML.
      */
     public function getHtmlBodyAttribute(): string

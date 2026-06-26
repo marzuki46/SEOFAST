@@ -53,7 +53,7 @@
                                 
                                 <!-- Snippet -->
                                 <p class="text-slate-600 text-sm leading-relaxed mb-6 line-clamp-3 flex-1">
-                                    {{ $post->meta_description }}
+                                    {{ $post->excerpt }}
                                 </p>
                                 
                                 <!-- Footer -->
