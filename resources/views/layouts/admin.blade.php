@@ -102,7 +102,7 @@
 
                     @if(auth()->user()->isAdmin())
                     <!-- GROUP: Website & CMS -->
-                    <div x-data="{ open: {{ request()->routeIs('admin.pages.*', 'admin.menus.*') ? 'true' : 'false' }} }" class="pt-2">
+                    <div x-data="{ open: {{ request()->routeIs('admin.pages.*', 'admin.menus.*', 'admin.media.*') ? 'true' : 'false' }} }" class="pt-2">
                         <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-300 transition-colors">
                             <span>Website & CMS</span>
                             <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -113,6 +113,9 @@
                             </a>
                             <a href="{{ route('admin.menus.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.menus.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 Navigation Menu
+                            </a>
+                            <a href="{{ route('admin.media.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.media.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                Media Library
                             </a>
                         </div>
                     </div>

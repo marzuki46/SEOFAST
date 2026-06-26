@@ -136,6 +136,13 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{product}', [\App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('destroy');
         });
 
+        // Media Library
+        Route::prefix('media')->name('admin.media.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Admin\MediaController::class, 'store'])->name('store');
+            Route::delete('/', [\App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('destroy');
+        });
+
         // Content / AI Generator
         Route::prefix('content')->name('admin.content.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\ContentController::class, 'index'])->name('index');
