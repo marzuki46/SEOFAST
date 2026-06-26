@@ -298,13 +298,16 @@
         btn.disabled = true;
 
         const formData = new FormData(form);
+        const payload = Object.fromEntries(formData.entries());
 
         fetch(form.action, {
-            method: 'POST', // form has @method('PUT')
-            body: formData,
+            method: 'PUT', // Send true HTTP PUT
+            body: JSON.stringify(payload),
             headers: {
+                'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': payload._token
             }
         }).then(response => {
             if (!response.ok && response.status !== 422) {
