@@ -106,7 +106,7 @@ class AIService
 
         } catch (\Exception $e) {
             Log::error("AI generation failed: {$e->getMessage()}", [
-                'tenant_id' => $this->tenant->id,
+                'tenant_id' => $this->tenant?->id ?? 0,
                 'provider' => $this->config['provider'],
                 'model' => $this->config['model'],
             ]);
