@@ -114,7 +114,7 @@ class AIService
 
         } catch (\Exception $e) {
             Log::error("AI generation failed: {$e->getMessage()}", [
-                'tenant_id' => $this->tenant?->id ?? 0,
+                'tenant_id' => $this->tenant?->id ?? (\App\Models\Tenant::first()?->id ?? 1),
                 'provider' => $this->config['provider'],
                 'model' => $this->config['model'],
             ]);
@@ -364,7 +364,7 @@ class AIService
         $duration = microtime(true) - $startTime;
 
         AiLog::create([
-            'tenant_id'          => $this->tenant?->id ?? 0,
+            'tenant_id'          => $this->tenant?->id ?? (\App\Models\Tenant::first()?->id ?? 1),
             'provider'           => $this->config['provider'],
             'model'              => $response['model'] ?? $this->config['model'],
             'prompt_tokens'      => $response['usage']['prompt_tokens'] ?? 0,
