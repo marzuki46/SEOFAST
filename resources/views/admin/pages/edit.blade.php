@@ -18,15 +18,33 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label for="title" class="block text-sm font-semibold text-slate-700 mb-1">Page Title</label>
-                <input type="text" name="title" id="title" value="{{ old('title', $page->title) }}" required
-                       class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Parent Page (Folder)</label>
+                <select id="parent_slug" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" onchange="generateSlug()">
+                    <option value="">-- No Parent (Root Level) --</option>
+                    @foreach($pages as $p)
+                        <option value="{{ $p->slug }}" {{ str_starts_with($page->slug, $p->slug . '/') ? 'selected' : '' }}>
+                            {{ $p->title }} ({{ $p->slug }})
+                        </option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-slate-500 mt-1">Select a parent folder to nest this page inside.</p>
             </div>
 
             <div>
+                <label for="title" class="block text-sm font-semibold text-slate-700 mb-1">Page Title</label>
+                <input type="text" name="title" id="title" value="{{ old('title', $page->title) }}" required
+                       class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" onkeyup="generateSlug()">
+            </div>
+
+            <div class="md:col-span-2">
                 <label for="slug" class="block text-sm font-semibold text-slate-700 mb-1">URL Slug</label>
-                <input type="text" name="slug" id="slug" value="{{ old('slug', $page->slug) }}" required
-                       class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                <div class="flex items-center">
+                    <span class="bg-slate-50 border border-r-0 border-gray-300 rounded-l-xl px-4 py-2 text-sm text-gray-500 font-mono select-none flex-shrink-0">
+                        {{ url('/') }}/
+                    </span>
+                    <input type="text" name="slug" id="slug" value="{{ old('slug', $page->slug) }}" required
+                           class="w-full rounded-r-xl border border-slate-300 px-4 py-2 text-sm text-blue-600 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                </div>
             </div>
 
             <div class="md:col-span-2">
@@ -71,3 +89,23 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function generateSlug() {
+        const title = document.getElementById('title').value;
+        const parent = document.getElementById('parent_slug').value;
+        
+        let slug = title.toLowerCase()
+            .replace(/[^\w\s-]/g, '') // remove special chars
+            .replace(/\s+/g, '-')     // replace spaces with dashes
+            .replace(/-+/g, '-');     // remove consecutive dashes
+
+        if (parent) {
+            slug = parent + '/' + slug;
+        }
+
+        document.getElementById('slug').value = slug;
+    }
+</script>
+@endpush

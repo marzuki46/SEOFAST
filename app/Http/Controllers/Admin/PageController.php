@@ -16,7 +16,8 @@ class PageController extends Controller
 
     public function create()
     {
-        return view('admin.pages.create');
+        $pages = Page::orderBy('slug', 'asc')->get();
+        return view('admin.pages.create', compact('pages'));
     }
 
     public function store(Request $request)
@@ -24,16 +25,27 @@ class PageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:pages',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'featured_image_upload' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $page = Page::create($request->only('title', 'slug', 'meta_title', 'meta_description'));
+        
+        $seoMeta = ['title' => $request->meta_title, 'description' => $request->meta_description];
+        if ($request->hasFile('featured_image_upload')) {
+            $path = $request->file('featured_image_upload')->store('content-images', 'public');
+            $seoMeta['og_image'] = '/storage/' . $path;
+        }
+        $page->updateSeoMeta($seoMeta);
         
         return redirect()->route('admin.pages.builder', $page->id)->with('success', 'Page created! Now build it.');
     }
 
     public function edit(Page $page)
     {
-        return view('admin.pages.edit', compact('page'));
+        $pages = Page::where('id', '!=', $page->id)->orderBy('slug', 'asc')->get();
+        return view('admin.pages.edit', compact('page', 'pages'));
     }
 
     public function update(Request $request, Page $page)
