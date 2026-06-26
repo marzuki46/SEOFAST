@@ -76,7 +76,7 @@
 <!-- Media Grid (10 per row on lg) -->
 <div class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-4 mb-8">
     @forelse($media as $item)
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-brand-indigo transition-all" onclick="openMediaModal({{ $item->toJson() }})">
+        <div id="media-item-{{ $item->id }}" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-brand-indigo transition-all" onclick="openMediaModal({{ $item->toJson() }})">
             <!-- Image Thumbnail -->
             <div class="aspect-square bg-slate-100 relative group">
                 <img src="{{ $item->url }}" alt="{{ $item->alt_text }}" class="w-full h-full object-cover">
@@ -133,7 +133,7 @@
                         </div>
 
                         <!-- Update Form -->
-                        <form id="modal-form" method="POST" action="">
+                        <form id="modal-form" method="POST" action="" onsubmit="saveMedia(event)">
                             @csrf
                             @method('PUT')
                             
@@ -161,8 +161,8 @@
                             </div>
 
                             <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
-                                <button type="button" onclick="deleteMedia()" class="text-sm font-medium text-rose-600 hover:text-rose-800">Delete permanently</button>
-                                <button type="submit" class="px-4 py-2 bg-brand-indigo text-white font-medium rounded-lg hover:bg-brand-purple transition-colors text-sm">
+                                <button type="button" onclick="deleteMedia()" id="btn-delete" class="text-sm font-medium text-rose-600 hover:text-rose-800">Delete permanently</button>
+                                <button type="submit" id="btn-save" class="px-4 py-2 bg-brand-indigo text-white font-medium rounded-lg hover:bg-brand-purple transition-colors text-sm">
                                     Save Changes
                                 </button>
                             </div>
@@ -241,8 +241,86 @@
 
     function deleteMedia() {
         if (confirm('Are you sure you want to delete this media file? This action cannot be undone.')) {
-            document.getElementById('delete-form').submit();
+            const id = document.getElementById('delete-id').value;
+            const btn = document.getElementById('btn-delete');
+            const originalText = btn.textContent;
+            btn.textContent = 'Deleting...';
+            btn.disabled = true;
+
+            fetch('{{ route('admin.media.destroy') }}', {
+                method: 'POST', // POST with _method=DELETE handles it
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                },
+                body: JSON.stringify({
+                    _method: 'DELETE',
+                    id: id
+                })
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    const el = document.getElementById('media-item-' + id);
+                    if(el) el.remove();
+                    closeMediaModal();
+                } else {
+                    alert('Failed to delete media.');
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            }).catch(err => {
+                alert('An error occurred.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
         }
+    }
+
+    function saveMedia(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('btn-save');
+        const originalText = btn.textContent;
+        
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST', // form has @method('PUT')
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                btn.textContent = 'Saved!';
+                btn.classList.replace('bg-brand-indigo', 'bg-emerald-600');
+                
+                // Update the onclick data so if reopened, it has new data
+                const el = document.getElementById('media-item-' + data.media.id);
+                if (el) {
+                    // Update the onclick attribute string with new json
+                    el.setAttribute('onclick', `openMediaModal(${JSON.stringify(data.media).replace(/"/g, '&quot;')})`);
+                }
+
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.replace('bg-emerald-600', 'bg-brand-indigo');
+                    btn.disabled = false;
+                }, 2000);
+            } else {
+                alert('Failed to update details.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }).catch(err => {
+            alert('An error occurred while saving.');
+            btn.textContent = originalText;
+            btn.disabled = false;
+        });
     }
 </script>
 @endpush

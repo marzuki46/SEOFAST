@@ -152,6 +152,10 @@ class MediaController extends Controller
         $medium = Media::findOrFail($id);
         $medium->update($request->only(['title', 'alt_text']));
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Media details updated successfully.', 'media' => $medium]);
+        }
+
         return back()->with('success', 'Media details updated successfully.');
     }
 
@@ -171,6 +175,10 @@ class MediaController extends Controller
         }
         
         $media->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Media file deleted successfully.']);
+        }
 
         return back()->with('success', 'Media file deleted successfully.');
     }
