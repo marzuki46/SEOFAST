@@ -17,8 +17,11 @@ class BlogController extends Controller
         $query = Content::where('status', 'published')
             ->whereNotNull('body_raw')
             ->where('body_raw', '!=', '{"id":""}')
-            ->where('body_raw', '!=', '{"id":null}')
-            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+            ->where('body_raw', '!=', '{"en":""}')
+            ->where(function($q) {
+                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+                  ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
+            })
             ->orderBy('published_at', 'desc');
 
         if ($request->filled('q')) {
@@ -32,16 +35,21 @@ class BlogController extends Controller
 
         $posts = $query->paginate(6);
 
-        // Only show categories that have at least 1 published article with actual content
         $categories = SiloBlueprint::withCount(['contents' => function ($query) {
             $query->where('status', 'published')
                   ->whereNotNull('body_raw')
-                  ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''");
+                  ->where(function($q) {
+                      $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+                        ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
+                  });
         }])->having('contents_count', '>', 0)->get();
 
         $recentPosts = Content::where('status', 'published')
             ->whereNotNull('body_raw')
-            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+            ->where(function($q) {
+                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+                  ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
+            })
             ->orderBy('published_at', 'desc')
             ->take(5)
             ->get();
@@ -77,7 +85,10 @@ class BlogController extends Controller
             ->where('id', '!=', $post->id)
             ->where('status', 'published')
             ->whereNotNull('body_raw')
-            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+            ->where(function($q) {
+                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+                  ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
+            })
             ->orderBy('published_at', 'desc')
             ->take(3)
             ->get();
@@ -85,7 +96,10 @@ class BlogController extends Controller
         $categories = SiloBlueprint::withCount(['contents' => function ($query) {
             $query->where('status', 'published')
                   ->whereNotNull('body_raw')
-                  ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''");
+                  ->where(function($q) {
+                      $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+                        ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
+                  });
         }])->having('contents_count', '>', 0)->get();
 
         // Fetch parent categories or silo blueprint info
@@ -111,7 +125,10 @@ class BlogController extends Controller
         $posts = Content::where('silo_blueprint_id', $category->id)
             ->where('status', 'published')
             ->whereNotNull('body_raw')
-            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+            ->where(function($q) {
+                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+                  ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
+            })
             ->orderBy('published_at', 'desc')
             ->paginate(6);
 
