@@ -23,5 +23,9 @@ class AppServiceProvider extends ServiceProvider
             // Max 60 inspections per minute per tenant
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(60)->by($job->tenantId);
         });
+
+        if (config('app.env') === 'production' || str_contains(config('app.url'), 'https://')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }
