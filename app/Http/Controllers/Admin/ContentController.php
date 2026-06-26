@@ -158,9 +158,18 @@ class ContentController extends Controller
             'og_image' => 'nullable|url',
             'schema_type' => 'nullable|string',
             'schema_custom_json' => 'nullable|string',
+            'featured_image_upload' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'featured_image_url' => 'nullable|string',
         ]);
 
-        $content->update($request->except(['canonical', 'robots', 'og_title', 'og_description', 'og_image', 'schema_type']));
+        $updateData = $request->except(['canonical', 'robots', 'og_title', 'og_description', 'og_image', 'schema_type', 'schema_custom_json', 'featured_image_upload']);
+
+        if ($request->hasFile('featured_image_upload')) {
+            $path = $request->file('featured_image_upload')->store('content-images', 'public');
+            $updateData['featured_image_url'] = '/storage/' . $path;
+        }
+
+        $content->update($updateData);
 
         // Build schema
         $schema = null;

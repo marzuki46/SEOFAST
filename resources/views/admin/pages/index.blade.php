@@ -48,6 +48,8 @@
                     </form>
                     <span class="text-gray-300">|</span>
                     @endif
+                    <a href="{{ route('admin.pages.edit', $page->id) }}" class="text-sm text-amber-600 hover:text-amber-900 font-bold">Settings & Meta</a>
+                    <span class="text-gray-300">|</span>
                     <a href="{{ route('admin.pages.builder', $page->id) }}" class="text-sm text-indigo-600 hover:text-indigo-900 font-bold">Visual Builder</a>
                     <span class="text-gray-300">|</span>
                     <a href="/{{ $page->slug }}" target="_blank" class="text-sm text-gray-600 hover:text-gray-900">View</a>

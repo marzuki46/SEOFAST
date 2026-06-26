@@ -188,6 +188,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/create', [\App\Http\Controllers\Admin\PageController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\Admin\PageController::class, 'store'])->name('store');
             Route::get('/{page}/builder', [\App\Http\Controllers\Admin\PageController::class, 'builder'])->name('builder');
+            Route::get('/{page}/edit', [\App\Http\Controllers\Admin\PageController::class, 'edit'])->name('edit');
+            Route::put('/{page}', [\App\Http\Controllers\Admin\PageController::class, 'update'])->name('update');
             Route::post('/{page}/builder/save', [\App\Http\Controllers\Admin\PageController::class, 'saveBuilder'])->name('builder.save');
             Route::post('/{page}/set-home', [\App\Http\Controllers\Admin\PageController::class, 'setHomepage'])->name('set_home');
         });

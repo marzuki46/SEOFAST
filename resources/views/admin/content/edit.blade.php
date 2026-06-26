@@ -17,7 +17,7 @@
         <span class="font-semibold text-slate-800">Edit</span>
     </div>
 
-    <form action="{{ route('admin.content.update', $content->id) }}" method="POST" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+    <form action="{{ route('admin.content.update', $content->id) }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
         @csrf
         @method('PUT')
 
@@ -73,10 +73,26 @@
             </div>
 
             <div class="md:col-span-2">
-                <label for="featured_image_url" class="block text-sm font-semibold text-slate-700 mb-1">Featured Image URL (Sisipkan Gambar)</label>
-                <input type="url" name="featured_image_url" id="featured_image_url" placeholder="https://example.com/image.jpg"
-                       class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
-                <p class="text-xs text-slate-500 mt-1">URL gambar untuk disisipkan ke dalam konten sebagai gambar utama. Untuk menyisipkan gambar di dalam artikel, gunakan format Markdown: <code class="bg-slate-100 px-1 rounded">![Deskripsi Gambar](URL_Gambar)</code></p>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Featured Image (Upload atau URL)</label>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <label for="featured_image_upload" class="block text-xs text-slate-500 mb-1">Upload Gambar Baru</label>
+                        <input type="file" name="featured_image_upload" id="featured_image_upload" accept="image/*"
+                               class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div class="flex-1">
+                        <label for="featured_image_url" class="block text-xs text-slate-500 mb-1">Atau Gunakan URL (Akan tertimpa jika Anda upload file)</label>
+                        <input type="url" name="featured_image_url" id="featured_image_url" value="{{ old('featured_image_url', $content->featured_image_url) }}" placeholder="https://example.com/image.jpg"
+                               class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+                @if($content->featured_image_url)
+                    <div class="mt-3">
+                        <p class="text-xs text-slate-500 mb-1">Gambar Saat Ini:</p>
+                        <img src="{{ $content->featured_image_url }}" alt="Featured" class="h-24 w-auto rounded border border-slate-200 object-cover">
+                    </div>
+                @endif
+                <p class="text-xs text-slate-500 mt-2">Untuk menyisipkan gambar di dalam artikel (Markdown), gunakan format: <code class="bg-slate-100 px-1 rounded">![Deskripsi Gambar](URL_Gambar)</code></p>
             </div>
         </div>
 
