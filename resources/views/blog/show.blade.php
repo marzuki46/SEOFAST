@@ -146,10 +146,7 @@
                         @endif
                         <span class="text-slate-300">•</span>
                         <span class="text-slate-600 font-medium">Published: {{ $post->published_at ? $post->published_at->format('F d, Y') : 'Draft' }}</span>
-                        <span class="text-slate-300">•</span>
-                        <span class="px-2.5 py-0.5 rounded bg-slate-100 text-xs text-slate-600 font-semibold border border-slate-200 uppercase">
-                            {{ $post->hierarchy_level }} Post
-                        </span>
+                        <!-- Removed internal hierarchy level display -->
                     </div>
 
                     <h1 class="font-outfit font-extrabold text-3xl md:text-5xl text-slate-900 tracking-tight leading-tight">
@@ -199,9 +196,7 @@
                             @foreach($relatedPosts as $rel)
                                 <a href="{{ route('blog.show', $rel->slug ?: $rel->getTranslation('slug', 'id', false)) }}" class="p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between group">
                                     <div>
-                                        <span class="text-[10px] text-brand-indigo font-mono uppercase font-semibold mb-2 block">
-                                            {{ $rel->hierarchy_level }}
-                                        </span>
+                                        <!-- Removed internal hierarchy level display -->
                                         <h4 class="font-outfit font-bold text-slate-900 text-sm group-hover:text-brand-indigo transition-colors line-clamp-2">
                                             {{ $rel->title }}
                                         </h4>
