@@ -211,6 +211,49 @@
 
             <!-- Scrollable Content View -->
             <main class="flex-1 overflow-y-auto p-8">
+                <!-- Session Alert Messages -->
+                <div class="max-w-7xl mx-auto mb-6">
+                    @if(session('success'))
+                        <div class="mb-4 rounded-xl bg-emerald-50 p-4 border border-emerald-200 shadow-sm flex items-start gap-3">
+                            <svg class="h-5 w-5 text-emerald-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <p class="text-sm font-bold text-emerald-800">{{ session('success') }}</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="mb-4 rounded-xl bg-rose-50 p-4 border border-rose-200 shadow-sm flex items-start gap-3">
+                            <svg class="h-5 w-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                            </svg>
+                            <div>
+                                <p class="text-sm font-bold text-rose-800">{{ session('error') }}</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="mb-4 rounded-xl bg-rose-50 p-4 border border-rose-200 shadow-sm">
+                            <div class="flex items-start gap-3">
+                                <svg class="h-5 w-5 text-rose-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                </svg>
+                                <div>
+                                    <h4 class="text-sm font-bold text-rose-800 mb-1">Please fix the following validation errors:</h4>
+                                    <ul class="list-disc pl-5 text-xs text-rose-700 font-semibold space-y-0.5">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
                 @yield('admin_content')
             </main>
         </div>
