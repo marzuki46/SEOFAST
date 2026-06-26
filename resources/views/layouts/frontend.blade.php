@@ -267,44 +267,73 @@
                 <div class="md:col-span-2">
                     <a href="{{ route('home') }}" class="flex items-center gap-2 mb-6">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-indigo to-brand-purple flex items-center justify-center font-outfit font-bold text-white text-md">
-                            SF
+                            {{ \App\Models\SystemSetting::get('footer_logo_text', 'SF') }}
                         </div>
                         <span class="font-outfit font-extrabold text-xl tracking-tight text-slate-900">
-                            SEO<span class="bg-gradient-to-r from-brand-indigo to-brand-purple bg-clip-text text-transparent">FAST</span>
+                            @php
+                                $brandName = \App\Models\SystemSetting::get('footer_brand_name', 'SEOFAST');
+                                $firstPart = substr($brandName, 0, 3);
+                                $secondPart = substr($brandName, 3);
+                            @endphp
+                            {{ $firstPart }}<span class="bg-gradient-to-r from-brand-indigo to-brand-purple bg-clip-text text-transparent">{{ $secondPart }}</span>
                         </span>
                     </a>
                     <p class="text-slate-600 text-sm max-w-sm leading-relaxed mb-6">
-                        The ultimate SEO Operating System for modern marketing. Zero manual refresh, zero soft failures, and seamless closed-loop Google Search Console synchronization.
+                        {{ \App\Models\SystemSetting::get('footer_description', 'The ultimate SEO Operating System for modern marketing. Zero manual refresh, zero soft failures, and seamless closed-loop Google Search Console synchronization.') }}
                     </p>
                     <div class="text-xs text-slate-400 font-mono">
-                        System Architecture V3
+                        {{ \App\Models\SystemSetting::get('footer_subtext', 'System Architecture V3') }}
                     </div>
                 </div>
 
                 <div>
-                    <h3 class="font-outfit font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">Platform</h3>
+                    <h3 class="font-outfit font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">
+                        {{ \App\Models\SystemSetting::get('footer_col1_title', 'Platform') }}
+                    </h3>
                     <ul class="space-y-3 text-sm text-slate-600">
-                        <li><a href="{{ route('home') }}" class="hover:text-slate-900 transition-colors">Integrations</a></li>
-                        <li><a href="{{ route('home') }}" class="hover:text-slate-900 transition-colors">AI Content Generator</a></li>
-                        <li><a href="{{ route('home') }}" class="hover:text-slate-900 transition-colors">Silo Builder</a></li>
-                        <li><a href="{{ route('home') }}#pricing" class="hover:text-slate-900 transition-colors">Pricing Plans</a></li>
+                        @php
+                            $col1LinksText = \App\Models\SystemSetting::get('footer_col1_links', "Integrations|/\nAI Content Generator|/\nSilo Builder|/\nPricing Plans|/#pricing");
+                            $col1Lines = explode("\n", str_replace("\r", "", $col1LinksText));
+                        @endphp
+                        @foreach($col1Lines as $line)
+                            @if(trim($line))
+                                @php
+                                    $parts = explode('|', $line, 2);
+                                    $text = trim($parts[0] ?? '');
+                                    $url = trim($parts[1] ?? '#');
+                                @endphp
+                                <li><a href="{{ $url }}" class="hover:text-slate-900 transition-colors">{{ $text }}</a></li>
+                            @endif
+                        @endforeach
                     </ul>
                 </div>
 
                 <div>
-                    <h3 class="font-outfit font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">Resources</h3>
+                    <h3 class="font-outfit font-bold text-slate-900 mb-4 text-sm tracking-wider uppercase">
+                        {{ \App\Models\SystemSetting::get('footer_col2_title', 'Resources') }}
+                    </h3>
                     <ul class="space-y-3 text-sm text-slate-600">
-                        <li><a href="{{ route('blog.index') }}" class="hover:text-slate-900 transition-colors">Blog Feed</a></li>
-                        <li><a href="{{ route('home') }}" class="hover:text-slate-900 transition-colors">Documentation</a></li>
-                        <li><a href="{{ route('home') }}" class="hover:text-slate-900 transition-colors">Changelog</a></li>
-                        <li><a href="{{ route('home') }}" class="hover:text-slate-900 transition-colors">Support Center</a></li>
+                        @php
+                            $col2LinksText = \App\Models\SystemSetting::get('footer_col2_links', "Blog Feed|/blog\nDocumentation|/\nChangelog|/\nSupport Center|/");
+                            $col2Lines = explode("\n", str_replace("\r", "", $col2LinksText));
+                        @endphp
+                        @foreach($col2Lines as $line)
+                            @if(trim($line))
+                                @php
+                                    $parts = explode('|', $line, 2);
+                                    $text = trim($parts[0] ?? '');
+                                    $url = trim($parts[1] ?? '#');
+                                @endphp
+                                <li><a href="{{ $url }}" class="hover:text-slate-900 transition-colors">{{ $text }}</a></li>
+                            @endif
+                        @endforeach
                     </ul>
                 </div>
             </div>
 
             <div class="border-t border-slate-200/60 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p class="text-xs text-slate-500">
-                    &copy; {{ date('Y') }} SEOFAST Inc. All rights reserved. Made for speed & high performance.
+                    &copy; {{ date('Y') }} {{ \App\Models\SystemSetting::get('footer_brand_name', 'SEOFAST') }} Inc. All rights reserved. Made for speed & high performance.
                 </p>
                 <div class="flex gap-6 text-xs text-slate-500">
                     <a href="{{ url('/privacy-policy') }}" class="hover:text-slate-900 transition-colors">Privacy Policy</a>

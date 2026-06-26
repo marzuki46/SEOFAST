@@ -26,6 +26,7 @@
             $tabs = [
                 'general' => 'General',
                 'permalinks' => 'Permalinks / URL',
+                'footer' => 'Footer Settings',
                 'auth' => 'Auth & OAuth',
                 'seo' => 'SEO Settings',
                 'email' => 'Email SMTP',
@@ -103,6 +104,55 @@
                                     <div class="flex rounded-xl shadow-sm">
                                         <span class="inline-flex items-center rounded-l-xl border border-r-0 border-slate-300 bg-slate-50 px-3 text-slate-500 text-base">{{ config('app.url') }}/</span>
                                         <input type="text" name="permalink_silo" value="{{ $settings['permalinks']['permalink_silo'] ?? 'kategori' }}" class="block w-full min-w-0 flex-1 rounded-none rounded-r-xl border-slate-300 focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="kategori">
+                                    </div>
+                                </div>
+                            </div>
+                        @elseif($key === 'footer')
+                            <div class="grid grid-cols-1 gap-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Footer Logo Text</label>
+                                        <input type="text" name="footer_logo_text" value="{{ $settings['footer']['footer_logo_text'] ?? 'SF' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Footer Brand Name</label>
+                                        <input type="text" name="footer_brand_name" value="{{ $settings['footer']['footer_brand_name'] ?? 'SEOFAST' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Footer Description</label>
+                                    <textarea name="footer_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">{{ $settings['footer']['footer_description'] ?? 'The ultimate SEO Operating System for modern marketing. Zero manual refresh, zero soft failures, and seamless closed-loop Google Search Console synchronization.' }}</textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Footer Sub-text / Architecture Info</label>
+                                    <input type="text" name="footer_subtext" value="{{ $settings['footer']['footer_subtext'] ?? 'System Architecture V3' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                                </div>
+                                
+                                <div class="border-t border-slate-200 pt-6">
+                                    <h4 class="text-md font-bold text-slate-900 mb-4">Column 1 Links</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-semibold text-slate-800 mb-1.5">Column 1 Title</label>
+                                            <input type="text" name="footer_col1_title" value="{{ $settings['footer']['footer_col1_title'] ?? 'Platform' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-3">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-semibold text-slate-800 mb-1.5">Column 1 Links (Format: Link Text | URL per baris)</label>
+                                            <textarea name="footer_col1_links" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm font-mono px-4 py-3">{{ $settings['footer']['footer_col1_links'] ?? "Integrations|/\nAI Content Generator|/\nSilo Builder|/\nPricing Plans|/#pricing" }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-slate-200 pt-6">
+                                    <h4 class="text-md font-bold text-slate-900 mb-4">Column 2 Links</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-semibold text-slate-800 mb-1.5">Column 2 Title</label>
+                                            <input type="text" name="footer_col2_title" value="{{ $settings['footer']['footer_col2_title'] ?? 'Resources' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-3">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-semibold text-slate-800 mb-1.5">Column 2 Links (Format: Link Text | URL per baris)</label>
+                                            <textarea name="footer_col2_links" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm font-mono px-4 py-3">{{ $settings['footer']['footer_col2_links'] ?? "Blog Feed|/blog\nDocumentation|/\nChangelog|/\nSupport Center|/" }}</textarea>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

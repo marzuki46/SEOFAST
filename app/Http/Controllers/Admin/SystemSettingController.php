@@ -13,15 +13,17 @@ class SystemSettingController extends Controller
     {
         // Settings are grouped by tabs in the UI
         $settings = [
-            'general' => SystemSetting::group('general'),
-            'auth'    => SystemSetting::group('auth'),
-            'ai'      => SystemSetting::group('ai'),
-            'payment' => SystemSetting::group('payment'),
-            'seo'     => SystemSetting::group('seo'),
-            'email'   => SystemSetting::group('email'),
-            'storage' => SystemSetting::group('storage'),
-            'queue'   => SystemSetting::group('queue'),
-            'api'     => SystemSetting::group('api'),
+            'general'    => SystemSetting::group('general'),
+            'permalinks' => SystemSetting::group('permalinks'),
+            'footer'     => SystemSetting::group('footer'),
+            'auth'       => SystemSetting::group('auth'),
+            'ai'         => SystemSetting::group('ai'),
+            'payment'    => SystemSetting::group('payment'),
+            'seo'        => SystemSetting::group('seo'),
+            'email'      => SystemSetting::group('email'),
+            'storage'    => SystemSetting::group('storage'),
+            'queue'      => SystemSetting::group('queue'),
+            'api'        => SystemSetting::group('api'),
         ];
 
         return view('admin.settings.system', compact('settings'));
