@@ -45,13 +45,13 @@
             @csrf
             
             <div class="w-full">
-                <label for="files" class="flex justify-center w-full h-32 px-4 transition bg-white border-2 border-slate-300 border-dashed rounded-xl appearance-none cursor-pointer hover:border-brand-indigo focus:outline-none">
-                    <span class="flex items-center space-x-2">
-                        <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <label for="files" class="flex justify-center w-full h-32 px-4 transition bg-slate-50 border-2 border-slate-300 border-dashed rounded-xl appearance-none cursor-pointer hover:border-brand-indigo hover:bg-indigo-50 focus:outline-none">
+                    <span class="flex flex-col items-center justify-center space-y-2">
+                        <svg class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
                         <span class="font-medium text-slate-600">
-                            Drop files to Attach, or
+                            Drop files here to upload, or
                             <span class="text-brand-indigo underline">browse</span>
                         </span>
                     </span>
@@ -73,45 +73,13 @@
     </div>
 </div>
 
-<!-- Media Grid -->
-<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+<!-- Media Grid (10 per row on lg) -->
+<div class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-4 mb-8">
     @forelse($media as $item)
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden group flex flex-col">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-brand-indigo transition-all" onclick="openMediaModal({{ $item->toJson() }})">
             <!-- Image Thumbnail -->
             <div class="aspect-square bg-slate-100 relative group">
-                <img src="{{ $item['url'] }}" alt="{{ $item['name'] }}" class="w-full h-full object-cover">
-                
-                <!-- Hover Overlay -->
-                <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <!-- Copy URL Button -->
-                    <button onclick="copyToClipboard('{{ $item['url'] }}')" class="p-2 bg-white/20 hover:bg-white text-white hover:text-slate-900 rounded-lg transition-colors backdrop-blur-sm" title="Copy URL">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                    </button>
-                    <!-- Delete Button -->
-                    <form action="{{ route('admin.media.destroy') }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this image? This action cannot be undone.')">
-                        @csrf
-                        @method('DELETE')
-                        <input type="hidden" name="path" value="{{ $item['path'] }}">
-                        <button type="submit" class="p-2 bg-rose-500/80 hover:bg-rose-600 text-white rounded-lg transition-colors backdrop-blur-sm" title="Delete">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Image Info -->
-            <div class="p-3 bg-white border-t border-slate-100 flex-1 flex flex-col justify-between">
-                <div class="truncate text-xs font-medium text-slate-700" title="{{ $item['name'] }}">
-                    {{ $item['name'] }}
-                </div>
-                <div class="mt-1 flex justify-between items-center text-[10px] text-slate-500">
-                    <span>{{ $item['size'] }}</span>
-                    <span>{{ \Carbon\Carbon::createFromTimestamp($item['last_modified'])->format('M d') }}</span>
-                </div>
+                <img src="{{ $item->url }}" alt="{{ $item->alt_text }}" class="w-full h-full object-cover">
             </div>
         </div>
     @empty
@@ -124,6 +92,94 @@
         </div>
     @endforelse
 </div>
+
+<!-- Pagination -->
+<div class="mb-12">
+    {{ $media->links() }}
+</div>
+
+<!-- WordPress-like Media Modal -->
+<div id="media-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm transition-opacity" onclick="closeMediaModal()"></div>
+
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-5xl flex flex-col md:flex-row h-[80vh]">
+                
+                <!-- Left: Image Preview -->
+                <div class="w-full md:w-2/3 bg-slate-100 flex items-center justify-center p-8 relative border-r border-slate-200">
+                    <button onclick="closeMediaModal()" class="absolute top-4 right-4 p-2 text-slate-500 hover:text-slate-800 bg-white rounded-lg shadow-sm md:hidden">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                    <img id="modal-img" src="" class="max-w-full max-h-full object-contain shadow-sm rounded-lg" alt="">
+                </div>
+
+                <!-- Right: Image Details & Edit Form -->
+                <div class="w-full md:w-1/3 bg-white flex flex-col overflow-y-auto">
+                    <!-- Header -->
+                    <div class="p-5 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
+                        <h3 class="text-lg font-bold text-slate-900">Attachment Details</h3>
+                        <button onclick="closeMediaModal()" class="hidden md:block p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+
+                    <div class="p-5 flex-1">
+                        <!-- File Info -->
+                        <div class="text-xs text-slate-500 space-y-1 mb-6 pb-6 border-b border-slate-100">
+                            <p class="font-medium text-slate-900 truncate" id="modal-filename"></p>
+                            <p id="modal-date"></p>
+                            <p id="modal-size"></p>
+                        </div>
+
+                        <!-- Update Form -->
+                        <form id="modal-form" method="POST" action="">
+                            @csrf
+                            @method('PUT')
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Title</label>
+                                    <input type="text" id="modal-title-input" name="title" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-brand-indigo focus:border-brand-indigo text-sm">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Alt Text</label>
+                                    <input type="text" id="modal-alt-input" name="alt_text" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-brand-indigo focus:border-brand-indigo text-sm">
+                                    <p class="text-[10px] text-slate-500 mt-1">Describe the purpose of the image. Leave empty if the image is purely decorative.</p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">File URL</label>
+                                    <div class="flex">
+                                        <input type="text" id="modal-url-input" readonly class="w-full px-3 py-2 border border-slate-300 rounded-l-lg bg-slate-50 text-sm text-slate-500 font-mono">
+                                        <button type="button" onclick="copyModalUrl()" class="px-4 py-2 bg-slate-100 border border-l-0 border-slate-300 rounded-r-lg text-slate-600 hover:bg-slate-200 text-sm font-medium transition-colors">
+                                            Copy
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
+                                <button type="button" onclick="deleteMedia()" class="text-sm font-medium text-rose-600 hover:text-rose-800">Delete permanently</button>
+                                <button type="submit" class="px-4 py-2 bg-brand-indigo text-white font-medium rounded-lg hover:bg-brand-purple transition-colors text-sm">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Hidden Delete Form -->
+                        <form id="delete-form" method="POST" action="{{ route('admin.media.destroy') }}" class="hidden">
+                            @csrf
+                            @method('DELETE')
+                            <input type="hidden" name="id" id="delete-id">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -134,7 +190,7 @@
         
         if (input.files && input.files.length > 0) {
             fileList.classList.remove('hidden');
-            let html = '<strong class="block mb-2 text-slate-800">Selected Files:</strong><ul class="list-disc pl-5 space-y-1">';
+            let html = '<strong class="block mb-2 text-slate-800">Selected Files (' + input.files.length + '):</strong><ul class="list-disc pl-5 space-y-1">';
             
             for (let i = 0; i < input.files.length; i++) {
                 html += `<li>${input.files[i].name} <span class="text-slate-400 text-xs ml-2">(${(input.files[i].size / 1024).toFixed(1)} KB)</span></li>`;
@@ -147,20 +203,46 @@
         }
     }
 
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(function() {
-            alert('URL copied to clipboard: ' + text);
-        }, function(err) {
-            console.error('Could not copy text: ', err);
-            // Fallback
-            const el = document.createElement('textarea');
-            el.value = text;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            alert('URL copied to clipboard: ' + text);
-        });
+    function openMediaModal(media) {
+        document.getElementById('media-modal').classList.remove('hidden');
+        
+        document.getElementById('modal-img').src = media.url;
+        document.getElementById('modal-filename').textContent = media.filename;
+        
+        const date = new Date(media.created_at);
+        document.getElementById('modal-date').textContent = date.toLocaleDateString() + ' at ' + date.toLocaleTimeString();
+        document.getElementById('modal-size').textContent = (media.size / 1024).toFixed(1) + ' KB';
+        
+        document.getElementById('modal-title-input').value = media.title || '';
+        document.getElementById('modal-alt-input').value = media.alt_text || '';
+        document.getElementById('modal-url-input').value = media.url;
+        
+        // Update Form Action
+        const updateUrl = `{{ url(config('app.url').'/media') }}/${media.id}`;
+        document.getElementById('modal-form').action = `{{ route('admin.media.index') }}/${media.id}`;
+
+        document.getElementById('delete-id').value = media.id;
+    }
+
+    function closeMediaModal() {
+        document.getElementById('media-modal').classList.add('hidden');
+    }
+
+    function copyModalUrl() {
+        const input = document.getElementById('modal-url-input');
+        input.select();
+        document.execCommand('copy');
+        
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = originalText, 2000);
+    }
+
+    function deleteMedia() {
+        if (confirm('Are you sure you want to delete this media file? This action cannot be undone.')) {
+            document.getElementById('delete-form').submit();
+        }
     }
 </script>
 @endpush
