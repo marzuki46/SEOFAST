@@ -145,8 +145,7 @@
                             </a>
                         @endif
                         <span class="text-slate-300">•</span>
-                        <span class="text-slate-600 font-medium">Published: {{ $post->published_at ? $post->published_at->format('F d, Y') : 'Draft' }}</span>
-                        <!-- Removed internal hierarchy level display -->
+                        <span class="text-slate-600 font-medium">Published: {{ $post->published_at ? $post->published_at->format('F d, Y') : '' }}</span>
                     </div>
 
                     <h1 class="font-outfit font-extrabold text-3xl md:text-5xl text-slate-900 tracking-tight leading-tight">
@@ -188,24 +187,7 @@
                     </div>
                 </div>
 
-                <!-- Related Cluster Posts inside the same Silo -->
-                @if($relatedPosts->count() > 0)
-                    <div class="pt-12 border-t border-slate-200">
-                        <h3 class="font-outfit font-bold text-2xl text-slate-900 mb-6">Related Articles in this Silo</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            @foreach($relatedPosts as $rel)
-                                <a href="{{ route('blog.show', $rel->slug ?: $rel->getTranslation('slug', 'id', false)) }}" class="p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between group">
-                                    <div>
-                                        <!-- Removed internal hierarchy level display -->
-                                        <h4 class="font-outfit font-bold text-slate-900 text-sm group-hover:text-brand-indigo transition-colors line-clamp-2">
-                                            {{ $rel->title }}
-                                        </h4>
-                                    </div>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
+                {{-- Related articles section removed to prevent exposing silo structure --}}
             </div>
 
             <!-- Table of Contents & Categories Sidebar (Right 1 Column) -->

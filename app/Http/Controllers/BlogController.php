@@ -15,6 +15,10 @@ class BlogController extends Controller
     public function index(Request $request): View
     {
         $query = Content::where('status', 'published')
+            ->whereNotNull('body_raw')
+            ->where('body_raw', '!=', '{"id":""}')
+            ->where('body_raw', '!=', '{"id":null}')
+            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
             ->orderBy('published_at', 'desc');
 
         if ($request->filled('q')) {
@@ -27,10 +31,17 @@ class BlogController extends Controller
         }
 
         $posts = $query->paginate(6);
+
+        // Only show categories that have at least 1 published article with actual content
         $categories = SiloBlueprint::withCount(['contents' => function ($query) {
-            $query->where('status', 'published');
-        }])->get();
+            $query->where('status', 'published')
+                  ->whereNotNull('body_raw')
+                  ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''");
+        }])->having('contents_count', '>', 0)->get();
+
         $recentPosts = Content::where('status', 'published')
+            ->whereNotNull('body_raw')
+            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
             ->orderBy('published_at', 'desc')
             ->take(5)
             ->get();
@@ -61,17 +72,21 @@ class BlogController extends Controller
             abort(404);
         }
 
-        // Get related cluster posts (excluding current post)
+        // Get related posts (only those with actual content, excluding empty/blueprint)
         $relatedPosts = Content::where('silo_blueprint_id', $post->silo_blueprint_id)
             ->where('id', '!=', $post->id)
             ->where('status', 'published')
+            ->whereNotNull('body_raw')
+            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
             ->orderBy('published_at', 'desc')
             ->take(3)
             ->get();
 
         $categories = SiloBlueprint::withCount(['contents' => function ($query) {
-            $query->where('status', 'published');
-        }])->get();
+            $query->where('status', 'published')
+                  ->whereNotNull('body_raw')
+                  ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''");
+        }])->having('contents_count', '>', 0)->get();
 
         // Fetch parent categories or silo blueprint info
         $category = $post->siloBlueprint;
@@ -95,6 +110,8 @@ class BlogController extends Controller
 
         $posts = Content::where('silo_blueprint_id', $category->id)
             ->where('status', 'published')
+            ->whereNotNull('body_raw')
+            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
             ->orderBy('published_at', 'desc')
             ->paginate(6);
 
