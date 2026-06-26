@@ -26,11 +26,12 @@ class GscAdminController extends Controller
         $tenant = null;
 
         // Fetch credentials
-        $gscCred = TenantApiCredential::where('tenant_id', 0)
+        $tenantId = \App\Models\Tenant::first()?->id ?? 1;
+        $gscCred = TenantApiCredential::where('tenant_id', $tenantId)
             ->where('service', 'google_search_console')
             ->first();
 
-        $indexingCred = TenantApiCredential::where('tenant_id', 0)
+        $indexingCred = TenantApiCredential::where('tenant_id', $tenantId)
             ->where('service', 'google_indexing_api')
             ->first();
 
@@ -98,7 +99,7 @@ class GscAdminController extends Controller
         if ($request->filled('access_token')) {
             TenantApiCredential::updateOrCreate(
                 [
-                    'tenant_id' => 0,
+                    'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
                     'service' => 'google_search_console',
                 ],
                 [
@@ -117,7 +118,7 @@ class GscAdminController extends Controller
         if ($request->filled('service_account_json')) {
             TenantApiCredential::updateOrCreate(
                 [
-                    'tenant_id' => 0,
+                    'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
                     'service' => 'google_indexing_api',
                 ],
                 [
@@ -139,12 +140,13 @@ class GscAdminController extends Controller
     {
         try {
             // Check credentials exist
-            TenantApiCredential::where('tenant_id', 0)
+            $tenantId = \App\Models\Tenant::first()?->id ?? 1;
+            TenantApiCredential::where('tenant_id', $tenantId)
                 ->where('service', 'google_search_console')
                 ->where('is_active', true)
                 ->firstOrFail();
 
-            SyncUrlInspectionJob::dispatch(0);
+            SyncUrlInspectionJob::dispatch($tenantId);
 
             return redirect()->route('admin.gsc.index')
                 ->with('success', 'URL inspection sync job dispatched to background.');
@@ -160,12 +162,13 @@ class GscAdminController extends Controller
     public function syncAnalytics(Request $request): RedirectResponse
     {
         try {
-            TenantApiCredential::where('tenant_id', 0)
+            $tenantId = \App\Models\Tenant::first()?->id ?? 1;
+            TenantApiCredential::where('tenant_id', $tenantId)
                 ->where('service', 'google_search_console')
                 ->where('is_active', true)
                 ->firstOrFail();
 
-            SyncSearchAnalyticsJob::dispatch(0);
+            SyncSearchAnalyticsJob::dispatch($tenantId);
 
             return redirect()->route('admin.gsc.index')
                 ->with('success', 'Search analytics sync job dispatched to background.');

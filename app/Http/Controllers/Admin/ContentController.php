@@ -35,7 +35,7 @@ class ContentController extends Controller
         // Seed a sample silo blueprint if none exists so the user has data to pick from
         if ($siloBlueprints->isEmpty()) {
             $silo = SiloBlueprint::create([
-                'tenant_id' => 0,
+                'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
                 'silo_name' => 'SEO Optimization Silo',
                 'seed_keyword' => 'seo tips',
                 'target_language' => 'id',
@@ -73,7 +73,7 @@ class ContentController extends Controller
 
         // Create Content model
         $content = Content::create([
-            'tenant_id'        => 0,
+            'tenant_id'        => \App\Models\Tenant::first()?->id ?? 1,
             'silo_blueprint_id' => $request->silo_blueprint_id,
             'target_keyword'   => $request->target_keyword,
             'slug'             => json_encode(['id' => $slug]),
@@ -98,7 +98,7 @@ class ContentController extends Controller
         if ($generateAi) {
             // Create AI Generation Job
             $job = AiGenerationJob::create([
-                'tenant_id' => 0,
+                'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
                 'content_id' => $content->id,
                 'job_type' => 'initial_generation',
                 'status' => 'pending',
@@ -212,7 +212,7 @@ class ContentController extends Controller
 
         // Create AI Generation Job
         $job = AiGenerationJob::create([
-            'tenant_id' => 0,
+            'tenant_id' => $content->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
             'content_id' => $content->id,
             'job_type' => 'initial_generation',
             'status' => 'pending',

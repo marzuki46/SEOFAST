@@ -45,7 +45,7 @@ class ProductController extends Controller
         }
 
         Product::create([
-            'tenant_id' => 0,
+            'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
             'name' => $request->name,
             'slug' => $slug,
             'description' => $request->description,

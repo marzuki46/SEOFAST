@@ -107,7 +107,7 @@ class GscOAuthController extends Controller
 
             TenantApiCredential::updateOrCreate(
                 [
-                    'tenant_id' => 0,
+                    'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
                     'service' => 'google_search_console',
                 ],
                 $updateData

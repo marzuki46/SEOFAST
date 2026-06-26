@@ -40,7 +40,7 @@ class InternalLinkController extends Controller
         ]);
 
         DeterministicLink::create([
-            'tenant_id' => 0,
+            'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
             'source_content_id' => $request->source_content_id,
             'target_content_id' => $request->target_content_id,
             'anchor_text' => $request->anchor_text,

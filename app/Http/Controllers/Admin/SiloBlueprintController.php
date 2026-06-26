@@ -37,7 +37,7 @@ class SiloBlueprintController extends Controller
         ]);
 
         $silo = SiloBlueprint::create([
-            'tenant_id' => 0, // Fallback as it is single ownership now
+            'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
             'silo_name' => $request->silo_name,
             'seed_keyword' => $request->seed_keyword,
             'target_language' => $request->target_language,
@@ -72,7 +72,7 @@ class SiloBlueprintController extends Controller
             return redirect()->back()->with('error', 'Pillar page already exists for this Silo.');
         }
 
-        $aiService = new AIService(null, 'keyword');
+        $aiService = new AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
         $systemPrompt = "You are an SEO expert. Given a seed keyword, return a highly optimized broad target keyword suitable for a Pillar Page (broad, high traffic, informational/commercial hub). Keep it concise. Return ONLY the keyword string, nothing else.";
         $userPrompt = "Seed: " . $silo->seed_keyword . "\nLanguage: " . $silo->target_language . "\nCountry: " . $silo->target_country;
 
@@ -82,7 +82,7 @@ class SiloBlueprintController extends Controller
         $pillarSlug = \Illuminate\Support\Str::slug($pillarKeyword);
 
         Content::create([
-            'tenant_id'         => 0,
+            'tenant_id'         => $silo->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
             'silo_blueprint_id' => $silo->id,
             'parent_id'         => null,
             'target_keyword'    => $pillarKeyword,
@@ -113,7 +113,7 @@ class SiloBlueprintController extends Controller
             return redirect()->back()->with('error', 'Clusters already generated for this Pillar.');
         }
 
-        $aiService = new AIService(null, 'keyword');
+        $aiService = new AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
         $systemPrompt = "You are an expert SEO architect. Given a Pillar Page target keyword, generate exactly 3 to 5 highly relevant cluster topics (supporting sub-topics) that fit a SILO architecture. Return the results as a raw JSON array of strings, e.g. [\"Topic 1\", \"Topic 2\", \"Topic 3\"]. Return ONLY valid JSON.";
         $userPrompt = "Pillar: " . $content->target_keyword . "\nLanguage: " . $silo->target_language . "\nCountry: " . $silo->target_country;
 
@@ -129,7 +129,7 @@ class SiloBlueprintController extends Controller
 
             $clusterSlug = \Illuminate\Support\Str::slug($clusterText);
             Content::create([
-                'tenant_id'         => 0,
+                'tenant_id'         => $silo->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
                 'silo_blueprint_id' => $silo->id,
                 'parent_id'         => $content->id,
                 'target_keyword'    => $clusterText,
@@ -160,7 +160,7 @@ class SiloBlueprintController extends Controller
             return redirect()->back()->with('error', 'Sub-clusters already generated for this Cluster.');
         }
 
-        $aiService = new AIService(null, 'keyword');
+        $aiService = new AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
         $systemPrompt = "You are an expert SEO architect. Given a Cluster Topic keyword, generate exactly 3 to 5 highly specific long-tail keywords or sub-cluster topics (low competition, high search intent) supporting it. Return the results as a raw JSON array of strings, e.g. [\"Subtopic 1\", \"Subtopic 2\", \"Subtopic 3\"]. Return ONLY valid JSON.";
         $userPrompt = "Cluster: " . $content->target_keyword . "\nLanguage: " . $silo->target_language . "\nCountry: " . $silo->target_country;
 
@@ -176,7 +176,7 @@ class SiloBlueprintController extends Controller
 
             $subSlug = \Illuminate\Support\Str::slug($subText);
             Content::create([
-                'tenant_id'         => 0,
+                'tenant_id'         => $silo->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
                 'silo_blueprint_id' => $silo->id,
                 'parent_id'         => $content->id,
                 'target_keyword'    => $subText,
