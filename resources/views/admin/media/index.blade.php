@@ -2,7 +2,7 @@
 
 @section('title', 'Media Library')
 
-@section('content')
+@section('admin_content')
 <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
         <h1 class="text-2xl font-bold text-slate-900">Media Library</h1>

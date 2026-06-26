@@ -8,10 +8,23 @@ use Illuminate\Http\Request;
 
 class PageController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pages = Page::orderBy('created_at', 'desc')->get();
-        return view('admin.pages.index', compact('pages'));
+        $folder = $request->query('folder');
+        
+        $query = Page::orderBy('slug', 'asc');
+        
+        if ($folder) {
+            // Get pages that are exactly children of this folder (one level deep or all nested, let's do all nested for simplicity but prioritize immediate)
+            $query->where('slug', 'like', $folder . '/%');
+        } else {
+            // Only get root level pages (no slashes) OR pages that act as roots
+            $query->where('slug', 'not like', '%/%');
+        }
+
+        $pages = $query->get();
+        
+        return view('admin.pages.index', compact('pages', 'folder'));
     }
 
     public function create()
