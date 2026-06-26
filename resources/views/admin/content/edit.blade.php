@@ -130,7 +130,7 @@
                 </div>
                 <div class="md:col-span-2">
                     <label for="schema_custom_json" class="block text-sm font-semibold text-slate-700 mb-1">Custom Schema JSON (Opsional)</label>
-                    <textarea name="schema_custom_json" id="schema_custom_json" rows="3" placeholder='{"@context": "https://schema.org", "@type": "LocalBusiness", ...}'
+                    <textarea name="schema_custom_json" id="schema_custom_json" rows="3" placeholder='{"@@context": "https://schema.org", "@@type": "LocalBusiness", ...}'
                               class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('schema_custom_json', isset($content->seoMeta?->schema) && is_array($content->seoMeta->schema) ? json_encode($content->seoMeta->schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : '') }}</textarea>
                     <p class="text-xs text-slate-500 mt-1">Kosongkan jika ingin menggunakan schema otomatis dari sistem. Jika diisi, ini akan digabungkan/menimpa schema otomatis.</p>
                 </div>
