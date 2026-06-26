@@ -28,6 +28,9 @@
             <div class="lg:col-span-2 space-y-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     @forelse($posts as $post)
+                        @if(!$post->title)
+                            @continue
+                        @endif
                         <article class="flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-slate-300 hover:shadow-md transition-all group">
                             <div class="p-6 flex flex-col flex-1">
                                 <!-- Meta -->
@@ -35,8 +38,8 @@
                                     <span class="px-2 py-0.5 rounded-md bg-brand-indigo/10 text-brand-indigo font-semibold uppercase text-[10px]">
                                         {{ $category->silo_name }}
                                     </span>
-                                    <span>•</span>
-                                    <span>{{ $post->published_at ? $post->published_at->format('M d, Y') : 'Draft' }}</span>
+                                    <span>&bull;</span>
+                                    <span>{{ $post->published_at ? $post->published_at->format('M d, Y') : '' }}</span>
                                 </div>
                                 
                                 <!-- Title -->

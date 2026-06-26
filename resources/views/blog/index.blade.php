@@ -34,6 +34,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     @forelse($posts as $post)
+                        @if(!$post->title) @continue @endif
                         <article class="flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-slate-300 hover:shadow-md transition-all group">
                             <div class="p-6 flex flex-col flex-1">
                                 <!-- Meta -->

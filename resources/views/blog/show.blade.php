@@ -187,7 +187,39 @@
                     </div>
                 </div>
 
-                {{-- Related articles section removed to prevent exposing silo structure --}}
+                {{-- Related Articles --}}
+                @if($relatedPosts->count() > 0)
+                    <div class="pt-12 border-t border-slate-200">
+                        <h3 class="font-outfit font-bold text-2xl text-slate-900 mb-6">Related Articles</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            @foreach($relatedPosts as $rel)
+                                @if(!$rel->title) @continue @endif
+                                <a href="{{ route('blog.show', $rel->slug ?: $rel->getTranslation('slug', 'id', false)) }}"
+                                   class="p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between group">
+                                    <div>
+                                        <span class="text-[10px] text-slate-400 font-mono uppercase mb-2 block">
+                                            {{ $rel->published_at ? $rel->published_at->format('M d, Y') : '' }}
+                                        </span>
+                                        <h4 class="font-outfit font-bold text-slate-900 text-sm group-hover:text-brand-indigo transition-colors line-clamp-2 mb-2">
+                                            {{ $rel->title }}
+                                        </h4>
+                                        @if($rel->meta_description)
+                                            <p class="text-slate-500 text-xs leading-relaxed line-clamp-2">
+                                                {{ $rel->meta_description }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                    <span class="mt-4 text-xs font-bold text-brand-indigo flex items-center gap-1">
+                                        Read Article
+                                        <svg class="w-3 h-3 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Table of Contents & Categories Sidebar (Right 1 Column) -->
