@@ -51,8 +51,8 @@
                         <div class="md:col-span-2">
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Default AI Provider</label>
                             <select name="ai_provider" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
-                                @foreach(['openai', 'gemini', 'claude', 'openrouter'] as $provider)
-                                    <option value="{{ $provider }}" {{ ($settings['ai_provider'] ?? '') == $provider ? 'selected' : '' }}>{{ ucfirst($provider) }}</option>
+                                @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
+                                    <option value="{{ $provider }}" {{ ($settings['ai_provider'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint (OpenAI Compatible)' : ucfirst($provider) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -60,8 +60,8 @@
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 1: Keyword/Silo Architecture</label>
                             <select name="ai_provider_keyword" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
-                                @foreach(['openai', 'gemini', 'claude', 'openrouter'] as $provider)
-                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_keyword'] ?? '') == $provider ? 'selected' : '' }}>{{ ucfirst($provider) }}</option>
+                                @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
+                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_keyword'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -69,8 +69,8 @@
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 1 (Content): Header & Subheading</label>
                             <select name="ai_provider_1" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
-                                @foreach(['openai', 'gemini', 'claude', 'openrouter'] as $provider)
-                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_1'] ?? '') == $provider ? 'selected' : '' }}>{{ ucfirst($provider) }}</option>
+                                @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
+                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_1'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -78,8 +78,8 @@
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 2: Full Body Content</label>
                             <select name="ai_provider_2" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
-                                @foreach(['openai', 'gemini', 'claude', 'openrouter'] as $provider)
-                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_2'] ?? '') == $provider ? 'selected' : '' }}>{{ ucfirst($provider) }}</option>
+                                @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
+                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_2'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -87,8 +87,8 @@
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 3: Markdown to HTML</label>
                             <select name="ai_provider_3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
-                                @foreach(['openai', 'gemini', 'claude', 'openrouter'] as $provider)
-                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_3'] ?? '') == $provider ? 'selected' : '' }}>{{ ucfirst($provider) }}</option>
+                                @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
+                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_3'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -96,8 +96,8 @@
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 4: Schema & Meta SEO</label>
                             <select name="ai_provider_4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
-                                @foreach(['openai', 'gemini', 'claude', 'openrouter'] as $provider)
-                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_4'] ?? '') == $provider ? 'selected' : '' }}>{{ ucfirst($provider) }}</option>
+                                @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
+                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_4'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -105,8 +105,8 @@
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Image Prompt Generator</label>
                             <select name="ai_provider_image_prompt" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
-                                @foreach(['openai', 'gemini', 'claude', 'openrouter'] as $provider)
-                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_image_prompt'] ?? '') == $provider ? 'selected' : '' }}>{{ ucfirst($provider) }}</option>
+                                @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
+                                    <option value="{{ $provider }}" {{ ($settings['ai_provider_image_prompt'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -133,6 +133,23 @@
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">OpenRouter API Key</label>
                             <input type="password" name="openrouter_api_key" value="{{ $settings['openrouter_api_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="sk-or-...">
+                        </div>
+                        <div class="md:col-span-2 border-t border-slate-200 pt-4 mt-2">
+                            <h4 class="text-sm font-bold text-slate-700 mb-3">Custom Endpoint Configuration (Local LLM / LM Studio / Ollama)</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Custom API Base URL</label>
+                                    <input type="text" name="custom_api_base" value="{{ $settings['custom_api_base'] ?? 'http://localhost:20128/v1' }}" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="http://localhost:20128/v1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Custom API Key (Optional)</label>
+                                    <input type="password" name="custom_api_key" value="{{ $settings['custom_api_key'] ?? '' }}" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="kosongkan jika tidak ada">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Custom Model Name</label>
+                                    <input type="text" name="custom_model" value="{{ $settings['custom_model'] ?? 'custom-model' }}" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="contoh: llama-3-8b">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

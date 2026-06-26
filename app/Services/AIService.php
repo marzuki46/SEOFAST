@@ -52,6 +52,7 @@ class AIService
             'claude'   => $this->getSetting('claude_api_key'),
             '9router'  => $this->getSetting('9router_api_key'),
             'deepseek' => $this->getSetting('deepseek_api_key'),
+            'custom'   => $this->getSetting('custom_api_key'),
             default    => $this->getSetting('ai_api_key'),
         } ?: config('ai.openai_api_key');
 
@@ -61,6 +62,7 @@ class AIService
             'claude'   => $this->getSetting('claude_model'),
             '9router'  => $this->getSetting('9router_model'),
             'deepseek' => $this->getSetting('deepseek_model'),
+            'custom'   => $this->getSetting('custom_model'),
             default    => $this->getSetting('ai_model'),
         } ?: match ($provider) {
             'openai'   => 'gpt-4o',
@@ -68,10 +70,15 @@ class AIService
             'claude'   => 'claude-3-5-sonnet',
             '9router'  => 'meta-llama/llama-3-8b-instruct',
             'deepseek' => 'deepseek-chat',
+            'custom'   => 'custom-model',
             default    => config('ai.default_model', 'gpt-4o'),
         };
 
-        $apiBase = $this->getSetting('9router_api_base', 'https://api.9router.com/v1');
+        $apiBase = match ($provider) {
+            '9router' => $this->getSetting('9router_api_base', 'https://api.9router.com/v1'),
+            'custom'  => $this->getSetting('custom_api_base', 'http://localhost:20128/v1'),
+            default   => null,
+        };
 
         return [
             'provider'    => $provider,
@@ -97,6 +104,7 @@ class AIService
                 'claude' => $this->callClaude($systemPrompt, $userPrompt, $options),
                 'deepseek' => $this->callDeepSeek($systemPrompt, $userPrompt, $options),
                 '9router' => $this->call9Router($systemPrompt, $userPrompt, $options),
+                'custom' => $this->callCustom($systemPrompt, $userPrompt, $options),
                 default => throw new \InvalidArgumentException("Unknown provider: {$this->config['provider']}"),
             };
 
@@ -302,6 +310,42 @@ class AIService
 
         return [
             'content' => $body['choices'][0]['message']['content'],
+            'usage' => $body['usage'] ?? [],
+            'model' => $body['model'] ?? ($options['model'] ?? $this->config['model']),
+        ];
+    }
+
+    /**
+     * Call Custom API (OpenAI Compatible).
+     */
+    private function callCustom(string $systemPrompt, string $userPrompt, array $options): array
+    {
+        $apiBase = $this->config['apiBase'] ?: 'http://localhost:20128/v1';
+        $url = rtrim($apiBase, '/') . '/chat/completions';
+
+        $request = Http::asJson();
+        if (!empty($this->config['apiKey'])) {
+            $request = $request->withToken($this->config['apiKey']);
+        }
+
+        $response = $request->post($url, [
+            'model' => $options['model'] ?? $this->config['model'],
+            'messages' => [
+                ['role' => 'system', 'content' => $systemPrompt],
+                ['role' => 'user', 'content' => $userPrompt],
+            ],
+            'temperature' => $options['temperature'] ?? $this->config['temperature'],
+            'max_tokens' => $options['max_tokens'] ?? $this->config['max_tokens'],
+        ]);
+
+        $body = $response->json();
+
+        if (!$response->successful()) {
+            throw new \RuntimeException($body['error']['message'] ?? 'Custom API error');
+        }
+
+        return [
+            'content' => $body['choices'][0]['message']['content'] ?? '',
             'usage' => $body['usage'] ?? [],
             'model' => $body['model'] ?? ($options['model'] ?? $this->config['model']),
         ];
