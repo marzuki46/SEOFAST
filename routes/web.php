@@ -119,6 +119,12 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'store'])->name('store');
             Route::get('/{siloBlueprint}', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'show'])->name('show');
             Route::delete('/{silo}', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'destroy'])->name('destroy');
+            
+            // Interactive generation
+            Route::post('/{silo}/generate-pillar', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'generatePillar'])->name('generate_pillar');
+            Route::post('/{silo}/content/{content}/generate-clusters', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'generateClusters'])->name('generate_clusters');
+            Route::post('/{silo}/content/{content}/generate-subclusters', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'generateSubClusters'])->name('generate_subclusters');
+            Route::post('/{silo}/map-internal-links', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'mapInternalLinks'])->name('map_internal_links');
         });
 
         // Internal Link Mapping

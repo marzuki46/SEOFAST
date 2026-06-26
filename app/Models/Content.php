@@ -56,6 +56,7 @@ class Content extends Model
         // Phase 3: Crawl priority
         'crawl_priority_score',
         'is_ghost_published',
+        'parent_id',
     ];
 
     protected function casts(): array
@@ -85,6 +86,16 @@ class Content extends Model
     public function siloBlueprint(): BelongsTo
     {
         return $this->belongsTo(SiloBlueprint::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Content::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Content::class, 'parent_id');
     }
 
     public function sourceLinks(): HasMany

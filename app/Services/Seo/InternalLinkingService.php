@@ -16,9 +16,8 @@ class InternalLinkingService
         $pillar = $silo->contents()->where('hierarchy_level', 'pillar')->first();
         if (!$pillar) return;
 
+        // 1. Pillar <-> Cluster
         $clusters = $silo->contents()->where('hierarchy_level', 'cluster')->get();
-        $subClusters = $silo->contents()->where('hierarchy_level', 'sub_cluster')->get();
-
         foreach ($clusters as $cluster) {
             DeterministicLink::firstOrCreate([
                 'source_content_id' => $pillar->id,
@@ -31,14 +30,48 @@ class InternalLinkingService
                 'target_content_id' => $pillar->id,
                 'mandatory_anchor_text' => $pillar->target_keyword . ' panduan',
             ]);
-        }
 
-        foreach ($subClusters as $subCluster) {
-            DeterministicLink::firstOrCreate([
-                'source_content_id' => $subCluster->id,
-                'target_content_id' => $pillar->id,
-                'mandatory_anchor_text' => $pillar->target_keyword,
-            ]);
+            // 2. Cluster <-> Sub-cluster (Chamber specific)
+            $subClusters = $silo->contents()
+                ->where('hierarchy_level', 'sub_cluster')
+                ->where('parent_id', $cluster->id)
+                ->get();
+
+            foreach ($subClusters as $sub) {
+                // Sub -> Cluster
+                DeterministicLink::firstOrCreate([
+                    'source_content_id' => $sub->id,
+                    'target_content_id' => $cluster->id,
+                    'mandatory_anchor_text' => $cluster->target_keyword,
+                ]);
+
+                // Cluster -> Sub
+                DeterministicLink::firstOrCreate([
+                    'source_content_id' => $cluster->id,
+                    'target_content_id' => $sub->id,
+                    'mandatory_anchor_text' => $sub->target_keyword,
+                ]);
+
+                // Sub -> Pillar
+                DeterministicLink::firstOrCreate([
+                    'source_content_id' => $sub->id,
+                    'target_content_id' => $pillar->id,
+                    'mandatory_anchor_text' => $pillar->target_keyword,
+                ]);
+            }
+
+            // 3. Peer-to-Peer within the same chamber (Cross-linking subclusters under same cluster)
+            foreach ($subClusters as $subA) {
+                foreach ($subClusters as $subB) {
+                    if ($subA->id !== $subB->id) {
+                        DeterministicLink::firstOrCreate([
+                            'source_content_id' => $subA->id,
+                            'target_content_id' => $subB->id,
+                            'mandatory_anchor_text' => $subB->target_keyword,
+                        ]);
+                    }
+                }
+            }
         }
     }
 
