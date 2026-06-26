@@ -12,6 +12,7 @@ class Media extends Model
         'url',
         'alt_text',
         'title',
+        'description',
         'size',
         'mime_type'
     ];

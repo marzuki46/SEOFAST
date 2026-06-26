@@ -147,10 +147,11 @@ class MediaController extends Controller
         $request->validate([
             'title' => 'nullable|string|max:255',
             'alt_text' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         $medium = Media::findOrFail($id);
-        $medium->update($request->only(['title', 'alt_text']));
+        $medium->update($request->only(['title', 'alt_text', 'description']));
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Media details updated successfully.', 'media' => $medium]);

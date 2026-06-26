@@ -150,6 +150,11 @@
                                 </div>
 
                                 <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Description</label>
+                                    <textarea id="modal-desc-input" name="description" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-brand-indigo focus:border-brand-indigo text-sm"></textarea>
+                                </div>
+
+                                <div>
                                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">File URL</label>
                                     <div class="flex">
                                         <input type="text" id="modal-url-input" readonly class="w-full px-3 py-2 border border-slate-300 rounded-l-lg bg-slate-50 text-sm text-slate-500 font-mono">
@@ -215,6 +220,7 @@
         
         document.getElementById('modal-title-input').value = media.title || '';
         document.getElementById('modal-alt-input').value = media.alt_text || '';
+        document.getElementById('modal-desc-input').value = media.description || '';
         document.getElementById('modal-url-input').value = media.url;
         
         // Update Form Action
