@@ -264,8 +264,13 @@
                     _method: 'DELETE',
                     id: id
                 })
-            }).then(res => res.json()).then(data => {
-                if(res.ok && data.success) {
+            }).then(response => {
+                if (!response.ok && response.status !== 422) {
+                    throw new Error('Network response was ' + response.status);
+                }
+                return response.json();
+            }).then(data => {
+                if(data.success) {
                     const el = document.getElementById('media-item-' + id);
                     if(el) el.remove();
                     closeMediaModal();
@@ -301,8 +306,14 @@
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             }
-        }).then(res => res.json()).then(data => {
-            if(res.ok && data.success) {
+        }).then(response => {
+            if (!response.ok && response.status !== 422) {
+                // If it's a 500 or 404 HTML response, trying to parse JSON will fail and go to catch
+                // But we still want to try parsing JSON for 422 validation errors.
+            }
+            return response.json();
+        }).then(data => {
+            if(data.success) {
                 btn.textContent = 'Saved!';
                 btn.classList.replace('bg-brand-indigo', 'bg-emerald-600');
                 
