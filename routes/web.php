@@ -140,7 +140,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('media')->name('admin.media.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('index');
             Route::post('/', [\App\Http\Controllers\Admin\MediaController::class, 'store'])->name('store');
-            Route::put('/{medium}', [\App\Http\Controllers\Admin\MediaController::class, 'update'])->name('update');
+            Route::put('/{id}', [\App\Http\Controllers\Admin\MediaController::class, 'update'])->name('update');
             Route::delete('/', [\App\Http\Controllers\Admin\MediaController::class, 'destroy'])->name('destroy');
         });
 
