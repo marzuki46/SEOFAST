@@ -142,7 +142,9 @@ class Content extends Model
      */
     public function getTitleAttribute(): string
     {
-        return $this->meta_title ?: ucfirst(str_replace('-', ' ', $this->slug));
+        $metaTitle = $this->meta_title ?: $this->getTranslation('meta_title', 'id', false);
+        $slug = $this->slug ?: $this->getTranslation('slug', 'id', false);
+        return $metaTitle ?: ($slug ? ucfirst(str_replace('-', ' ', $slug)) : Str::title($this->target_keyword));
     }
 
     /**
@@ -150,12 +152,14 @@ class Content extends Model
      */
     public function getExcerptAttribute(): string
     {
-        if (!empty($this->meta_description)) {
-            return $this->meta_description;
+        $metaDesc = $this->meta_description ?: $this->getTranslation('meta_description', 'id', false);
+        if (!empty($metaDesc)) {
+            return $metaDesc;
         }
 
-        // Fallback to stripping markdown/HTML from the body
-        $text = strip_tags(preg_replace('/#+/', '', $this->body_raw));
+        // Fallback to stripping markdown/HTML from the body (using fallback locale if needed)
+        $body = $this->body_raw ?: $this->getTranslation('body_raw', 'id', false);
+        $text = strip_tags(preg_replace('/#+/', '', $body ?? ''));
         $text = preg_replace('/\[([^\]]+)\]\([^)]+\)/', '$1', $text); // Remove markdown links but keep text
         return \Illuminate\Support\Str::words($text, 25, '...');
     }
