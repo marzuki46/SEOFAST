@@ -323,7 +323,9 @@ class AIService
         $apiBase = $this->config['apiBase'] ?: 'http://localhost:20128/v1';
         $url = rtrim($apiBase, '/') . '/chat/completions';
 
-        $request = Http::asJson();
+        $request = Http::asJson()->withHeaders([
+            'Bypass-Tunnel-Reminder' => 'true',
+        ]);
         if (!empty($this->config['apiKey'])) {
             $request = $request->withToken($this->config['apiKey']);
         }
