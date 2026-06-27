@@ -146,13 +146,22 @@ class Content extends Model
     protected function getJsonField(string $key): ?string
     {
         $val = $this->attributes[$key] ?? null;
-        if (is_string($val) && (str_starts_with(trim($val), '{') || str_starts_with(trim($val), '"{'))) {
+        
+        // Handle double/triple encoded JSON and arrays
+        while (is_string($val) && (str_starts_with(trim($val), '{') || str_starts_with(trim($val), '"{'))) {
             $decoded = json_decode(trim($val, '"'), true);
             if (is_array($decoded)) {
-                return $decoded['id'] ?? current($decoded);
+                $val = $decoded['id'] ?? current($decoded);
+            } else {
+                break;
             }
         }
-        return $val;
+        
+        while (is_array($val)) {
+            $val = $val['id'] ?? current($val);
+        }
+
+        return is_string($val) ? $val : (string) $val;
     }
 
     protected function setJsonField(string $key, $value): void
