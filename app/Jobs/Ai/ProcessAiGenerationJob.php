@@ -188,9 +188,7 @@ class ProcessAiGenerationJob implements ShouldQueue
                 $targetStatus = 'draft';
             }
 
-            // Save body_raw as bilingual Indonesian (ID) translation
-            // Using setTranslation to correctly write into the JSON column
-            $content->setTranslation('body_raw', 'id', $finalHtml);
+            $content->body_raw = $finalHtml;
             $content->update([
                 'cqi_score'          => $cqiScore,
                 'content_hash'       => $contentHash,
@@ -221,7 +219,7 @@ class ProcessAiGenerationJob implements ShouldQueue
                 $content->updateSeoMeta([
                     'title'          => $generatedMetaTitle ?: $content->title,
                     'description'    => $generatedMetaDesc,
-                    'canonical'      => url('/' . $blogPrefix . '/' . $content->getTranslation('slug', 'id')),
+                    'canonical'      => url('/' . $blogPrefix . '/' . $content->slug),
                     'robots'         => 'index, follow',
                     'og_title'       => $generatedMetaTitle ?: $content->title,
                     'og_description' => $generatedMetaDesc,
@@ -231,80 +229,7 @@ class ProcessAiGenerationJob implements ShouldQueue
                 Log::warning("ProcessAiGenerationJob SEO Meta failed: " . $e->getMessage());
             }
 
-            // === PHASE 6: Auto Translate to English (If Enabled) ===
-            if (\App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '1') {
-                try {
-                    $aiService5 = new AIService($tenant, '4');
-                    $translationPrompt = \App\Models\SystemSetting::get('ai_prompt_translation', 'You are a professional Translator. Translate the following Indonesian text to English. Maintain the exact same formatting, markdown syntax, and tone. CRITICAL RULE: DO NOT translate any URLs inside href attributes or markdown links. Leave the URLs exactly as they are.');
-                    
-                    // Helper to translate field safely
-                    $translateField = function($field, $default = '') use ($aiService5, $translationPrompt) {
-                        if (!$field) return $default;
-                        $translated = $aiService5->generate($translationPrompt, $field);
-                        return $translated ?: $default;
-                    };
 
-                    // Note: We use getTranslation('field', 'id') to fetch original text
-                    // If not found, fallback to the raw attribute which defaults to current locale.
-                    
-                    // Translate contents fields
-                    $enTitle = $translateField($content->getTranslation('meta_title', 'id') ?? $content->meta_title);
-                    if ($enTitle) $content->setTranslation('meta_title', 'en', $enTitle);
-                    
-                    $enDesc = $translateField($content->getTranslation('meta_description', 'id') ?? $content->meta_description);
-                    if ($enDesc) $content->setTranslation('meta_description', 'en', $enDesc);
-                    
-                    // Translate body_raw
-                    $enBody = $translateField($content->getTranslation('body_raw', 'id') ?? $content->body_raw);
-                    if ($enBody) $content->setTranslation('body_raw', 'en', $enBody);
-
-                    // Translate image metadata
-                    if ($content->featured_image_alt) {
-                        $enAlt = $translateField($content->getTranslation('featured_image_alt', 'id') ?? $content->featured_image_alt);
-                        if ($enAlt) $content->setTranslation('featured_image_alt', 'en', $enAlt);
-                    }
-                    if ($content->featured_image_caption) {
-                        $enCaption = $translateField($content->getTranslation('featured_image_caption', 'id') ?? $content->featured_image_caption);
-                        if ($enCaption) $content->setTranslation('featured_image_caption', 'en', $enCaption);
-                    }
-
-                    // Translate slug safely
-                    $idSlug = $content->getTranslation('slug', 'id') ?? $content->slug;
-                    $enSlugStr = $aiService5->generate("Translate this short title to English. Return only the translated title, no quotes or extra text.", str_replace('-', ' ', $idSlug));
-                    if ($enSlugStr) {
-                        $content->setTranslation('slug', 'en', Str::slug($enSlugStr));
-                    }
-                    
-                    $content->save();
-
-                    // Translate SEO Metas
-                    $seoMeta = $content->seoMeta;
-                    if ($seoMeta) {
-                        $enSeoTitle = $translateField($seoMeta->getTranslation('title', 'id') ?? $seoMeta->title);
-                        if ($enSeoTitle) {
-                            $seoMeta->setTranslation('title', 'en', $enSeoTitle);
-                            $seoMeta->setTranslation('og_title', 'en', $enSeoTitle);
-                        }
-
-                        $enSeoDesc = $translateField($seoMeta->getTranslation('description', 'id') ?? $seoMeta->description);
-                        if ($enSeoDesc) {
-                            $seoMeta->setTranslation('description', 'en', $enSeoDesc);
-                            $seoMeta->setTranslation('og_description', 'en', $enSeoDesc);
-                        }
-
-                        if ($enSlugStr) {
-                            $seoMeta->setTranslation('canonical', 'en', url('/en/' . config('app.permalink_blog', 'blog') . '/' . Str::slug($enSlugStr)));
-                        }
-
-                        $seoMeta->save();
-                    }
-
-                    Log::info("ProcessAiGenerationJob Phase 6: Auto-Translate to English completed for content ID {$this->contentId}");
-
-                } catch (\Exception $e) {
-                    Log::error("ProcessAiGenerationJob Phase 6 Auto-Translate failed: " . $e->getMessage());
-                }
-            }
 
         } catch (\Exception $e) {
             Log::error("ProcessAiGenerationJob failed: " . $e->getMessage());

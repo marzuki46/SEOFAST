@@ -246,6 +246,11 @@ class ContentController extends Controller
             ]);
 
             ProcessAiGenerationJob::dispatch($content->id, $job->id);
+            
+            // Trigger background worker for shared hosting
+            if (function_exists('exec')) {
+                exec(PHP_BINARY . " " . base_path('artisan') . " queue:work --stop-when-empty > /dev/null 2>&1 &");
+            }
         }
 
         return redirect()->route('admin.content.create')->with('success', 'AI Generation started for ' . $content->title);
@@ -285,8 +290,13 @@ class ContentController extends Controller
                 }
             }
         }
+        
+        // Trigger background worker for shared hosting
+        if ($count > 0 && function_exists('exec')) {
+            exec(PHP_BINARY . " " . base_path('artisan') . " queue:work --stop-when-empty > /dev/null 2>&1 &");
+        }
 
-        return redirect()->route('admin.content.create')->with('success', "$count contents have been queued for AI Generation.");
+        return redirect()->route('admin.content.create')->with('success', $count . ' contents queued for AI generation.');
     }
 
     /**

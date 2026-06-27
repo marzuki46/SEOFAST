@@ -193,7 +193,7 @@
                         <h3 class="font-outfit font-bold text-2xl text-slate-900 mb-6">Related Articles</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             @foreach($relatedPosts as $rel)
-                                <a href="{{ route('blog.show', $rel->slug ?: $rel->getTranslation('slug', 'id', false)) }}"
+                                <a href="{{ route('blog.show', $rel->slug) }}"
                                    class="p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between group">
                                     <div>
                                         <span class="text-[10px] text-slate-400 font-mono uppercase mb-2 block">
@@ -240,7 +240,7 @@
                         @foreach($relatedPosts as $recent)
                             <div class="flex flex-col gap-1">
                                 <span class="text-[10px] text-slate-500 font-mono uppercase">{{ $recent->published_at ? $recent->published_at->format('M d, Y') : '' }}</span>
-                                <a href="{{ route('blog.show', $recent->slug ?: $recent->getTranslation('slug', 'id', false)) }}" class="text-sm text-slate-700 hover:text-brand-indigo font-medium line-clamp-2 transition-colors">
+                                <a href="{{ route('blog.show', $recent->slug) }}" class="text-sm text-slate-700 hover:text-brand-indigo font-medium line-clamp-2 transition-colors">
                                     {{ $recent->title }}
                                 </a>
                             </div>

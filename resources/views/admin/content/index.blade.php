@@ -58,7 +58,7 @@
                                     {{ $post->title }}
                                 </a>
                                 @php
-                                    $rawSlugDisp = $post->getTranslation('slug', app()->getLocale(), false) ?: $post->getTranslation('slug', 'id', false) ?: $post->slug;
+                                    $rawSlugDisp = $post->slug;
                                     if (is_string($rawSlugDisp) && (str_starts_with($rawSlugDisp, '{') || str_starts_with($rawSlugDisp, '"{'))) {
                                         $decoded = json_decode(trim($rawSlugDisp, '"'), true);
                                         if (is_array($decoded)) $rawSlugDisp = $decoded;
@@ -116,7 +116,7 @@
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-3">
                                 @php
-                                    $rawSlug = $post->getTranslation('slug', app()->getLocale(), false) ?: $post->getTranslation('slug', 'id', false) ?: $post->slug;
+                                    $rawSlug = $post->slug;
                                     if (is_string($rawSlug) && (str_starts_with($rawSlug, '{') || str_starts_with($rawSlug, '"{'))) {
                                         $decoded = json_decode(trim($rawSlug, '"'), true);
                                         if (is_array($decoded)) $rawSlug = $decoded;

@@ -165,12 +165,12 @@
             <div>
                 <label for="body_raw" class="block text-sm font-semibold text-slate-700 mb-1">Raw Markdown Body</label>
                 <textarea name="body_raw" id="body_raw" rows="10"
-                          class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-800 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('body_raw', $content->getTranslation('body_raw', 'id', false) ?: $content->body_raw) }}</textarea>
+                          class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-800 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('body_raw', $content->body_raw) }}</textarea>
             </div>
             <div>
                 <label for="rendered_html_path" class="block text-sm font-semibold text-slate-700 mb-1">Final HTML Rendering</label>
                 <textarea name="rendered_html_path" id="rendered_html_path" rows="10"
-                          class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-800 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('rendered_html_path', $content->getTranslation('rendered_html_path', 'id', false) ?: $content->rendered_html_path) }}</textarea>
+                          class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-800 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('rendered_html_path', $content->rendered_html_path) }}</textarea>
             </div>
         </div>
 

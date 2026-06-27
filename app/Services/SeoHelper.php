@@ -291,7 +291,7 @@ class SeoHelper
 
                         if ($targetLocale !== 'id') {
                             // Always force the link to the target locale (e.g., /en/blog/...)
-                            $translatedSlug = $post->getTranslation('slug', $targetLocale, false) ?: $originalSlug;
+                            $translatedSlug = $post->slug ?: $originalSlug;
                             $newHref = url("/{$targetLocale}/{$blogPrefix}/{$translatedSlug}");
                             return str_replace($href, $newHref, $fullAnchorTag);
                         }

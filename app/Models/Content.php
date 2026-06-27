@@ -11,16 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Content extends Model
 {
-    use TenantAwareTrait, SoftDeletes, \App\Traits\HasSeoMeta, \Spatie\Translatable\HasTranslations;
-
-    public $translatable = [
-        'slug',
-        'meta_title',
-        'meta_description',
-        'body_raw',
-        'featured_image_alt',
-        'featured_image_caption'
-    ];
+    use TenantAwareTrait, SoftDeletes, \App\Traits\HasSeoMeta;
 
     protected $fillable = [
         'tenant_id',
@@ -153,23 +144,8 @@ class Content extends Model
      */
     public function getTitleAttribute(): string
     {
-        $metaTitle = $this->meta_title ?: $this->getTranslation('meta_title', 'id', false);
-        
-        // Handle double encoded JSON leftover from previous bugs
-        if (is_string($metaTitle) && (str_starts_with(trim($metaTitle), '{') || str_starts_with(trim($metaTitle), '"{'))) {
-            $decoded = json_decode(trim($metaTitle, '"'), true);
-            if (is_array($decoded)) {
-                $metaTitle = $decoded[app()->getLocale()] ?? $decoded['id'] ?? current($decoded);
-            }
-        }
-        
-        $slug = $this->slug ?: $this->getTranslation('slug', 'id', false);
-        if (is_string($slug) && (str_starts_with(trim($slug), '{') || str_starts_with(trim($slug), '"{'))) {
-            $decodedSlug = json_decode(trim($slug, '"'), true);
-            if (is_array($decodedSlug)) {
-                $slug = $decodedSlug[app()->getLocale()] ?? $decodedSlug['id'] ?? current($decodedSlug);
-            }
-        }
+        $metaTitle = $this->meta_title;
+        $slug = $this->slug;
 
         return is_string($metaTitle) && !empty($metaTitle) ? $metaTitle : (is_string($slug) && !empty($slug) ? ucfirst(str_replace('-', ' ', $slug)) : \Illuminate\Support\Str::title($this->target_keyword));
     }
@@ -179,13 +155,12 @@ class Content extends Model
      */
     public function getExcerptAttribute(): string
     {
-        $metaDesc = $this->meta_description ?: $this->getTranslation('meta_description', 'id', false);
+        $metaDesc = $this->meta_description;
         if (!empty($metaDesc)) {
             return $metaDesc;
         }
 
-        // Fallback to stripping markdown/HTML from the body (using fallback locale if needed)
-        $body = $this->body_raw ?: $this->getTranslation('body_raw', 'id', false);
+        $body = $this->body_raw;
         $text = strip_tags(preg_replace('/#+/', '', $body ?? ''));
         $text = preg_replace('/\[([^\]]+)\]\([^)]+\)/', '$1', $text); // Remove markdown links but keep text
         return \Illuminate\Support\Str::words($text, 25, '...');
@@ -196,7 +171,7 @@ class Content extends Model
      */
     public function getHtmlBodyAttribute(): string
     {
-        $markdown = $this->body_raw ?: $this->getTranslation('body_raw', 'id', false);
+        $markdown = $this->body_raw;
         if (!$markdown) return '';
 
         // Escape HTML tags to prevent XSS
