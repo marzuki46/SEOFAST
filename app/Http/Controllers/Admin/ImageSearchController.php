@@ -34,10 +34,10 @@ class ImageSearchController extends Controller
         for ($i = 0; $i < 12; $i++) {
             $images[] = [
                 'id' => 'img_' . rand(1000, 9999),
-                'url' => "https://source.unsplash.com/800x600/?".urlencode($query)."&sig=" . rand(1, 100),
-                'thumb' => "https://source.unsplash.com/400x300/?".urlencode($query)."&sig=" . rand(1, 100),
-                'author' => 'Unsplash Contributor',
-                'alt_text' => $query . ' related image',
+                'url' => "https://loremflickr.com/800/600/".urlencode(str_replace(' ', ',', $query))."?lock=" . rand(1, 1000),
+                'thumb' => "https://loremflickr.com/400/300/".urlencode(str_replace(' ', ',', $query))."?lock=" . rand(1, 1000),
+                'author' => 'Free Provider',
+                'alt_text' => $query . ' related image ' . ($i + 1),
             ];
         }
 
