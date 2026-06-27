@@ -223,6 +223,7 @@ class ContentController extends Controller
 
         if (!$existingJob) {
             $job = AiGenerationJob::create([
+                'tenant_id'  => $content->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
                 'content_id' => $content->id,
                 'job_type'   => 'initial_generation',
                 'status'     => 'pending',
@@ -254,6 +255,7 @@ class ContentController extends Controller
 
                 if (!$existingJob) {
                     $job = AiGenerationJob::create([
+                        'tenant_id'  => $content->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
                         'content_id' => $content->id,
                         'job_type'   => 'initial_generation',
                         'status'     => 'pending',
