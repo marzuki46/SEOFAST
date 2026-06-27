@@ -134,6 +134,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/generate-ai', [\App\Http\Controllers\Admin\InternalLinkController::class, 'generateAi'])->name('generate_ai');
             Route::get('/process-ai', [\App\Http\Controllers\Admin\InternalLinkController::class, 'processAiView'])->name('process_ai_view');
             Route::post('/process-ai-chunk', [\App\Http\Controllers\Admin\InternalLinkController::class, 'processAiChunk'])->name('process_ai_chunk');
+            Route::put('/{link}', [\App\Http\Controllers\Admin\InternalLinkController::class, 'update'])->name('update');
         });
 
         // Midtrans Products & Shortcodes

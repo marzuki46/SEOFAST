@@ -177,6 +177,7 @@ class InternalLinkController extends Controller
         $links = DeterministicLink::with(['source', 'target'])
             ->whereIn('source_content_id', $contentIds)
             ->where('mandatory_anchor_text', '[PENDING_AI]')
+            ->orderBy('target_content_id')
             ->limit(5)
             ->get();
             
@@ -185,11 +186,16 @@ class InternalLinkController extends Controller
         }
         
         $aiService = new \App\Services\AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
-        $systemPrompt = "You are an expert SEO internal linking architect. Generate natural, contextually relevant, High-CTR anchor texts for internal links. DO NOT use the exact target keyword as the anchor text. Use compelling, click-worthy phrasing. Return a JSON array of strings corresponding to the given link pairs in the EXACT SAME ORDER. RETURN ONLY RAW VALID JSON ARRAY OF STRINGS.";
+        $systemPrompt = "You are an expert SEO internal linking architect. For each link pair provided, generate a UNIQUE, short (2-4 words) High-CTR anchor text.
+CRITICAL RULES:
+1. NEVER use the exact Target keyword.
+2. If multiple sources point to the same Target, YOU MUST provide DIFFERENT variations (synonyms, long-tail, action-oriented) for each.
+3. The anchor must naturally fit within the Source article's context while accurately pointing to the Target.
+Return a JSON array of strings corresponding to the links in the EXACT SAME ORDER. NO MARKDOWN, NO EXTRA TEXT. ONLY A RAW JSON ARRAY OF STRINGS.";
 
-        $userPrompt = "Generate High-CTR anchor texts for the following internal links:\n";
+        $userPrompt = "Generate High-CTR anchor texts for these internal links:\n";
         foreach ($links as $idx => $link) {
-            $userPrompt .= ($idx + 1) . ". From article '{$link->source->target_keyword}' to article '{$link->target->target_keyword}'\n";
+            $userPrompt .= ($idx + 1) . ". Source Article: '{$link->source->target_keyword}' ---> Target Article: '{$link->target->target_keyword}'\n";
         }
         
         $aiAnchors = $aiService->generateJson($systemPrompt, $userPrompt);
@@ -217,9 +223,22 @@ class InternalLinkController extends Controller
             ->where('mandatory_anchor_text', '[PENDING_AI]')
             ->count();
             
-        return response()->json([
+            return response()->json([
             'status' => 'continue',
             'remaining' => $remaining
         ]);
+    }
+
+    public function update(Request $request, DeterministicLink $link)
+    {
+        $request->validate([
+            'mandatory_anchor_text' => 'required|string|max:255',
+        ]);
+
+        $link->update([
+            'mandatory_anchor_text' => $request->mandatory_anchor_text
+        ]);
+
+        return response()->json(['success' => true]);
     }
 }

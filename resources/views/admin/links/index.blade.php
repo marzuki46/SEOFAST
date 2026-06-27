@@ -112,10 +112,22 @@
                         <tr class="hover:bg-slate-50 transition">
                             <td class="px-6 py-4 font-medium text-slate-900">{{ $link->source->target_keyword ?? 'N/A' }}</td>
                             <td class="px-6 py-4 text-indigo-600 font-medium">&rarr; {{ $link->target->target_keyword ?? 'N/A' }}</td>
-                            <td class="px-6 py-4">
-                                <span class="bg-slate-100 px-3 py-1.5 rounded-lg text-slate-700 border border-slate-200 font-medium text-xs">
-                                    {{ $link->mandatory_anchor_text }}
-                                </span>
+                            <td class="px-6 py-4 border-b border-slate-100 text-sm">
+                                @if($link->mandatory_anchor_text === '[PENDING_AI]')
+                                    <span class="inline-flex items-center gap-1 text-slate-400 italic">
+                                        <svg class="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        Processing...
+                                    </span>
+                                @else
+                                    <div class="flex items-center">
+                                        <input type="text" class="anchor-input w-full border-transparent hover:border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm sm:text-sm px-2 py-1 bg-transparent hover:bg-white transition-colors" value="{{ $link->mandatory_anchor_text }}" data-id="{{ $link->id }}">
+                                        <span class="save-indicator ml-2 text-green-500 opacity-0 transition-opacity">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        </span>
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                         @empty
@@ -193,6 +205,40 @@
                 if (shouldShow) {
                     targetSelect.appendChild(opt.cloneNode(true));
                 }
+            });
+        });
+
+        // Inline Editing for Anchor Text
+        const anchorInputs = document.querySelectorAll('.anchor-input');
+        anchorInputs.forEach(input => {
+            let timeout = null;
+            input.addEventListener('input', function() {
+                clearTimeout(timeout);
+                const indicator = this.nextElementSibling;
+                indicator.style.opacity = '0';
+                
+                timeout = setTimeout(() => {
+                    const linkId = this.getAttribute('data-id');
+                    const newValue = this.value;
+                    
+                    fetch(`/admin/links/${linkId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ mandatory_anchor_text: newValue })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            indicator.style.opacity = '1';
+                            setTimeout(() => {
+                                indicator.style.opacity = '0';
+                            }, 2000);
+                        }
+                    });
+                }, 800);
             });
         });
     });
