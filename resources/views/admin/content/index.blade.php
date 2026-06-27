@@ -57,7 +57,14 @@
                                 <a href="{{ route('admin.content.show', $post->id) }}" class="font-bold text-slate-900 hover:text-indigo-600 transition">
                                     {{ $post->title }}
                                 </a>
-                                <span class="text-xs text-slate-400 font-mono mt-0.5">/blog/{{ $post->slug }}</span>
+                                @php
+                                    $rawSlugDisp = $post->getTranslation('slug', app()->getLocale(), false) ?: $post->getTranslation('slug', 'id', false) ?: $post->slug;
+                                    while(is_array($rawSlugDisp)) {
+                                        $rawSlugDisp = $rawSlugDisp[app()->getLocale()] ?? $rawSlugDisp['id'] ?? current($rawSlugDisp);
+                                    }
+                                    $slugDispStr = (string) $rawSlugDisp;
+                                @endphp
+                                <span class="text-xs text-slate-400 font-mono mt-0.5">/blog/{{ $slugDispStr }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4">
@@ -105,7 +112,11 @@
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-3">
                                 @php
-                                    $slugStr = is_array($post->slug) ? ($post->slug[app()->getLocale()] ?? $post->slug['id'] ?? '') : ($post->getTranslation('slug', app()->getLocale(), false) ?: $post->getTranslation('slug', 'id', false));
+                                    $rawSlug = $post->getTranslation('slug', app()->getLocale(), false) ?: $post->getTranslation('slug', 'id', false) ?: $post->slug;
+                                    while(is_array($rawSlug)) {
+                                        $rawSlug = $rawSlug[app()->getLocale()] ?? $rawSlug['id'] ?? current($rawSlug);
+                                    }
+                                    $slugStr = (string) $rawSlug;
                                 @endphp
                                 <a href="{{ route('blog.show', $slugStr) }}" target="_blank" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="View on Website">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
