@@ -64,22 +64,17 @@ class BlogController extends Controller
      */
     public function show(string $slug): View
     {
-        $locale = app()->getLocale();
-        
-        $post = Content::where("slug->{$locale}", $slug)
+        // Find the post by slug in the current locale
+        $post = Content::where(function($q) use ($slug) {
+                $q->where('slug', $slug)
+                  ->orWhere('slug', 'LIKE', '%"id":"' . $slug . '"%')
+                  ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%');
+            })
             ->where('status', 'published')
             ->where('published_at', '<=', now())
             ->first();
 
-        // If not found in the current locale (e.g., English slug hasn't been generated yet),
-        // fallback to checking the default 'id' slug so it doesn't 404, while still displaying in English.
-        if (!$post && $locale !== 'id') {
-            $post = Content::where("slug->id", $slug)
-                ->where('status', 'published')
-                ->where('published_at', '<=', now())
-                ->first();
-        }
-
+        // If not found, abort 404
         if (!$post) {
             abort(404);
         }

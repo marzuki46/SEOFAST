@@ -139,6 +139,46 @@ class Content extends Model
         return $this->hierarchy_level === 'pillar';
     }
 
+    // --- TRANSPARENT JSON HANDLING ---
+    // This allows us to keep the database JSON columns (and their MySQL constraints)
+    // while the rest of the application ONLY sees plain strings. No multi-language complexity!
+    
+    protected function getJsonField(string $key): ?string
+    {
+        $val = $this->attributes[$key] ?? null;
+        if (is_string($val) && (str_starts_with(trim($val), '{') || str_starts_with(trim($val), '"{'))) {
+            $decoded = json_decode(trim($val, '"'), true);
+            if (is_array($decoded)) {
+                return $decoded['id'] ?? current($decoded);
+            }
+        }
+        return $val;
+    }
+
+    protected function setJsonField(string $key, $value): void
+    {
+        // Wrap the plain string in JSON to satisfy MySQL JSON constraints
+        $this->attributes[$key] = json_encode(['id' => $value, 'en' => $value]);
+    }
+
+    public function getSlugAttribute() { return $this->getJsonField('slug'); }
+    public function setSlugAttribute($val) { $this->setJsonField('slug', $val); }
+
+    public function getMetaTitleAttribute() { return $this->getJsonField('meta_title'); }
+    public function setMetaTitleAttribute($val) { $this->setJsonField('meta_title', $val); }
+
+    public function getMetaDescriptionAttribute() { return $this->getJsonField('meta_description'); }
+    public function setMetaDescriptionAttribute($val) { $this->setJsonField('meta_description', $val); }
+
+    public function getBodyRawAttribute() { return $this->getJsonField('body_raw'); }
+    public function setBodyRawAttribute($val) { $this->setJsonField('body_raw', $val); }
+
+    public function getFeaturedImageAltAttribute() { return $this->getJsonField('featured_image_alt'); }
+    public function setFeaturedImageAltAttribute($val) { $this->setJsonField('featured_image_alt', $val); }
+
+    public function getFeaturedImageCaptionAttribute() { return $this->getJsonField('featured_image_caption'); }
+    public function setFeaturedImageCaptionAttribute($val) { $this->setJsonField('featured_image_caption', $val); }
+
     /**
      * Get display title.
      */
@@ -146,7 +186,6 @@ class Content extends Model
     {
         $metaTitle = $this->meta_title;
         $slug = $this->slug;
-
         return is_string($metaTitle) && !empty($metaTitle) ? $metaTitle : (is_string($slug) && !empty($slug) ? ucfirst(str_replace('-', ' ', $slug)) : \Illuminate\Support\Str::title($this->target_keyword));
     }
 

@@ -72,9 +72,7 @@
                                         $decoded = json_decode(trim($rawSlugDisp, '"'), true);
                                         if (is_array($decoded)) $rawSlugDisp = $decoded;
                                     }
-                                    while(is_array($rawSlugDisp)) {
-                                        $rawSlugDisp = $rawSlugDisp[app()->getLocale()] ?? $rawSlugDisp['id'] ?? current($rawSlugDisp);
-                                    }
+                                    
                                     $slugDispStr = is_string($rawSlugDisp) ? $rawSlugDisp : 'invalid-slug';
                                 @endphp
                                 <span class="text-xs text-slate-400 font-mono mt-0.5">/blog/{{ $slugDispStr }}</span>
@@ -139,10 +137,8 @@
                                         $decoded = json_decode(trim($rawSlug, '"'), true);
                                         if (is_array($decoded)) $rawSlug = $decoded;
                                     }
-                                    while(is_array($rawSlug)) {
-                                        $rawSlug = $rawSlug[app()->getLocale()] ?? $rawSlug['id'] ?? current($rawSlug);
-                                    }
-                                    $slugStr = is_string($rawSlug) ? $rawSlug : 'invalid-slug';
+                                    
+                                    $slugStr = $rawSlug;
                                 @endphp
                                 <a href="{{ route('blog.show', ['slug' => $slugStr]) }}" target="_blank" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="View on Website">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

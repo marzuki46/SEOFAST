@@ -281,7 +281,9 @@ class SeoHelper
                 if (str_starts_with($path, $blogPrefix . '/')) {
                     $originalSlug = substr($path, strlen($blogPrefix) + 1);
                     
-                    $post = \App\Models\Content::where("slug->id", $originalSlug)->first();
+                    $post = \App\Models\Content::where(function($q) use ($originalSlug) {
+                        $q->where('slug', $originalSlug)->orWhere('slug', 'LIKE', '%"id":"'.$originalSlug.'"%');
+                    })->first();
                     
                     if ($post) {
                         // If the target post is NOT published, hide the link to prevent 404s and exposing drafts
