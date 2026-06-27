@@ -166,11 +166,18 @@ class AIService
             return null;
         }
 
+        // Remove <think> blocks if present (Deepseek and similar models)
+        $result = preg_replace('/<think>[\s\S]*?<\/think>\s*/i', '', $result);
+
         // Try to extract JSON from markdown code blocks if present
         if (preg_match('/```(?:json)?\s*([\s\S]*?)```/', $result, $matches)) {
             $result = $matches[1];
+        } else {
+            // Fallback: Try to find the first '[' and last ']' if it looks like a JSON array
+            if (preg_match('/\[\s*([\s\S]*)\s*\]/', $result, $matches)) {
+                $result = $matches[0];
+            }
         }
-
         $decoded = json_decode($result, true);
 
         // Debug log the raw response and parsed result
