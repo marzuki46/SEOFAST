@@ -21,7 +21,7 @@ class ContentController extends Controller
             ->where('status', 'published')
             ->with(['siloBlueprint', 'latestUrlInspection'])
             ->latest()
-            ->get();
+            ->paginate(20);
 
         return view('admin.content.index', compact('contents'));
     }
@@ -33,10 +33,10 @@ class ContentController extends Controller
     {
         // Show blueprint status so user can generate blueprints
         $contents = Content::withoutGlobalScopes()
-            ->where('status', 'blueprint')
+            ->whereIn('status', ['blueprint', 'failed_cqi'])
             ->with(['siloBlueprint'])
             ->latest()
-            ->get();
+            ->paginate(20);
 
         return view('admin.content.prapost', compact('contents'));
     }
@@ -47,10 +47,10 @@ class ContentController extends Controller
     public function drafts()
     {
         $contents = Content::withoutGlobalScopes()
-            ->where('status', 'draft')
+            ->whereIn('status', ['draft', 'needs_reoptimize'])
             ->with(['siloBlueprint'])
             ->latest()
-            ->get();
+            ->paginate(20);
 
         return view('admin.content.drafts', compact('contents'));
     }

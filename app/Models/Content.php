@@ -196,7 +196,7 @@ class Content extends Model
      */
     public function getHtmlBodyAttribute(): string
     {
-        $markdown = $this->body_raw;
+        $markdown = $this->body_raw ?: $this->getTranslation('body_raw', 'id', false);
         if (!$markdown) return '';
 
         // Escape HTML tags to prevent XSS
