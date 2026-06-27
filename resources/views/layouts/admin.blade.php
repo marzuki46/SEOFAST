@@ -54,10 +54,23 @@
     </style>
     @yield('styles')
 </head>
-<body class="h-full font-sans antialiased text-slate-700">
-    <div id="admin-layout-wrapper" class="flex h-full overflow-hidden">
+<body class="h-full font-sans antialiased text-slate-700" x-data="{ sidebarOpen: false }">
+    <div id="admin-layout-wrapper" class="flex h-full overflow-hidden relative">
+        <!-- Mobile Sidebar Overlay -->
+        <div x-show="sidebarOpen" 
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="sidebarOpen = false" 
+             class="fixed inset-0 z-40 bg-slate-900/80 backdrop-blur-sm md:hidden" style="display: none;"></div>
+
         <!-- Sidebar Navigation -->
-        <aside id="admin-sidebar" class="w-64 bg-slate-900 text-slate-400 flex flex-col justify-between border-r border-slate-800 flex-shrink-0">
+        <aside id="admin-sidebar" 
+               :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+               class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-400 flex flex-col justify-between border-r border-slate-800 flex-shrink-0 transition-transform duration-300 md:relative md:translate-x-0">
             <div class="flex flex-col flex-1 min-h-0">
                 <!-- Brand Logo -->
                 <div class="h-16 flex items-center px-6 border-b border-slate-800 gap-2.5 flex-shrink-0">
@@ -195,22 +208,30 @@
         </aside>
 
         <!-- Main Content Wrapper -->
-        <div class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
             <!-- Topbar Header -->
-            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 flex-shrink-0">
-                <h1 class="font-outfit font-bold text-xl text-slate-800">@yield('page_title', 'Dashboard')</h1>
-                <div class="flex items-center gap-4">
-                    <button id="toggle-sidebar-position" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition duration-150" title="Switch Sidebar Side">
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 flex-shrink-0">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <!-- Mobile Hamburger Menu -->
+                    <button @click="sidebarOpen = true" class="md:hidden p-1.5 -ml-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg flex-shrink-0">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </button>
+                    <h1 class="font-outfit font-bold text-lg md:text-xl text-slate-800 truncate">@yield('page_title', 'Dashboard')</h1>
+                </div>
+                <div class="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                    <button id="toggle-sidebar-position" class="hidden md:block p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition duration-150" title="Switch Sidebar Side">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-12L21 9m0 0l-4.5 4.5M21 9H7.5" />
                         </svg>
                     </button>
-                    <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">Admin Panel</span>
+                    <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-[10px] md:text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">Admin Panel</span>
                 </div>
             </header>
 
             <!-- Scrollable Content View -->
-            <main class="flex-1 overflow-y-auto p-8">
+            <main class="flex-1 overflow-y-auto p-4 md:p-8">
                 <!-- Session Alert Messages -->
                 <div class="max-w-7xl mx-auto mb-6">
                     @if(session('success'))
