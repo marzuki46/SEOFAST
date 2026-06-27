@@ -120,7 +120,11 @@ class SiloBlueprintController extends Controller
         $clusters = $aiService->generateJson($systemPrompt, $userPrompt);
 
         if (!$clusters || !is_array($clusters)) {
-            return redirect()->back()->with('error', 'Failed to generate cluster keywords. Please try again.');
+            $errorMsg = 'Failed to generate cluster keywords. Please try again.';
+            if (session('ai_error')) {
+                $errorMsg .= ' Detail error: ' . session('ai_error');
+            }
+            return redirect()->back()->with('error', $errorMsg);
         }
 
         foreach ($clusters as $clusterText) {
@@ -167,7 +171,11 @@ class SiloBlueprintController extends Controller
         $subClusters = $aiService->generateJson($systemPrompt, $userPrompt);
 
         if (!$subClusters || !is_array($subClusters)) {
-            return redirect()->back()->with('error', 'Failed to generate sub-cluster keywords. Please try again.');
+            $errorMsg = 'Failed to generate sub-cluster keywords. Please try again.';
+            if (session('ai_error')) {
+                $errorMsg .= ' Detail error: ' . session('ai_error');
+            }
+            return redirect()->back()->with('error', $errorMsg);
         }
 
         foreach ($subClusters as $subText) {

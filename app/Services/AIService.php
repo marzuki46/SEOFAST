@@ -26,6 +26,12 @@ class AIService
      */
     private function getSetting(string $key, mixed $default = null): mixed
     {
+        // Fallback to global SystemSetting first (prioritize global admin settings)
+        $value = \App\Models\SystemSetting::get($key);
+        if ($value !== null) {
+            return $value;
+        }
+
         // If a tenant exists and has the setting, use it
         if ($this->tenant) {
             $value = $this->tenant->getSetting($key);
@@ -33,8 +39,8 @@ class AIService
                 return $value;
             }
         }
-        // Fallback to global SystemSetting
-        return \App\Models\SystemSetting::get($key, $default);
+
+        return $default;
     }
 
     /**
@@ -119,6 +125,10 @@ class AIService
                 'model' => $this->config['model'],
             ]);
 
+            if (function_exists('session') && request()->hasSession()) {
+                session()->flash('ai_error', $e->getMessage());
+            }
+
             $this->logUsage($systemPrompt, $userPrompt, ['error' => $e->getMessage()], $startTime, 'failed');
 
             return null;
@@ -150,6 +160,9 @@ class AIService
             Log::warning("AI JSON parsing failed: " . json_last_error_msg(), [
                 'raw_response' => substr($result, 0, 500),
             ]);
+            if (function_exists('session') && request()->hasSession()) {
+                session()->flash('ai_error', 'JSON parsing failed: ' . json_last_error_msg() . ' | Raw response: ' . substr($result, 0, 200));
+            }
             return null;
         }
 
