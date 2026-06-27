@@ -46,7 +46,7 @@ class ContentController extends Controller
      */
     public function create()
     {
-        $activeJobs = AiGenerationJob::whereIn('status', ['pending', 'processing'])
+        $activeJobs = AiGenerationJob::whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
             ->with('content')
             ->latest()
             ->get();
@@ -250,7 +250,7 @@ class ContentController extends Controller
                 $content->update(['status' => 'ai_processing']);
                 
                 $existingJob = AiGenerationJob::where('content_id', $content->id)
-                    ->whereIn('status', ['pending', 'processing'])
+                    ->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
                     ->first();
 
                 if (!$existingJob) {

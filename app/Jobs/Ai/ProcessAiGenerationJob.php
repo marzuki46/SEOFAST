@@ -184,9 +184,8 @@ class ProcessAiGenerationJob implements ShouldQueue
 
             // Save body_raw as bilingual Indonesian (ID) translation
             // Using setTranslation to correctly write into the JSON column
-            $content->setTranslation('body_raw', 'id', $expanded);
+            $content->setTranslation('body_raw', 'id', $finalHtml);
             $content->update([
-                'rendered_html_path' => $finalHtml,
                 'cqi_score'          => $cqiScore,
                 'content_hash'       => $contentHash,
                 'status'             => 'draft',
