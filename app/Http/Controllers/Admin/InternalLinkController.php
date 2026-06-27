@@ -137,7 +137,7 @@ class InternalLinkController extends Controller
             DeterministicLink::create([
                 'source_content_id' => $link['source']->id,
                 'target_content_id' => $link['target']->id,
-                'mandatory_anchor_text' => null, // empty state for AI
+                'mandatory_anchor_text' => '[PENDING_AI]', // empty state for AI
                 'is_injected_successfully' => false
             ]);
         }
@@ -154,7 +154,7 @@ class InternalLinkController extends Controller
         
         // Count how many links need processing
         $pendingCount = DeterministicLink::whereIn('source_content_id', $contentIds)
-            ->whereNull('mandatory_anchor_text')
+            ->where('mandatory_anchor_text', '[PENDING_AI]')
             ->count();
             
         $totalCount = DeterministicLink::whereIn('source_content_id', $contentIds)->count();
@@ -176,7 +176,7 @@ class InternalLinkController extends Controller
         // Get up to 5 links that need processing
         $links = DeterministicLink::with(['source', 'target'])
             ->whereIn('source_content_id', $contentIds)
-            ->whereNull('mandatory_anchor_text')
+            ->where('mandatory_anchor_text', '[PENDING_AI]')
             ->limit(5)
             ->get();
             
@@ -214,7 +214,7 @@ class InternalLinkController extends Controller
         }
         
         $remaining = DeterministicLink::whereIn('source_content_id', $contentIds)
-            ->whereNull('mandatory_anchor_text')
+            ->where('mandatory_anchor_text', '[PENDING_AI]')
             ->count();
             
         return response()->json([
