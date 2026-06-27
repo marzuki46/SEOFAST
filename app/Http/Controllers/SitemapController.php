@@ -16,6 +16,7 @@ class SitemapController extends Controller
     {
         $contents = Content::withoutGlobalScopes()
             ->where('status', 'published')
+            ->where('published_at', '<=', now())
             ->orderByDesc('crawl_priority_score')
             ->get(['slug', 'published_at', 'crawl_priority_score', 'hierarchy_level']);
 

@@ -16,6 +16,7 @@ class BlogController extends Controller
     {
         $query = Content::where('status', 'published')
             ->whereNotNull('body_raw')
+            ->where('published_at', '<=', now())
             ->where('body_raw', '!=', '{"id":""}')
             ->where('body_raw', '!=', '{"en":""}')
             ->where(function($q) {
@@ -46,6 +47,7 @@ class BlogController extends Controller
 
         $recentPosts = Content::where('status', 'published')
             ->whereNotNull('body_raw')
+            ->where('published_at', '<=', now())
             ->where(function($q) {
                 $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
                   ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
@@ -66,6 +68,7 @@ class BlogController extends Controller
         
         $post = Content::where("slug->{$locale}", $slug)
             ->where('status', 'published')
+            ->where('published_at', '<=', now())
             ->first();
 
         // If not found in the current locale (e.g., English slug hasn't been generated yet),
@@ -73,6 +76,7 @@ class BlogController extends Controller
         if (!$post && $locale !== 'id') {
             $post = Content::where("slug->id", $slug)
                 ->where('status', 'published')
+                ->where('published_at', '<=', now())
                 ->first();
         }
 
@@ -84,6 +88,7 @@ class BlogController extends Controller
         $relatedPosts = Content::where('silo_blueprint_id', $post->silo_blueprint_id)
             ->where('id', '!=', $post->id)
             ->where('status', 'published')
+            ->where('published_at', '<=', now())
             ->whereNotNull('body_raw')
             ->where(function($q) {
                 $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
@@ -124,6 +129,7 @@ class BlogController extends Controller
 
         $posts = Content::where('silo_blueprint_id', $category->id)
             ->where('status', 'published')
+            ->where('published_at', '<=', now())
             ->whereNotNull('body_raw')
             ->where(function($q) {
                 $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")

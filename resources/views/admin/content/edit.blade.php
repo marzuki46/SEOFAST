@@ -60,6 +60,14 @@
                     <option value="needs_reoptimize" {{ $content->status == 'needs_reoptimize' ? 'selected' : '' }}>Needs Reoptimize</option>
                 </select>
             </div>
+
+            <div>
+                <label for="published_at" class="block text-sm font-semibold text-slate-700 mb-1">Schedule Publish (Opsional)</label>
+                <input type="datetime-local" name="published_at" id="published_at" 
+                       value="{{ $content->published_at ? $content->published_at->format('Y-m-d\TH:i') : '' }}"
+                       class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                <p class="text-xs text-slate-500 mt-1">Isi untuk post di masa lalu (backdate) atau masa depan (schedule).</p>
+            </div>
             
             <div class="md:col-span-2">
                 <label for="meta_title" class="block text-sm font-semibold text-slate-700 mb-1">Meta Title</label>

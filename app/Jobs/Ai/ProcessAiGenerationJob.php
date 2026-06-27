@@ -182,14 +182,20 @@ class ProcessAiGenerationJob implements ShouldQueue
                 'completed_at' => now(),
             ]);
 
+            // Determine target status based on job_type
+            $targetStatus = 'published';
+            if (str_contains($job->job_type, '_draft')) {
+                $targetStatus = 'draft';
+            }
+
             // Save body_raw as bilingual Indonesian (ID) translation
             // Using setTranslation to correctly write into the JSON column
             $content->setTranslation('body_raw', 'id', $finalHtml);
             $content->update([
                 'cqi_score'          => $cqiScore,
                 'content_hash'       => $contentHash,
-                'status'             => 'published',
-                'published_at'       => now(),
+                'status'             => $targetStatus,
+                'published_at'       => $content->published_at ?? now(), // Preserve scheduled time if exists
             ]);
             $content->save();
 

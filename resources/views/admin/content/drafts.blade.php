@@ -8,8 +8,8 @@
     <!-- Header Controls -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Pra Post (Content Queue)</h1>
-            <p class="text-sm text-slate-500 mt-1">Pilih konten blueprint yang ingin Anda generate menggunakan AI.</p>
+            <h1 class="text-2xl font-bold text-slate-900">Drafts (AI Generated)</h1>
+            <p class="text-sm text-slate-500 mt-1">Review dan edit konten yang telah digenerate oleh AI sebelum dipublish.</p>
         </div>
         <a href="{{ route('admin.content.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
             <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
