@@ -107,11 +107,11 @@
                             <a href="{{ route('admin.content.prapost') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content.prapost') ? 'text-white font-semibold' : 'text-slate-400 hover:text-slate-200' }}">
                                 3. Pra Post (Blueprint)
                             </a>
-                            <a href="{{ route('admin.content.drafts') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content.drafts') ? 'text-white font-semibold' : 'text-slate-400 hover:text-slate-200' }}">
-                                4. AI Drafts
-                            </a>
                             <a href="{{ route('admin.content.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content.create') ? 'text-white font-semibold' : 'text-slate-400 hover:text-slate-200' }}">
-                                5. AI Queue Monitor
+                                4. AI Queue Monitor
+                            </a>
+                            <a href="{{ route('admin.content.drafts') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content.drafts') ? 'text-white font-semibold' : 'text-slate-400 hover:text-slate-200' }}">
+                                5. AI Drafts
                             </a>
                             <a href="{{ route('admin.content.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content.index') || request()->routeIs('admin.content.show') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 6. All Posts
