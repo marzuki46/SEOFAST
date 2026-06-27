@@ -104,11 +104,14 @@
                             <a href="{{ route('admin.links.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.links.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 2. Internal Link Map
                             </a>
+                            <a href="{{ route('admin.content.prapost') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content.prapost') ? 'text-white font-semibold' : 'text-slate-400 hover:text-slate-200' }}">
+                                3. Pra Post
+                            </a>
                             <a href="{{ route('admin.content.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content.create') ? 'text-white font-semibold' : 'text-slate-400 hover:text-slate-200' }}">
-                                3. Buat Konten AI
+                                4. Proses Antrean AI
                             </a>
                             <a href="{{ route('admin.content.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content.index') || request()->routeIs('admin.content.show') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
-                                4. All Posts
+                                5. All Posts
                             </a>
                         </div>
                     </div>

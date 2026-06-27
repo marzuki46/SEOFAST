@@ -1480,6 +1480,7 @@ Schedule::call(function () {
 ### FASE 4 — AI PIPELINE (Minggu 7-9)
 ```
 ✅ 4-phase generation (queue-based per fase)
+✅ Phase Image Selection & WebP Conversion (mengambil gambar dari penyedia gratis, resize, optimasi WebP otomatis, simpan ke lokal dan inject markdown)
 ✅ CQI scoring engine
 ✅ MySQL Vector: generate + store embeddings
 ✅ Duplicate detection (cosine similarity query)

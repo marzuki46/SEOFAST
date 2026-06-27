@@ -18,6 +18,7 @@ class ContentController extends Controller
     public function index()
     {
         $contents = Content::withoutGlobalScopes()
+            ->where('status', 'published')
             ->with(['siloBlueprint', 'latestUrlInspection'])
             ->latest()
             ->get();
@@ -26,28 +27,36 @@ class ContentController extends Controller
     }
 
     /**
+     * Display a listing of the Pra Post (Blueprint) contents ready for AI generation.
+     */
+    public function prapost()
+    {
+        // Show blueprint and draft status so user can review drafts or generate blueprints
+        $contents = Content::withoutGlobalScopes()
+            ->whereIn('status', ['blueprint', 'draft'])
+            ->with(['siloBlueprint'])
+            ->latest()
+            ->get();
+
+        return view('admin.content.prapost', compact('contents'));
+    }
+
+    /**
      * Show the form for creating a new resource (Write with AI).
      */
     public function create()
     {
-        $siloBlueprints = SiloBlueprint::withoutGlobalScopes()->get();
+        $activeJobs = AiGenerationJob::whereIn('status', ['pending', 'processing'])
+            ->with('content')
+            ->latest()
+            ->get();
+            
+        $processingContents = Content::withoutGlobalScopes()
+            ->where('status', 'ai_processing')
+            ->latest()
+            ->get();
 
-        // Seed a sample silo blueprint if none exists so the user has data to pick from
-        if ($siloBlueprints->isEmpty()) {
-            $silo = SiloBlueprint::create([
-                'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
-                'silo_name' => 'SEO Optimization Silo',
-                'seed_keyword' => 'seo tips',
-                'target_language' => 'id',
-                'target_country' => 'ID',
-                'is_locked' => false,
-                'total_contents' => 0,
-                'published_contents' => 0,
-            ]);
-            $siloBlueprints = collect([$silo]);
-        }
-
-        return view('admin.content.create', compact('siloBlueprints'));
+        return view('admin.content.create', compact('activeJobs', 'processingContents'));
     }
 
     /**
@@ -204,25 +213,60 @@ class ContentController extends Controller
      */
     public function generateAi(Content $content)
     {
-        if ($content->status === 'published' || $content->status === 'ai_processing') {
-            return redirect()->back()->withErrors(['error' => 'Content is already processing or published.']);
-        }
-
+        // Set status to ai_processing
         $content->update(['status' => 'ai_processing']);
 
-        // Create AI Generation Job
-        $job = AiGenerationJob::create([
-            'tenant_id' => $content->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
-            'content_id' => $content->id,
-            'job_type' => 'initial_generation',
-            'status' => 'pending',
-            'llm_model_used' => \App\Models\SystemSetting::get('ai_model', 'gpt-4o'),
+        // Check if there's already a pending/processing job
+        $existingJob = AiGenerationJob::where('content_id', $content->id)
+            ->whereIn('status', ['pending', 'processing'])
+            ->first();
+
+        if (!$existingJob) {
+            $job = AiGenerationJob::create([
+                'content_id' => $content->id,
+                'job_type'   => 'initial_generation',
+                'status'     => 'pending',
+                'retry_count'=> 0
+            ]);
+
+            ProcessAiGenerationJob::dispatch($content->id, $job->id);
+        }
+
+        return redirect()->route('admin.content.create')->with('success', 'AI Generation started for ' . $content->title);
+    }
+
+    public function bulkGenerateAi(Request $request)
+    {
+        $request->validate([
+            'content_ids' => 'required|array',
+            'content_ids.*' => 'exists:contents,id',
         ]);
 
-        // Dispatch background processing job
-        ProcessAiGenerationJob::dispatch($content->id, $job->id);
+        $count = 0;
+        foreach ($request->content_ids as $id) {
+            $content = Content::withoutGlobalScopes()->find($id);
+            if ($content && in_array($content->status, ['blueprint', 'draft', 'failed_cqi'])) {
+                $content->update(['status' => 'ai_processing']);
+                
+                $existingJob = AiGenerationJob::where('content_id', $content->id)
+                    ->whereIn('status', ['pending', 'processing'])
+                    ->first();
 
-        return redirect()->back()->with('success', 'AI Generation Job has been queued for ' . $content->target_keyword);
+                if (!$existingJob) {
+                    $job = AiGenerationJob::create([
+                        'content_id' => $content->id,
+                        'job_type'   => 'initial_generation',
+                        'status'     => 'pending',
+                        'retry_count'=> 0
+                    ]);
+
+                    ProcessAiGenerationJob::dispatch($content->id, $job->id);
+                    $count++;
+                }
+            }
+        }
+
+        return redirect()->route('admin.content.create')->with('success', "$count contents have been queued for AI Generation.");
     }
 
     /**
