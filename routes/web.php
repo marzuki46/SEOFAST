@@ -131,6 +131,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('links')->name('admin.links.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\InternalLinkController::class, 'index'])->name('index');
             Route::post('/', [\App\Http\Controllers\Admin\InternalLinkController::class, 'store'])->name('store');
+            Route::post('/generate-ai', [\App\Http\Controllers\Admin\InternalLinkController::class, 'generateAi'])->name('generate_ai');
         });
 
         // Midtrans Products & Shortcodes

@@ -25,7 +25,21 @@
         
         <!-- Form: Map New Link -->
         <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <h3 class="text-lg font-bold text-slate-900 font-outfit mb-4">Map New Link</h3>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
+                <h3 class="text-lg font-bold text-slate-900 font-outfit">Map New Link</h3>
+                @if($selectedSilo)
+                <form action="{{ route('admin.links.generate_ai') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="silo_id" value="{{ $selectedSilo }}">
+                    <button type="submit" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition shadow-sm flex items-center gap-2 text-sm">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                        </svg>
+                        Generate High-CTR Anchors with AI
+                    </button>
+                </form>
+                @endif
+            </div>
             
             <form action="{{ route('admin.links.store') }}" method="POST">
                 @csrf
@@ -38,7 +52,9 @@
                                 class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 outline-none bg-slate-50">
                             <option value="">-- Select Source --</option>
                             @foreach($contents as $c)
-                                <option value="{{ $c->id }}">[{{ $c->hierarchy_level }}] {{ $c->target_keyword }}</option>
+                                <option value="{{ $c->id }}" data-hierarchy="{{ $c->hierarchy_level }}" data-parent="{{ $c->parent_id }}">
+                                    [{{ ucfirst(str_replace('_', ' ', $c->hierarchy_level)) }}] {{ $c->target_keyword }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -49,7 +65,9 @@
                                 class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 outline-none bg-slate-50">
                             <option value="">-- Select Target --</option>
                             @foreach($contents as $c)
-                                <option value="{{ $c->id }}">[{{ $c->hierarchy_level }}] {{ $c->target_keyword }}</option>
+                                <option value="{{ $c->id }}" data-hierarchy="{{ $c->hierarchy_level }}" data-parent="{{ $c->parent_id }}">
+                                    [{{ ucfirst(str_replace('_', ' ', $c->hierarchy_level)) }}] {{ $c->target_keyword }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -116,4 +134,64 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sourceSelect = document.getElementById('source_content_id');
+        const targetSelect = document.getElementById('target_content_id');
+        if (!sourceSelect || !targetSelect) return;
+
+        // Store all original target options
+        const originalTargetOptions = Array.from(targetSelect.options);
+
+        sourceSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (!selectedOption.value) {
+                // Restore all if nothing selected
+                targetSelect.innerHTML = '';
+                originalTargetOptions.forEach(opt => targetSelect.appendChild(opt));
+                return;
+            }
+
+            const sourceHierarchy = selectedOption.getAttribute('data-hierarchy');
+            const sourceId = selectedOption.value;
+            const sourceParent = selectedOption.getAttribute('data-parent');
+
+            // Clear target options
+            targetSelect.innerHTML = '';
+            targetSelect.appendChild(originalTargetOptions[0]); // Keep '-- Select Target --'
+
+            originalTargetOptions.forEach(opt => {
+                if (!opt.value || opt.value === sourceId) return; // Skip placeholder and self
+
+                const targetHierarchy = opt.getAttribute('data-hierarchy');
+                const targetParent = opt.getAttribute('data-parent');
+                const targetId = opt.value;
+                
+                let shouldShow = false;
+
+                if (sourceHierarchy === 'pillar') {
+                    // Pillar -> Sub Cluster (based on user rules)
+                    if (targetHierarchy === 'sub_cluster') shouldShow = true;
+                } 
+                else if (sourceHierarchy === 'cluster') {
+                    // Child(cluster) -> Sesama child (other clusters), Sub Cluster (its own)
+                    if (targetHierarchy === 'cluster') shouldShow = true;
+                    if (targetHierarchy === 'sub_cluster' && targetParent === sourceId) shouldShow = true;
+                }
+                else if (sourceHierarchy === 'sub_cluster') {
+                    // Sub Cluster -> Child(cluster_utama/parent), antar sub_cluster(siblings)
+                    if (targetHierarchy === 'cluster' && targetId === sourceParent) shouldShow = true;
+                    if (targetHierarchy === 'sub_cluster' && targetParent === sourceParent) shouldShow = true;
+                }
+
+                if (shouldShow) {
+                    targetSelect.appendChild(opt.cloneNode(true));
+                }
+            });
+        });
+    });
+</script>
 @endsection
