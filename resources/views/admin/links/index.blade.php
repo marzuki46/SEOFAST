@@ -47,16 +47,6 @@
                 </div>
 
                 <div>
-                    <label for="link_type" class="block text-sm font-semibold text-slate-700 mb-1">Link Flow Direction</label>
-                    <select name="link_type" id="link_type" required
-                            class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 outline-none">
-                        <option value="upward">Upward (Cluster to Pillar)</option>
-                        <option value="downward">Downward (Pillar to Cluster)</option>
-                        <option value="cross_cluster">Cross-Cluster (Sibling)</option>
-                    </select>
-                </div>
-
-                <div>
                     <label for="anchor_text" class="block text-sm font-semibold text-slate-700 mb-1">Anchor Text</label>
                     <input type="text" name="anchor_text" id="anchor_text" required placeholder="e.g. panduan lengkap SEO"
                            class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 outline-none">
@@ -83,24 +73,14 @@
                             <th class="px-6 py-4 font-semibold">Source (From)</th>
                             <th class="px-6 py-4 font-semibold">Target (To)</th>
                             <th class="px-6 py-4 font-semibold">Anchor Text</th>
-                            <th class="px-6 py-4 font-semibold">Type</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-700">
                         @forelse($links as $link)
                         <tr class="hover:bg-slate-50 transition">
-                            <td class="px-6 py-4 font-medium text-slate-900">{{ $link->sourceContent->target_keyword ?? 'N/A' }}</td>
-                            <td class="px-6 py-4 text-indigo-600 font-medium">&rarr; {{ $link->targetContent->target_keyword ?? 'N/A' }}</td>
-                            <td class="px-6 py-4"><span class="bg-slate-100 px-2 py-1 rounded text-slate-600 border border-slate-200">{{ $link->anchor_text }}</span></td>
-                            <td class="px-6 py-4">
-                                @if($link->link_type === 'upward')
-                                    <span class="text-emerald-600 font-semibold text-xs uppercase">Upward</span>
-                                @elseif($link->link_type === 'downward')
-                                    <span class="text-blue-600 font-semibold text-xs uppercase">Downward</span>
-                                @else
-                                    <span class="text-purple-600 font-semibold text-xs uppercase">Cross</span>
-                                @endif
-                            </td>
+                            <td class="px-6 py-4 font-medium text-slate-900">{{ $link->source->target_keyword ?? 'N/A' }}</td>
+                            <td class="px-6 py-4 text-indigo-600 font-medium">&rarr; {{ $link->target->target_keyword ?? 'N/A' }}</td>
+                            <td class="px-6 py-4"><span class="bg-slate-100 px-2 py-1 rounded text-slate-600 border border-slate-200">{{ $link->mandatory_anchor_text }}</span></td>
                         </tr>
                         @empty
                         <tr>

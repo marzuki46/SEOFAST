@@ -23,7 +23,7 @@ class InternalLinkController extends Controller
             $contents = Content::withoutGlobalScopes()->where('silo_blueprint_id', $selectedSilo)->get();
             $links = DeterministicLink::withoutGlobalScopes()
                 ->whereIn('source_content_id', $contents->pluck('id'))
-                ->with(['sourceContent', 'targetContent'])
+                ->with(['source', 'target'])
                 ->get();
         }
 
@@ -36,16 +36,13 @@ class InternalLinkController extends Controller
             'source_content_id' => 'required|exists:contents,id',
             'target_content_id' => 'required|exists:contents,id|different:source_content_id',
             'anchor_text' => 'required|string|max:255',
-            'link_type' => 'required|in:upward,downward,cross_cluster',
         ]);
 
         DeterministicLink::create([
-            'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
             'source_content_id' => $request->source_content_id,
             'target_content_id' => $request->target_content_id,
-            'anchor_text' => $request->anchor_text,
-            'link_type' => $request->link_type,
-            'is_injected' => false,
+            'mandatory_anchor_text' => $request->anchor_text,
+            'is_injected_successfully' => false,
         ]);
 
         return redirect()->back()->with('success', 'Internal Link mapped successfully!');
