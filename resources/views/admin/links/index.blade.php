@@ -99,12 +99,12 @@
                 <h3 class="text-lg font-bold text-slate-900 font-outfit">Mapped Links for Selected Silo</h3>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm whitespace-nowrap">
+                <table class="w-full text-left text-sm">
                     <thead class="bg-white border-b border-slate-200 text-slate-500 uppercase text-xs tracking-wider">
                         <tr>
-                            <th class="px-6 py-4 font-semibold">Source (From)</th>
-                            <th class="px-6 py-4 font-semibold">Target (To)</th>
-                            <th class="px-6 py-4 font-semibold">Anchor Text</th>
+                            <th class="px-6 py-4 font-semibold w-1/3">Source (From)</th>
+                            <th class="px-6 py-4 font-semibold w-1/3">Target (To)</th>
+                            <th class="px-6 py-4 font-semibold w-1/3">Anchor Text</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -122,8 +122,8 @@
                                     </span>
                                 @else
                                     <div class="flex items-center">
-                                        <input type="text" class="anchor-input w-full border-transparent hover:border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm sm:text-sm px-2 py-1 bg-transparent hover:bg-white transition-colors" value="{{ $link->mandatory_anchor_text }}" data-id="{{ $link->id }}">
-                                        <span class="save-indicator ml-2 text-green-500 opacity-0 transition-opacity">
+                                        <textarea rows="2" class="anchor-input w-full border-transparent hover:border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm sm:text-sm px-2 py-1 bg-transparent hover:bg-white transition-colors resize-none" data-id="{{ $link->id }}">{{ $link->mandatory_anchor_text }}</textarea>
+                                        <span class="save-indicator ml-2 text-green-500 opacity-0 transition-opacity flex-shrink-0">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                         </span>
                                     </div>
