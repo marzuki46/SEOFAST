@@ -189,8 +189,8 @@ class ProcessAiGenerationJob implements ShouldQueue
                 'rendered_html_path' => $finalHtml,
                 'cqi_score'          => $cqiScore,
                 'content_hash'       => $contentHash,
-                'status'             => 'published',
-                'published_at'       => now(),
+                'status'             => 'draft',
+                'published_at'       => null,
             ]);
             $content->save();
 
