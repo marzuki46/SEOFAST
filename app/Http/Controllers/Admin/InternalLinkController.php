@@ -134,19 +134,92 @@ class InternalLinkController extends Controller
         DeterministicLink::whereIn('source_content_id', $contentIds)->delete();
 
         foreach ($plannedLinks as $idx => $link) {
-            $anchorText = $link['target']->target_keyword;
-
             DeterministicLink::create([
                 'source_content_id' => $link['source']->id,
                 'target_content_id' => $link['target']->id,
-                'mandatory_anchor_text' => $anchorText,
+                'mandatory_anchor_text' => null, // empty state for AI
                 'is_injected_successfully' => false
             ]);
         }
 
-        // Dispatch background job to ask AI for High-CTR anchors
-        \App\Jobs\Ai\GenerateInternalLinkAnchorsJob::dispatch($silo->id);
+        return redirect()->route('admin.links.process_ai_view', ['silo_id' => $silo->id]);
+    }
 
-        return redirect()->back()->with('success', 'Internal links have been mapped (max 3 per article) and AI anchor generation has been queued in the background! Refresh the page in a few minutes to see the updated texts.');
+    public function processAiView(Request $request)
+    {
+        $siloId = $request->get('silo_id');
+        $silo = SiloBlueprint::findOrFail($siloId);
+        
+        $contentIds = $silo->contents()->pluck('id');
+        
+        // Count how many links need processing
+        $pendingCount = DeterministicLink::whereIn('source_content_id', $contentIds)
+            ->whereNull('mandatory_anchor_text')
+            ->count();
+            
+        $totalCount = DeterministicLink::whereIn('source_content_id', $contentIds)->count();
+
+        if ($pendingCount === 0) {
+            return redirect()->route('admin.links.index', ['silo_id' => $siloId])
+                ->with('success', 'All AI anchors have been processed successfully!');
+        }
+
+        return view('admin.links.process_ai', compact('silo', 'pendingCount', 'totalCount'));
+    }
+
+    public function processAiChunk(Request $request)
+    {
+        $siloId = $request->input('silo_id');
+        $silo = SiloBlueprint::findOrFail($siloId);
+        $contentIds = $silo->contents()->pluck('id');
+        
+        // Get up to 5 links that need processing
+        $links = DeterministicLink::with(['source', 'target'])
+            ->whereIn('source_content_id', $contentIds)
+            ->whereNull('mandatory_anchor_text')
+            ->limit(5)
+            ->get();
+            
+        if ($links->isEmpty()) {
+            return response()->json(['status' => 'done']);
+        }
+        
+        $aiService = new \App\Services\AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
+        $systemPrompt = "You are an expert SEO internal linking architect. Generate natural, contextually relevant, High-CTR anchor texts for internal links. DO NOT use the exact target keyword as the anchor text. Use compelling, click-worthy phrasing. Return a JSON array of strings corresponding to the given link pairs in the EXACT SAME ORDER. RETURN ONLY RAW VALID JSON ARRAY OF STRINGS.";
+
+        $userPrompt = "Generate High-CTR anchor texts for the following internal links:\n";
+        foreach ($links as $idx => $link) {
+            $userPrompt .= ($idx + 1) . ". From article '{$link->source->target_keyword}' to article '{$link->target->target_keyword}'\n";
+        }
+        
+        $aiAnchors = $aiService->generateJson($systemPrompt, $userPrompt);
+        
+        if (is_array($aiAnchors) && count($aiAnchors) === $links->count()) {
+            foreach ($links as $idx => $link) {
+                $aiText = $aiAnchors[$idx];
+                $anchorText = trim(strip_tags($aiText), "\"' ");
+                
+                $link->update([
+                    'mandatory_anchor_text' => !empty($anchorText) ? $anchorText : $link->target->target_keyword
+                ]);
+            }
+        } else {
+            // If AI fails, use fallback to avoid getting stuck in a loop
+            foreach ($links as $link) {
+                $link->update([
+                    'mandatory_anchor_text' => $link->target->target_keyword
+                ]);
+            }
+            return response()->json(['status' => 'error_fallback']);
+        }
+        
+        $remaining = DeterministicLink::whereIn('source_content_id', $contentIds)
+            ->whereNull('mandatory_anchor_text')
+            ->count();
+            
+        return response()->json([
+            'status' => 'continue',
+            'remaining' => $remaining
+        ]);
     }
 }
