@@ -173,6 +173,14 @@ class AIService
 
         $decoded = json_decode($result, true);
 
+        // Debug log the raw response and parsed result
+        @file_put_contents(storage_path('logs/ai_debug.log'), json_encode([
+            'time' => date('Y-m-d H:i:s'),
+            'type' => 'response',
+            'raw_result' => $result,
+            'decoded' => $decoded
+        ], JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             Log::warning("AI JSON parsing failed: " . json_last_error_msg(), [
                 'raw_response' => substr($result, 0, 500),
@@ -370,7 +378,10 @@ class AIService
             'max_tokens' => $options['max_tokens'] ?? $this->config['max_tokens'],
         ]);
 
-        $body = $response->json();
+        $rawBody = $response->body();
+        // The tunnel might append "data: [DONE]" at the end even for non-streaming requests
+        $rawBody = preg_replace('/data:\s*\[DONE\]\s*$/i', '', trim($rawBody));
+        $body = json_decode($rawBody, true);
 
         if (!$response->successful()) {
             throw new \RuntimeException($body['error']['message'] ?? 'Custom API error');
