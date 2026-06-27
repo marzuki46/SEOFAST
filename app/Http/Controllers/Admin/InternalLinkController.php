@@ -188,9 +188,9 @@ class InternalLinkController extends Controller
         $aiService = new \App\Services\AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
         $systemPrompt = "You are an expert SEO internal linking architect. For each link pair provided, generate a UNIQUE, short (2-4 words) High-CTR anchor text.
 CRITICAL RULES:
-1. NEVER use the exact Target keyword.
-2. If multiple sources point to the same Target, YOU MUST provide DIFFERENT variations (synonyms, long-tail, action-oriented) for each.
-3. The anchor must naturally fit within the Source article's context while accurately pointing to the Target.
+1. PENALTY: YOU WILL BE PENALIZED IF YOU USE THE EXACT TARGET KEYWORD AS THE ANCHOR TEXT. You MUST extract the core topic and rephrase it using synonyms, action verbs, or LSI variations. (e.g., if target is 'Panduan SEO Teknis', use 'cara audit website' or 'optimasi teknikal', NEVER 'panduan seo teknis').
+2. DIVERSITY: If multiple sources point to the same Target, YOU MUST provide completely DIFFERENT variations for each row.
+3. RELEVANCE: The anchor must naturally fit within the Source article's context while accurately pointing to the Target.
 Return a JSON array of strings corresponding to the links in the EXACT SAME ORDER. NO MARKDOWN, NO EXTRA TEXT. ONLY A RAW JSON ARRAY OF STRINGS.";
 
         $userPrompt = "Generate High-CTR anchor texts for these internal links:\n";
