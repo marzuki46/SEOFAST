@@ -4,24 +4,27 @@
 @section('page_title', 'Rekayasa Internal Link (Deterministic)')
 
 @section('admin_content')
-<div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
-    <!-- Left Sidebar: Silo List -->
-    <div class="w-full lg:w-64 flex-shrink-0">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm sticky top-6">
-            <h3 class="text-xs font-bold text-slate-500 font-outfit mb-3 uppercase tracking-wider">Select Silo</h3>
-            <div class="space-y-1">
+<div class="space-y-6">
+    <!-- Top Bar: Silo Selection -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h3 class="text-lg font-bold text-slate-900 font-outfit mb-1">Select Silo</h3>
+            <p class="text-sm text-slate-500">Choose a Silo Blueprint to configure its internal linking</p>
+        </div>
+        <div class="w-full md:w-96">
+            <select name="silo_id" onchange="window.location.href='?silo_id='+this.value"
+                    class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 outline-none bg-slate-50">
                 @foreach($silos as $silo)
-                    <a href="?silo_id={{ $silo->id }}" 
-                       class="block px-3 py-2 rounded-lg text-sm font-medium transition {{ $selectedSilo == $silo->id ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent' }}">
+                    <option value="{{ $silo->id }}" {{ $selectedSilo == $silo->id ? 'selected' : '' }}>
                         {{ $silo->silo_name }}
-                    </a>
+                    </option>
                 @endforeach
-            </div>
+            </select>
         </div>
     </div>
 
-    <!-- Right Side: Form & Table -->
-    <div class="flex-1 space-y-6 min-w-0">
+    <!-- Form & Table Container -->
+    <div class="space-y-6">
         
         <!-- Form: Map New Link -->
         <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">

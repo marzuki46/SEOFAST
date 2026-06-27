@@ -45,6 +45,7 @@ class InternalLinkController extends Controller
             'is_injected_successfully' => false,
         ]);
 
+        return redirect()->back()->with('success', 'Internal Link mapped successfully!');
     }
 
     public function generateAi(Request $request)
@@ -62,43 +63,69 @@ class InternalLinkController extends Controller
         $subClusters = $silo->contents()->where('hierarchy_level', 'sub_cluster')->get();
         
         $plannedLinks = [];
+        $linksPerSource = [];
 
-        // Rules based on user request:
+        $addLink = function($source, $target) use (&$plannedLinks, &$linksPerSource) {
+            $sid = $source->id;
+            if (!isset($linksPerSource[$sid])) {
+                $linksPerSource[$sid] = 0;
+            }
+            if ($linksPerSource[$sid] < 3) {
+                $plannedLinks[] = ['source' => $source, 'target' => $target];
+                $linksPerSource[$sid]++;
+            }
+        };
+
         // 1. Kategori Utama (Pillar) -> links to Sub Cluster 
-        foreach ($subClusters as $sub) {
-            $plannedLinks[] = ['source' => $pillar, 'target' => $sub];
+        $shuffledSubs = $subClusters->shuffle();
+        foreach ($shuffledSubs as $sub) {
+            $addLink($pillar, $sub);
         }
 
         // 2. Child (Cluster) -> sesama child (other clusters), sub_cluster
         foreach ($clusters as $clusterA) {
+            $targets = collect();
+            
             // to other clusters
             foreach ($clusters as $clusterB) {
                 if ($clusterA->id !== $clusterB->id) {
-                    $plannedLinks[] = ['source' => $clusterA, 'target' => $clusterB];
+                    $targets->push($clusterB);
                 }
             }
             
             // to its sub_clusters
             $itsSubs = $subClusters->where('parent_id', $clusterA->id);
             foreach ($itsSubs as $sub) {
-                $plannedLinks[] = ['source' => $clusterA, 'target' => $sub];
+                $targets->push($sub);
+            }
+            
+            $targets = $targets->shuffle();
+            foreach ($targets as $tgt) {
+                $addLink($clusterA, $tgt);
             }
         }
 
         // 3. Sub Cluster -> child (cluster_utama/parent), antar sub_cluster
         foreach ($subClusters as $subA) {
+            $targets = collect();
+            
             // to its parent cluster
             $parentCluster = $clusters->where('id', $subA->parent_id)->first();
             if ($parentCluster) {
-                $plannedLinks[] = ['source' => $subA, 'target' => $parentCluster];
+                $targets->push($parentCluster);
             }
             
             // to other sub_clusters (siblings only)
             $siblings = $subClusters->where('parent_id', $subA->parent_id);
             foreach ($siblings as $subB) {
                 if ($subA->id !== $subB->id) {
-                    $plannedLinks[] = ['source' => $subA, 'target' => $subB];
+                    $targets->push($subB);
                 }
+            }
+            
+            $targets = $targets->shuffle();
+            foreach ($targets as $tgt) {
+                $addLink($subA, $tgt);
             }
         }
 
