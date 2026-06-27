@@ -79,7 +79,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             $draft = $aiService1->generate($sysPrompt1, $userPrompt1);
 
             if (!$draft) {
-                $draft = $this->getSimulatedDraft($keyword);
+                $draft = "# Panduan Lengkap: " . ucwords($keyword) . "\n\nArtikel ini secara otomatis dihasilkan oleh SEOFAST AI Pipeline.\n\n## Pendahuluan\nMemahami " . $keyword . " sangat penting untuk kesuksesan strategi SEO Anda. Dalam panduan ini, kita akan membahas secara mendalam langkah-langkah praktis dan konsep dasarnya.\n\n## Langkah-Langkah Utama\n- Langkah pertama adalah riset mendalam.\n- Kedua, implementasikan teknik terbaik.\n- Ketiga, evaluasi hasilnya.\n\n## Kesimpulan\nDengan menerapkan strategi " . $keyword . " yang tepat, website Anda akan lebih optimal dan mendatangkan trafik yang relevan.";
             }
 
             $job->update([
