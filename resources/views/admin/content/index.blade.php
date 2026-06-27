@@ -104,7 +104,10 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-3">
-                                <a href="{{ route('blog.show', $post->slug ?: $post->getTranslation('slug', 'id', false)) }}" target="_blank" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="View on Website">
+                                @php
+                                    $slugStr = is_array($post->slug) ? ($post->slug[app()->getLocale()] ?? $post->slug['id'] ?? '') : ($post->getTranslation('slug', app()->getLocale(), false) ?: $post->getTranslation('slug', 'id', false));
+                                @endphp
+                                <a href="{{ route('blog.show', $slugStr) }}" target="_blank" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="View on Website">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                                     </svg>

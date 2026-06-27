@@ -76,9 +76,9 @@ class ContentController extends Controller
             'tenant_id'        => \App\Models\Tenant::first()?->id ?? 1,
             'silo_blueprint_id' => $request->silo_blueprint_id,
             'target_keyword'   => $request->target_keyword,
-            'slug'             => json_encode(['id' => $slug]),
-            'meta_title'       => ucwords($request->target_keyword) . ' - SEOFAST',
-            'meta_description' => 'Panduan taktis terperinci mengenai ' . $request->target_keyword . ' untuk optimasi mesin pencari.',
+            'slug'             => ['id' => $slug],
+            'meta_title'       => ['id' => ucwords($request->target_keyword) . ' - SEOFAST'],
+            'meta_description' => ['id' => 'Panduan taktis terperinci mengenai ' . $request->target_keyword . ' untuk optimasi mesin pencari.'],
             'hierarchy_level' => $request->hierarchy_level,
             'status' => $generateAi ? 'ai_processing' : 'blueprint',
         ]);
