@@ -188,8 +188,8 @@ class ProcessAiGenerationJob implements ShouldQueue
             $content->update([
                 'cqi_score'          => $cqiScore,
                 'content_hash'       => $contentHash,
-                'status'             => 'draft',
-                'published_at'       => null,
+                'status'             => 'published',
+                'published_at'       => now(),
             ]);
             $content->save();
 
