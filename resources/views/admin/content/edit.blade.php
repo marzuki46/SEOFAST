@@ -55,6 +55,7 @@
                 <select name="status" id="status" required
                         class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 outline-none">
                     <option value="blueprint" {{ $content->status == 'blueprint' ? 'selected' : '' }}>Blueprint</option>
+                    <option value="draft" {{ $content->status == 'draft' ? 'selected' : '' }}>Draft (Review)</option>
                     <option value="published" {{ $content->status == 'published' ? 'selected' : '' }}>Published</option>
                     <option value="needs_reoptimize" {{ $content->status == 'needs_reoptimize' ? 'selected' : '' }}>Needs Reoptimize</option>
                 </select>
