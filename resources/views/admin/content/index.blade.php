@@ -57,16 +57,7 @@
                                 <a href="{{ route('admin.content.show', $post->id) }}" class="font-bold text-slate-900 hover:text-indigo-600 transition">
                                     {{ $post->title }}
                                 </a>
-                                @php
-                                    $rawSlugDisp = $post->slug;
-                                    if (is_string($rawSlugDisp) && (str_starts_with($rawSlugDisp, '{') || str_starts_with($rawSlugDisp, '"{'))) {
-                                        $decoded = json_decode(trim($rawSlugDisp, '"'), true);
-                                        if (is_array($decoded)) $rawSlugDisp = $decoded;
-                                    }
-                                    
-                                    $slugDispStr = is_string($rawSlugDisp) ? $rawSlugDisp : 'invalid-slug';
-                                @endphp
-                                <span class="text-xs text-slate-400 font-mono mt-0.5">/blog/{{ $slugDispStr }}</span>
+                                <span class="text-xs text-slate-400 font-mono mt-0.5">/blog/{{ $post->slug }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4">
@@ -113,16 +104,7 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-3">
-                                @php
-                                    $rawSlug = $post->slug;
-                                    if (is_string($rawSlug) && (str_starts_with($rawSlug, '{') || str_starts_with($rawSlug, '"{'))) {
-                                        $decoded = json_decode(trim($rawSlug, '"'), true);
-                                        if (is_array($decoded)) $rawSlug = $decoded;
-                                    }
-                                    
-                                    $slugStr = $rawSlug;
-                                @endphp
-                                <a href="{{ route('blog.show', ['slug' => $slugStr]) }}" target="_blank" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="View on Website">
+                                <a href="{{ route('blog.show', ['slug' => $post->slug]) }}" target="_blank" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="View on Website">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                                     </svg>
