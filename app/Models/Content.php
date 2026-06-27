@@ -154,8 +154,24 @@ class Content extends Model
     public function getTitleAttribute(): string
     {
         $metaTitle = $this->meta_title ?: $this->getTranslation('meta_title', 'id', false);
+        
+        // Handle double encoded JSON leftover from previous bugs
+        if (is_string($metaTitle) && (str_starts_with(trim($metaTitle), '{') || str_starts_with(trim($metaTitle), '"{'))) {
+            $decoded = json_decode(trim($metaTitle, '"'), true);
+            if (is_array($decoded)) {
+                $metaTitle = $decoded[app()->getLocale()] ?? $decoded['id'] ?? current($decoded);
+            }
+        }
+        
         $slug = $this->slug ?: $this->getTranslation('slug', 'id', false);
-        return $metaTitle ?: ($slug ? ucfirst(str_replace('-', ' ', $slug)) : Str::title($this->target_keyword));
+        if (is_string($slug) && (str_starts_with(trim($slug), '{') || str_starts_with(trim($slug), '"{'))) {
+            $decodedSlug = json_decode(trim($slug, '"'), true);
+            if (is_array($decodedSlug)) {
+                $slug = $decodedSlug[app()->getLocale()] ?? $decodedSlug['id'] ?? current($decodedSlug);
+            }
+        }
+
+        return is_string($metaTitle) && !empty($metaTitle) ? $metaTitle : (is_string($slug) && !empty($slug) ? ucfirst(str_replace('-', ' ', $slug)) : \Illuminate\Support\Str::title($this->target_keyword));
     }
 
     /**
