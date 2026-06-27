@@ -103,6 +103,23 @@ class AIService
     {
         $startTime = microtime(true);
 
+        // Log debug info
+        $debugData = [
+            'time' => date('Y-m-d H:i:s'),
+            'role' => $this->role,
+            'config' => $this->config,
+            'systemPrompt' => substr($systemPrompt, 0, 100),
+            'userPrompt' => substr($userPrompt, 0, 100),
+            'backtrace' => collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5))->map(function($t) {
+                return ($t['class'] ?? '') . '::' . ($t['function'] ?? '') . ' (line ' . ($t['line'] ?? '') . ')';
+            })->toArray()
+        ];
+        @file_put_contents(
+            storage_path('logs/ai_debug.log'),
+            json_encode($debugData, JSON_PRETTY_PRINT) . "\n\n",
+            FILE_APPEND
+        );
+
         try {
             $response = match ($this->config['provider']) {
                 'openai' => $this->callOpenAI($systemPrompt, $userPrompt, $options),
