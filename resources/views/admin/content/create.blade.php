@@ -95,6 +95,19 @@
             </table>
         </div>
     </div>
+
+    <!-- Terminal Log Window -->
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm overflow-hidden mt-6 hidden" id="terminalContainer">
+        <div class="px-4 py-2 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
+            <h3 class="font-bold text-slate-300 text-xs tracking-wider uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Worker Log
+            </h3>
+            <button onclick="clearLogs()" class="text-xs text-slate-500 hover:text-slate-300 transition">Clear</button>
+        </div>
+        <div class="p-4 h-64 overflow-y-auto font-mono text-xs text-emerald-400 bg-black space-y-1" id="terminalLog">
+            <div><span class="text-slate-500">>></span> Ready. Waiting for worker to start...</div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -102,6 +115,8 @@
         let isWorking = sessionStorage.getItem('ai_worker_running') === 'true';
         const btn = document.getElementById('startAiWorker');
         const btnText = document.getElementById('startAiWorkerText');
+        const terminalContainer = document.getElementById('terminalContainer');
+        const terminalLog = document.getElementById('terminalLog');
 
         function setWorkingUI() {
             if (!btn) return;
@@ -111,28 +126,67 @@
             btn.querySelector('svg').outerHTML = `<svg class="h-4.5 w-4.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
         }
 
+        window.clearLogs = function() {
+            terminalLog.innerHTML = '<div><span class="text-slate-500">>></span> Logs cleared.</div>';
+        }
+
+        function appendLog(text) {
+            terminalContainer.classList.remove('hidden');
+            if(!text || text.trim() === '') return;
+            
+            // Clean up Laravel output
+            const lines = text.split('\n').filter(l => l.trim() !== '');
+            lines.forEach(line => {
+                const div = document.createElement('div');
+                div.innerHTML = `<span class="text-slate-500">>></span> ${line.replace(/</g, '&lt;').replace(/>/g, '&gt;')}`;
+                terminalLog.appendChild(div);
+            });
+            
+            // Keep max 30 lines
+            while (terminalLog.children.length > 30) {
+                terminalLog.removeChild(terminalLog.firstChild);
+            }
+            
+            terminalLog.scrollTop = terminalLog.scrollHeight;
+        }
+
+        async function refreshTable() {
+            try {
+                const res = await fetch(window.location.href);
+                const text = await res.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const newTbody = doc.querySelector('tbody');
+                if (newTbody) {
+                    document.querySelector('tbody').innerHTML = newTbody.innerHTML;
+                }
+            } catch (e) {
+                console.error("Failed to refresh table", e);
+            }
+        }
+
         if (btn) {
             btn.addEventListener('click', async function() {
                 if (isWorking) {
-                    // Jika diklik saat jalan, kita stop
                     isWorking = false;
                     sessionStorage.setItem('ai_worker_running', 'false');
-                    window.location.reload();
+                    appendLog("Worker stopped manually.");
+                    setTimeout(() => window.location.reload(), 500);
                     return;
                 }
                 
                 isWorking = true;
                 sessionStorage.setItem('ai_worker_running', 'true');
                 setWorkingUI();
+                appendLog("Starting background worker...");
                 await processNextJob();
             });
         }
 
-        // Auto-resume if it was running before reload
         if (isWorking) {
             setWorkingUI();
-            // Kasih jeda 1 detik biar user bisa lihat update UI
             setTimeout(() => {
+                appendLog("Resuming background worker...");
                 processNextJob();
             }, 1000);
         }
@@ -152,25 +206,34 @@
 
                 const result = await response.json();
                 
+                if (result.output) {
+                    appendLog(result.output);
+                } else if (!result.success) {
+                    appendLog("[ERROR] " + (result.error || "Unknown error"));
+                }
+                
+                // Refresh table UI seamlessly
+                await refreshTable();
+                
                 if (result.has_more) {
-                    // Reload halaman untuk update UI progress. Skrip ini akan otomatis resume lagi karena sessionStorage.
-                    window.location.reload();
+                    // Jeda sebentar sebelum next job agar UI bernafas
+                    setTimeout(processNextJob, 1000);
                 } else {
                     sessionStorage.setItem('ai_worker_running', 'false');
                     btnText.innerHTML = 'All Jobs Completed!';
                     btn.classList.remove('from-amber-500', 'to-amber-600');
-                    btn.classList.add('from-slate-500', 'to-slate-600');
-                    setTimeout(() => window.location.reload(), 2000);
+                    btn.classList.add('from-emerald-500', 'to-emerald-600');
+                    appendLog("All tasks completed successfully!");
                 }
             } catch (err) {
                 console.error(err);
                 sessionStorage.setItem('ai_worker_running', 'false');
-                alert("Worker timeout or error. The job might still be processing in the background. Refreshing...");
-                window.location.reload();
+                appendLog("[FATAL ERROR] " + err.message);
+                alert("Worker connection lost. Check the log.");
+                setTimeout(() => window.location.reload(), 2000);
             }
         }
     @else
-        // Pastikan state dimatikan jika tidak ada job
         sessionStorage.setItem('ai_worker_running', 'false');
     @endif
 </script>
