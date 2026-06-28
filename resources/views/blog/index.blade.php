@@ -1,7 +1,13 @@
 @extends('layouts.frontend')
 
-@section('title', 'SEOFAST Blog — Latest Insights in AI Content & SEO Automation')
+@php
+    $page = request('page', 1);
+    $titleSuffix = $page > 1 ? " - Halaman {$page}" : "";
+    $canonicalUrl = url()->current() . ($page > 1 ? '?page=' . $page : '');
+@endphp
+@section('title', 'SEOFAST Blog — Latest Insights in AI Content & SEO Automation' . $titleSuffix)
 @section('meta_description', 'Discover advanced technical SEO workflows, AI-driven content generation, and closed-loop Google Search Console sync strategies.')
+@section('canonical_url', $canonicalUrl)
 
 @section('content')
 @if(request()->filled('q'))

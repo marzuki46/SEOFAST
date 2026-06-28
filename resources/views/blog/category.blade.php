@@ -1,7 +1,13 @@
 @extends('layouts.frontend')
 
-@section('title', 'Category: ' . $category->silo_name . ' — SEOFAST Blog')
+@php
+    $page = request('page', 1);
+    $titleSuffix = $page > 1 ? " - Halaman {$page}" : "";
+    $canonicalUrl = url()->current() . ($page > 1 ? '?page=' . $page : '');
+@endphp
+@section('title', 'Category: ' . $category->silo_name . ' — SEOFAST Blog' . $titleSuffix)
 @section('meta_description', 'Read high-performance articles about ' . $category->silo_name . ' optimized with the SEOFAST topical silo engine.')
+@section('canonical_url', $canonicalUrl)
 
 @section('content')
 <!-- Blog Category Header -->
