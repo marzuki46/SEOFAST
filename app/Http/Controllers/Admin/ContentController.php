@@ -253,9 +253,15 @@ class ContentController extends Controller
 
             ProcessAiGenerationJob::dispatch($content->id, $job->id);
             
-            // Trigger background worker for shared hosting
-            if (function_exists('exec')) {
-                exec(PHP_BINARY . " " . base_path('artisan') . " queue:work --stop-when-empty > /dev/null 2>&1 &");
+            // Trigger background worker for shared hosting / Windows
+            if (function_exists('popen') && function_exists('pclose')) {
+                $php = PHP_BINARY;
+                $artisan = base_path('artisan');
+                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                    pclose(popen("start /B {$php} {$artisan} queue:work --stop-when-empty > NUL", "r"));
+                } else {
+                    exec("{$php} {$artisan} queue:work --stop-when-empty > /dev/null 2>&1 &");
+                }
             }
         }
 
@@ -298,9 +304,15 @@ class ContentController extends Controller
             }
         }
         
-        // Trigger background worker for shared hosting
-        if ($count > 0 && function_exists('exec')) {
-            exec(PHP_BINARY . " " . base_path('artisan') . " queue:work --stop-when-empty > /dev/null 2>&1 &");
+        // Trigger background worker for shared hosting / Windows
+        if ($count > 0 && function_exists('popen') && function_exists('pclose')) {
+            $php = PHP_BINARY;
+            $artisan = base_path('artisan');
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                pclose(popen("start /B {$php} {$artisan} queue:work --stop-when-empty > NUL", "r"));
+            } else {
+                exec("{$php} {$artisan} queue:work --stop-when-empty > /dev/null 2>&1 &");
+            }
         }
 
         return redirect()->route('admin.content.create')->with('success', $count . ' contents queued for AI generation.');
