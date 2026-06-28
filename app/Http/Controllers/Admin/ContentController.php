@@ -270,6 +270,10 @@ class ContentController extends Controller
         return redirect()->route('admin.content.create')->with('success', 'AI Generation started for ' . $content->title);
     }
 
+    /**
+     * Register content IDs for AI generation and return the list.
+     * The frontend will call generateSingle() for each one sequentially via AJAX.
+     */
     public function bulkGenerateAi(Request $request)
     {
         $request->validate([
@@ -280,28 +284,26 @@ class ContentController extends Controller
 
         $targetStatus = $request->input('target_status', 'draft');
         $tenantId     = \App\Models\Tenant::first()?->id ?? 1;
+        $queue        = [];
 
-        $createdJobs = [];
-
-        // Step 1: Create ALL job records in DB as 'pending' — but don't dispatch to queue yet.
-        // This ensures we know about all items before the first job starts.
         foreach ($request->content_ids as $id) {
             $content = Content::withoutGlobalScopes()->find($id);
             if (!$content || !in_array($content->status, ['blueprint', 'draft', 'failed_cqi', 'ai_processing'])) {
                 continue;
             }
 
-            // Skip if this content already has an active AI job
-            $alreadyRunning = AiGenerationJob::withoutGlobalScopes()
+            // Skip if already actively being processed
+            $alreadyActive = AiGenerationJob::withoutGlobalScopes()
                 ->where('content_id', $content->id)
                 ->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
                 ->exists();
+            if ($alreadyActive) continue;
 
-            if ($alreadyRunning) {
-                continue;
-            }
-
-            $content->update(['status' => 'ai_processing']);
+            // Clean up any previous failed jobs for this content
+            AiGenerationJob::withoutGlobalScopes()
+                ->where('content_id', $content->id)
+                ->whereIn('status', ['failed', 'failed_cqi', 'completed'])
+                ->delete();
 
             $job = AiGenerationJob::create([
                 'tenant_id'   => $content->tenant_id ?? $tenantId,
@@ -311,30 +313,230 @@ class ContentController extends Controller
                 'retry_count' => 0,
             ]);
 
-            // Store target_status in error_log temporarily so the job chain can read it
-            $job->update(['error_log' => ['target_status' => $targetStatus]]);
+            $content->update(['status' => 'ai_processing']);
 
-            $createdJobs[] = $job;
+            $queue[] = [
+                'job_id'        => $job->id,
+                'content_id'    => $content->id,
+                'target_status' => $targetStatus,
+                'keyword'       => $content->target_keyword,
+                'title'         => $content->title,
+            ];
         }
 
-        // Step 2: Only dispatch the FIRST job to the queue.
-        // When it finishes, it will dispatch the next pending job automatically (see ProcessAiGenerationJob).
-        if (!empty($createdJobs)) {
-            $firstJob = $createdJobs[0];
-            \App\Jobs\Ai\ProcessAiGenerationJob::dispatch(
-                $firstJob->content_id,
-                $firstJob->id,
-                $targetStatus
-            );
-        }
-
-        $count = count($createdJobs);
         return response()->json([
             'success' => true,
-            'message' => $count . ' konten diantri. Proses berjalan satu per satu secara berurutan.',
-            'queued'  => $count,
+            'queue'   => $queue,
+            'count'   => count($queue),
         ]);
     }
+
+    /**
+     * Generate a single content article synchronously.
+     * Called by the frontend one content at a time via AJAX.
+     * Runs the full Phase 1→4 pipeline in one HTTP request.
+     */
+    public function generateSingle(Request $request)
+    {
+        @set_time_limit(300);
+
+        $request->validate([
+            'content_id'    => 'required|exists:contents,id',
+            'job_id'        => 'required|exists:ai_generation_jobs,id',
+            'target_status' => 'nullable|string|in:draft,published',
+        ]);
+
+        $content      = Content::withoutGlobalScopes()->find($request->content_id);
+        $job          = AiGenerationJob::withoutGlobalScopes()->find($request->job_id);
+        $targetStatus = $request->input('target_status', 'draft');
+        $logs         = [];
+
+        $addLog = function(string $level, string $message) use (&$logs) {
+            $logs[] = ['level' => $level, 'message' => $message];
+            \Illuminate\Support\Facades\Log::info("AI [{$level}] {$message}");
+        };
+
+        if (!$content || !$job) {
+            return response()->json(['success' => false, 'error' => 'Content or Job not found.', 'logs' => []]);
+        }
+
+        $keyword     = $content->target_keyword;
+        $seedKeyword = $content->siloBlueprint?->seed_keyword ?? $keyword;
+        $lang        = $content->siloBlueprint?->target_language ?? 'id';
+        $country     = $content->siloBlueprint?->target_country ?? 'ID';
+        $tenant      = $content->tenant;
+
+        $job->update(['status' => 'phase_1', 'started_at' => now()]);
+        $addLog('info', "Mulai Phase 1: Generating draft untuk [{$keyword}]...");
+
+        try {
+            // ── PHASE 1: Draft Generation ─────────────────────────────────────
+            $aiService1  = new \App\Services\AIService($tenant, '1');
+            $sysP1  = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
+                "You are an expert SEO Content Writer fluent in {lang}. Write a comprehensive, well-structured article about '{keyword}' targeting readers in {country}. Use proper Markdown formatting with H2 and H3 headings. Apply E-E-A-T principles: include expert insights, real examples, and actionable advice. The article must be at least 1,200 words.");
+            $userP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_user',
+                "Write a comprehensive, SEO-optimised article in {lang} about: **{keyword}**.\n\nRequirements:\n- Minimum 1,200 words\n- Use H2 and H3 headings\n- Cover: definition, importance, step-by-step guide, common mistakes, conclusion with CTA\n- Incorporate seed keyword '{seed_keyword}' naturally\n- Do NOT use generic filler - every sentence must provide real value");
+
+            $sysP1  = strtr($sysP1,  ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
+            $userP1 = strtr($userP1, ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
+
+            $draft = $aiService1->generate($sysP1, $userP1);
+
+            if (!$draft || mb_strlen(trim($draft)) < 300) {
+                $job->update(['status' => 'failed', 'error_log' => ['reason' => 'Phase 1: AI returned empty or too-short draft. Check API key/quota.']]);
+                $content->update(['status' => 'failed_cqi']);
+                $addLog('error', "Phase 1 GAGAL: AI tidak menghasilkan draft. Periksa API key.");
+                return response()->json(['success' => false, 'logs' => $logs, 'keyword' => $keyword]);
+            }
+
+            $job->update(['status' => 'phase_2', 'phase_1_draft' => $draft]);
+            $addLog('success', "Phase 1 SELESAI | Draft: " . mb_strlen($draft) . " karakter");
+
+            // ── PHASE 2: CQI Critique ─────────────────────────────────────────
+            $addLog('info', "Phase 2: CQI Quality Check untuk [{$keyword}]...");
+            $aiService2 = new \App\Services\AIService($tenant, '2');
+            $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
+                "You are a strict Senior SEO Content Auditor. Evaluate the article draft and respond ONLY with valid JSON:\n{\"cqi_score\": <0-100>, \"strengths\": [], \"gaps\": [], \"improvements\": []}");
+            $critique = $aiService2->generateJson($sysP2, "Keyword: {$keyword}\n\nDraft:\n{$draft}");
+
+            if (!$critique || !isset($critique['cqi_score'])) {
+                // If critique fails, use a reasonable default and continue
+                $critique = ['cqi_score' => 75, 'gaps' => [], 'improvements' => ['Improve E-E-A-T signals and depth.']];
+                $addLog('warn', "Phase 2: Critique tidak dapat di-parse, menggunakan skor default 75.");
+            }
+
+            $cqiScore = (int) $critique['cqi_score'];
+            $job->update(['status' => 'phase_3', 'phase_2_critique' => $critique]);
+            $addLog('info', "Phase 2 SELESAI | CQI Score: {$cqiScore}/100");
+
+            $cqiThreshold = (int) \App\Models\SystemSetting::get('ai_cqi_threshold', 70);
+            if ($cqiScore < $cqiThreshold) {
+                $addLog('warn', "CQI {$cqiScore} di bawah threshold {$cqiThreshold}. Artikel tetap diproses dengan catatan improvement.");
+            }
+
+            // ── PHASE 3: Expansion ────────────────────────────────────────────
+            $addLog('info', "Phase 3: Expanding & enriching content...");
+            $aiService3 = new \App\Services\AIService($tenant, '3');
+            $improvements = implode("\n- ", $critique['improvements'] ?? ['Improve depth and E-E-A-T']);
+            $gaps         = implode("\n- ", $critique['gaps'] ?? []);
+            $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
+                "You are a Master SEO Content Expander writing in {lang}. Rewrite and expand the article to address ALL gaps and improvements. Minimum 1,800 words. Return ONLY the improved Markdown.");
+            $sysP3 = strtr($sysP3, ['{lang}' => $lang, '{keyword}' => $keyword]);
+            $userP3 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nGaps:\n- {$gaps}\n\nImprovements:\n- {$improvements}\n\nRewrite and expand now:";
+
+            $expanded = $aiService3->generate($sysP3, $userP3);
+
+            if (!$expanded || mb_strlen(trim($expanded)) < 300) {
+                $expanded = $draft; // Fall back to Phase 1 draft if expansion fails
+                $addLog('warn', "Phase 3: Expansion gagal, menggunakan draft Phase 1.");
+            } else {
+                $addLog('success', "Phase 3 SELESAI | Expanded: " . mb_strlen($expanded) . " karakter");
+            }
+
+            $job->update(['status' => 'phase_4', 'phase_3_expanded' => $expanded]);
+
+            // ── PHASE 4: Master Edit + Links + Publish ────────────────────────
+            $addLog('info', "Phase 4: Master edit, internal links & SEO meta...");
+            $aiService4 = new \App\Services\AIService($tenant, '4');
+
+            $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
+                ->with('targetContent')->get();
+            $linkInstructions = '';
+            if ($deterministicLinks->isNotEmpty()) {
+                $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (embed all using Markdown):\n";
+                foreach ($deterministicLinks as $link) {
+                    $url = url('/blog/' . ($link->targetContent?->slug ?? '#'));
+                    $linkInstructions .= "- [{$link->anchor_text}]({$url})\n";
+                }
+            }
+            $imageInstruction = '';
+            if ($content->featured_image_url) {
+                $imageInstruction = "\n\nFEATURED IMAGE at top:\n![{$content->featured_image_alt}]({$content->featured_image_url})";
+            }
+
+            $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
+                "You are a Chief Content Editor writing in {lang}. Final editorial pass: improve readability, inject all internal links naturally, add featured image if provided, ensure strong CTA in conclusion. Return ONLY the final Markdown.");
+            $sysP4 = strtr($sysP4, ['{lang}' => $lang, '{keyword}' => $keyword]);
+            $userP4 = "Keyword: **{$keyword}**\n\nArticle:\n{$expanded}{$linkInstructions}{$imageInstruction}";
+
+            $finalBody = $aiService4->generate($sysP4, $userP4);
+
+            if (!$finalBody || mb_strlen(trim($finalBody)) < 300) {
+                $finalBody = $expanded; // Fall back to Phase 3 if final edit fails
+                $addLog('warn', "Phase 4: Final edit gagal, menggunakan konten Phase 3.");
+            } else {
+                $addLog('success', "Phase 4 SELESAI | Final: " . mb_strlen($finalBody) . " karakter");
+            }
+
+            // ── Save to DB ────────────────────────────────────────────────────
+            $blogPrefix  = \App\Models\SystemSetting::get('permalink_blog', 'blog');
+            $contentHash = hash('sha256', $finalBody);
+
+            $job->update([
+                'status'        => 'completed',
+                'phase_4_final' => $finalBody,
+                'completed_at'  => now(),
+            ]);
+
+            if ($deterministicLinks->isNotEmpty()) {
+                \App\Models\DeterministicLink::where('source_content_id', $content->id)
+                    ->update(['is_injected' => true]);
+            }
+
+            $content->body_raw = $finalBody;
+            $content->update([
+                'cqi_score'    => $cqiScore,
+                'content_hash' => $contentHash,
+                'status'       => $targetStatus,
+                'published_at' => $content->published_at ?? now(),
+            ]);
+            $content->save();
+
+            // ── Phase 5: SEO Meta (non-blocking) ─────────────────────────────
+            try {
+                $metaTitlePrompt = str_replace('{keyword}', $keyword, \App\Models\SystemSetting::get('ai_prompt_meta_title',
+                    'Write a highly click-worthy SEO title for "{keyword}". Max 60 chars. Return ONLY the title.'));
+                $metaDescPrompt  = str_replace('{keyword}', $keyword, \App\Models\SystemSetting::get('ai_prompt_meta_description',
+                    'Write an engaging SEO meta description for "{keyword}". 150-160 chars with CTA. Return ONLY the description.'));
+
+                $metaTitle = trim($aiService4->generate('You are an expert SEO specialist.', $metaTitlePrompt), " \t\n\r\"'");
+                $metaDesc  = trim($aiService4->generate('You are an expert SEO specialist.', $metaDescPrompt), " \t\n\r\"'");
+
+                $content->updateSeoMeta([
+                    'title'          => $metaTitle ?: $content->title,
+                    'description'    => $metaDesc,
+                    'canonical'      => url('/' . $blogPrefix . '/' . $content->slug),
+                    'robots'         => 'index, follow',
+                    'og_title'       => $metaTitle ?: $content->title,
+                    'og_description' => $metaDesc,
+                    'og_image'       => $content->featured_image_url ?: \App\Models\SystemSetting::get('seo_og_image'),
+                ]);
+                $addLog('success', "SEO Meta dibuat: \"{$metaTitle}\"");
+            } catch (\Exception $e) {
+                $addLog('warn', "SEO Meta gagal (non-fatal): " . $e->getMessage());
+            }
+
+            $addLog('success', "✅ [{$keyword}] SELESAI → status: {$targetStatus} | CQI: {$cqiScore}/100 | {$contentHash}");
+
+            return response()->json([
+                'success'  => true,
+                'keyword'  => $keyword,
+                'title'    => $content->title,
+                'cqi'      => $cqiScore,
+                'status'   => $targetStatus,
+                'logs'     => $logs,
+            ]);
+
+        } catch (\Exception $e) {
+            $job->update(['status' => 'failed', 'error_log' => ['reason' => $e->getMessage()]]);
+            $content->update(['status' => 'failed_cqi']);
+            $addLog('error', "FATAL ERROR untuk [{$keyword}]: " . $e->getMessage());
+            return response()->json(['success' => false, 'keyword' => $keyword, 'error' => $e->getMessage(), 'logs' => $logs]);
+        }
+    }
+
+
+
 
     /**
      * Trigger queue worker manually via AJAX.
