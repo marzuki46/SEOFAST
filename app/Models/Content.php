@@ -226,9 +226,15 @@ class Content extends Model
         $html = htmlspecialchars($markdown, ENT_NOQUOTES, 'UTF-8');
 
         // Replace headings: H3
-        $html = preg_replace('/^\s*###\s+(.+)$/m', '<h3 class="text-xl font-bold mt-6 mb-3 text-gray-800">$1</h3>', $html);
+        $html = preg_replace_callback('/^\s*###\s+(.+)$/m', function($matches) {
+            $id = \Illuminate\Support\Str::slug($matches[1]);
+            return '<h3 id="' . $id . '" class="text-xl font-bold mt-6 mb-3 text-gray-800">' . $matches[1] . '</h3>';
+        }, $html);
         // Replace headings: H2
-        $html = preg_replace('/^\s*##\s+(.+)$/m', '<h2 class="text-2xl font-bold mt-8 mb-4 text-gray-900 border-b pb-2 border-gray-100">$1</h2>', $html);
+        $html = preg_replace_callback('/^\s*##\s+(.+)$/m', function($matches) {
+            $id = \Illuminate\Support\Str::slug($matches[1]);
+            return '<h2 id="' . $id . '" class="text-2xl font-bold mt-8 mb-4 text-gray-900 border-b pb-2 border-gray-100">' . $matches[1] . '</h2>';
+        }, $html);
         // Replace headings: H1
         $html = preg_replace('/^\s*#\s+(.+)$/m', '<h1 class="text-3xl font-extrabold mt-10 mb-6 text-gray-900">$1</h1>', $html);
 
@@ -293,5 +299,30 @@ class Content extends Model
         $html = \App\Services\SeoHelper::lazyLoadImages($html);
 
         return $html;
+    }
+
+    /**
+     * Get parsed Table of Contents (TOC) array from body_raw.
+     */
+    public function getTocAttribute(): array
+    {
+        $markdown = $this->body_raw;
+        if (!$markdown) return [];
+
+        $toc = [];
+        preg_match_all('/^\s*(#{2,3})\s+(.+)$/m', $markdown, $matches, PREG_SET_ORDER);
+        
+        foreach ($matches as $match) {
+            $level = strlen(trim($match[1])); // 2 for ##, 3 for ###
+            $title = trim($match[2]);
+            $id = \Illuminate\Support\Str::slug($title);
+            $toc[] = [
+                'level' => $level,
+                'title' => $title,
+                'id' => $id
+            ];
+        }
+
+        return $toc;
     }
 }

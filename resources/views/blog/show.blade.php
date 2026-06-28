@@ -145,7 +145,7 @@
                             </a>
                         @endif
                         <span class="text-slate-300">•</span>
-                        <span class="text-slate-600 font-medium">Published: {{ $post->published_at ? $post->published_at->format('F d, Y') : '' }}</span>
+                        <span class="text-slate-600 font-medium">Last Updated: {{ $post->updated_at ? $post->updated_at->format('F d, Y') : ($post->published_at ? $post->published_at->format('F d, Y') : '') }}</span>
                     </div>
 
                     <h1 class="font-outfit font-extrabold text-3xl md:text-5xl text-slate-900 tracking-tight leading-tight">
@@ -227,7 +227,18 @@
                     <nav id="toc" class="space-y-2 text-sm text-slate-600">
                         <!-- Dynamic list generated via JS -->
                         <ul class="space-y-2 border-l border-slate-200 pl-4" id="toc-list">
-                            <li class="text-slate-400 italic">No headings found</li>
+                            @php $tocItems = $post->toc; @endphp
+                            @if(count($tocItems) > 0)
+                                @foreach($tocItems as $heading)
+                                    <li class="{{ $heading['level'] === 3 ? 'pl-4 text-xs' : 'text-sm font-medium' }}">
+                                        <a href="#{{ $heading['id'] }}" class="hover:text-brand-indigo transition-colors block">
+                                            {{ $heading['title'] }}
+                                        </a>
+                                    </li>
+                                @endforeach
+                            @else
+                                <li class="text-slate-400 italic">No headings found</li>
+                            @endif
                         </ul>
                     </nav>
                 </div>
@@ -255,40 +266,4 @@
 </section>
 @endsection
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const article = document.querySelector('.prose');
-        const tocList = document.getElementById('toc-list');
-        
-        if (article && tocList) {
-            const headings = article.querySelectorAll('h2, h3');
-            
-            if (headings.length > 0) {
-                tocList.innerHTML = '';
-                
-                headings.forEach((heading, index) => {
-                    const text = heading.textContent;
-                    const id = 'heading-' + index;
-                    heading.id = id;
-                    
-                    const li = document.createElement('li');
-                    const a = document.createElement('a');
-                    a.href = '#' + id;
-                    a.textContent = text;
-                    a.className = 'hover:text-brand-indigo transition-colors block';
-                    
-                    if (heading.tagName.toLowerCase() === 'h3') {
-                        li.className = 'pl-4 text-xs';
-                    } else {
-                        li.className = 'text-sm font-medium';
-                    }
-                    
-                    li.appendChild(a);
-                    tocList.appendChild(li);
-                });
-            }
-        }
-    });
-</script>
-@endpush
+

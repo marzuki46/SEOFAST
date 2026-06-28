@@ -161,8 +161,8 @@ class SeoHelper
      */
     public static function lazyLoadImages(string $html): string
     {
-        // Add loading="lazy" if missing
-        $html = preg_replace('/<img(?![^>]*loading=)([^>]*)>/i', '<img loading="lazy"$1>', $html);
+        // Add loading="lazy" and decoding="async" if missing
+        $html = preg_replace('/<img(?![^>]*loading=)([^>]*)>/i', '<img loading="lazy" decoding="async" $1>', $html);
         
         // Add alt="" if missing (for accessibility and SEO)
         $html = preg_replace('/<img(?![^>]*alt=)([^>]*)>/i', '<img alt="Image" $1>', $html);
