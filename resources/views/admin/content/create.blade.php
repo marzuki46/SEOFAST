@@ -33,6 +33,19 @@
     </div>
     @endif
 
+    <!-- Terminal Log Window -->
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm overflow-hidden mb-6 hidden" id="terminalContainer">
+        <div class="px-4 py-2 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
+            <h3 class="font-bold text-slate-300 text-xs tracking-wider uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Worker Log
+            </h3>
+            <button onclick="clearLogs()" class="text-xs text-slate-500 hover:text-slate-300 transition">Clear</button>
+        </div>
+        <div class="p-4 h-64 overflow-y-auto font-mono text-xs text-emerald-400 bg-black space-y-1" id="terminalLog">
+            <div><span class="text-slate-500">>></span> Ready. Waiting for worker to start...</div>
+        </div>
+    </div>
+
     <!-- Jobs Table Card -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -96,18 +109,6 @@
         </div>
     </div>
 
-    <!-- Terminal Log Window -->
-    <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm overflow-hidden mt-6 hidden" id="terminalContainer">
-        <div class="px-4 py-2 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
-            <h3 class="font-bold text-slate-300 text-xs tracking-wider uppercase flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Worker Log
-            </h3>
-            <button onclick="clearLogs()" class="text-xs text-slate-500 hover:text-slate-300 transition">Clear</button>
-        </div>
-        <div class="p-4 h-64 overflow-y-auto font-mono text-xs text-emerald-400 bg-black space-y-1" id="terminalLog">
-            <div><span class="text-slate-500">>></span> Ready. Waiting for worker to start...</div>
-        </div>
-    </div>
 </div>
 
 <script>
