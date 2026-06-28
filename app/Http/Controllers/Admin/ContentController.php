@@ -275,7 +275,7 @@ class ContentController extends Controller
         $count = 0;
         foreach ($request->content_ids as $id) {
             $content = Content::withoutGlobalScopes()->find($id);
-            if ($content && in_array($content->status, ['blueprint', 'draft', 'failed_cqi'])) {
+            if ($content && in_array($content->status, ['blueprint', 'draft', 'failed_cqi', 'ai_processing'])) {
                 $content->update(['status' => 'ai_processing']);
                 
                 $existingJob = AiGenerationJob::withoutGlobalScopes()

@@ -26,6 +26,4 @@ Deprecated: Google\Http\REST::isAltMedia(): Implicitly marking parameter $reques
 Deprecated: Google\Service\Exception::__construct(): Implicitly marking parameter $previous as nullable is deprecated, the explicit nullable type must be used instead in D:\Program Marzuki\Projek Framework\SEOFAST\vendor\google\apiclient\src\Service\Exception.php on line 39
 
 Deprecated: Google\Task\Composer::cleanup(): Implicitly marking parameter $filesystem as nullable is deprecated, the explicit nullable type must be used instead in D:\Program Marzuki\Projek Framework\SEOFAST\vendor\google\apiclient\src\Task\Composer.php on line 31
-
-   ERROR  Command "eval" is not defined.  
-
+ PARSE ERROR PHP Parse error: Syntax error, unexpected ';' in vendor\psy\psysh\src\Exception\ParseErrorException.php on line 44.
