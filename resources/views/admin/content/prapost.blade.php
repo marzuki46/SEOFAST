@@ -35,10 +35,13 @@
     </div>
     @endif
 
+    <!-- AJAX status banner -->
+    <div id="ajax-status" class="hidden rounded-xl p-4 border text-sm font-semibold"></div>
+
     <!-- Content Table Card -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <form action="{{ route('admin.content.bulk_generate') }}" method="POST">
-            @csrf
+        {{-- No <form> wrapper here — submit is done via AJAX fetch to bypass HTTP 301 redirect --}}
+        <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -59,7 +62,7 @@
                     @forelse($contents as $post)
                     <tr class="hover:bg-slate-50/50 transition">
                         <td class="px-6 py-4 text-center">
-                            <input type="checkbox" name="content_ids[]" value="{{ $post->id }}" class="content-checkbox rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                            <input type="checkbox" value="{{ $post->id }}" class="content-checkbox rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-col">
@@ -149,20 +152,19 @@
                                 @elseif($post->status === 'blueprint' || $post->status === 'draft')
                                 <form action="{{ route('admin.content.generate', $post->id) }}" method="POST" class="inline-block">
                                     @csrf
-                                    <button type="submit" class="p-1 text-indigo-400 hover:text-indigo-600 transition" title="Generate with AI (Phase 5)">
+                                    <button type="submit" class="p-1 text-indigo-400 hover:text-indigo-600 transition" title="Generate with AI">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21l8.904-4.452L18 18l4.5-9-9 4.5 1.314-.657z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707-.707" />
                                         </svg>
                                     </button>
                                 </form>
-                                <a href="{{ route('admin.content.images', $post->id) }}" class="p-1 text-emerald-400 hover:text-emerald-600 transition inline-block" title="Pilih Gambar (Phase 4)">
+                                <a href="{{ route('admin.content.images', $post->id) }}" class="p-1 text-emerald-400 hover:text-emerald-600 transition inline-block" title="Pilih Gambar">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                     </svg>
                                 </a>
                                 @endif
-                                <form action="{{ route('admin.content.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this post?');" class="inline-block">
+                                <form action="{{ route('admin.content.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus konten ini?');" class="inline-block">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="p-1 text-rose-400 hover:text-rose-600 transition" title="Delete Post">
@@ -184,17 +186,17 @@
                 </tbody>
             </table>
         </div>
-        
+
         @if($contents->count() > 0)
         <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <label for="target_status" class="text-sm font-semibold text-slate-700">Simpan Sebagai:</label>
-                <select name="target_status" id="target_status" class="rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 outline-none bg-white">
+                <select id="target_status" class="rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 outline-none bg-white">
                     <option value="draft">Draft (Review Dulu)</option>
                     <option value="published">Langsung Publish</option>
                 </select>
             </div>
-            <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
+            <button id="btn-generate" type="button" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                 </svg>
@@ -202,19 +204,72 @@
             </button>
         </div>
         @endif
+
         @if($contents->hasPages())
         <div class="px-6 py-4 bg-white border-t border-slate-200">
             {{ $contents->links() }}
         </div>
         @endif
-        
-        </form>
     </div>
 </div>
 
 <script>
     document.getElementById('selectAll').addEventListener('change', function(e) {
         document.querySelectorAll('.content-checkbox').forEach(cb => cb.checked = e.target.checked);
+    });
+
+    document.getElementById('btn-generate')?.addEventListener('click', function () {
+        const ids = Array.from(document.querySelectorAll('.content-checkbox:checked')).map(cb => cb.value);
+        if (ids.length === 0) {
+            alert('Pilih minimal satu konten terlebih dahulu.');
+            return;
+        }
+
+        const targetStatus = document.getElementById('target_status').value;
+        const csrfToken = document.getElementById('csrf-token').value;
+        const statusBanner = document.getElementById('ajax-status');
+        const btn = this;
+
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>&nbsp;Memproses...';
+
+        const formData = new FormData();
+        formData.append('_token', csrfToken);
+        formData.append('target_status', targetStatus);
+        ids.forEach(id => formData.append('content_ids[]', id));
+
+        // Use absolute HTTPS URL on same origin — no redirect can convert POST→GET
+        const endpoint = 'https://' + window.location.host + '/content/start-ai-batch';
+
+        fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json, text/html, */*',
+            },
+            body: formData,
+            redirect: 'follow',
+        })
+        .then(response => {
+            if (response.ok || response.redirected) {
+                statusBanner.className = 'rounded-xl p-4 border text-sm font-semibold bg-emerald-50 border-emerald-200 text-emerald-800';
+                statusBanner.textContent = ids.length + ' konten berhasil diantri! Mengarahkan ke AI Monitor...';
+                statusBanner.classList.remove('hidden');
+                setTimeout(() => { window.location.href = '{{ route("admin.content.create") }}'; }, 1500);
+            } else {
+                return response.text().then(text => {
+                    throw new Error('HTTP ' + response.status + ' — ' + text.substring(0, 300));
+                });
+            }
+        })
+        .catch(err => {
+            statusBanner.className = 'rounded-xl p-4 border text-sm font-semibold bg-rose-50 border-rose-200 text-rose-800';
+            statusBanner.textContent = 'Error: ' + err.message;
+            statusBanner.classList.remove('hidden');
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>&nbsp;Generate Konten (Selected)';
+        });
     });
 </script>
 @endsection
