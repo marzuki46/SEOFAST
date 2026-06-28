@@ -334,15 +334,35 @@ class ContentController extends Controller
         }
         
         try {
-            // Run exactly one job
-            \Illuminate\Support\Facades\Artisan::call('queue:work', [
-                '--once' => true,
-                '--force' => true,
-            ]);
-            
-            $output = \Illuminate\Support\Facades\Artisan::output();
-            
-            $hasMore = \App\Models\AiGenerationJob::whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])->exists();
+            // Check if there are any jobs in Laravel's queue
+            $hasJobsInQueue = \Illuminate\Support\Facades\DB::table('jobs')->exists();
+            $output = "";
+            $hasMore = false;
+
+            if (!$hasJobsInQueue) {
+                // If queue is empty, but we still have active jobs in DB, they are orphans/stuck
+                $stuckJobs = \App\Models\AiGenerationJob::whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])->get();
+                if ($stuckJobs->isNotEmpty()) {
+                    foreach ($stuckJobs as $stuck) {
+                        $stuck->update(['status' => 'failed', 'error_log' => ['error' => 'Job execution timed out or was killed by server.']]);
+                        if ($stuck->content) {
+                            $stuck->content->update(['status' => 'failed_cqi']);
+                        }
+                    }
+                    $output = "Cleaned up " . $stuckJobs->count() . " stuck jobs.";
+                }
+                $hasMore = false;
+            } else {
+                // Run exactly one job
+                \Illuminate\Support\Facades\Artisan::call('queue:work', [
+                    '--once' => true,
+                    '--force' => true,
+                    '--stop-when-empty' => true,
+                ]);
+                
+                $output = \Illuminate\Support\Facades\Artisan::output();
+                $hasMore = \App\Models\AiGenerationJob::whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])->exists();
+            }
             
             return response()->json([
                 'success' => true,
