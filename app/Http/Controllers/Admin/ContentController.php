@@ -253,13 +253,15 @@ class ContentController extends Controller
 
             ProcessAiGenerationJob::dispatch($content->id, $job->id);
             
-            // Trigger background worker for shared hosting / Windows
-            if (function_exists('popen') && function_exists('pclose')) {
-                $php = PHP_BINARY;
-                $artisan = base_path('artisan');
-                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            // Trigger background worker for shared hosting / Windows safely
+            $php = PHP_BINARY;
+            $artisan = base_path('artisan');
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                if (function_exists('popen') && function_exists('pclose')) {
                     pclose(popen("start /B {$php} {$artisan} queue:work --stop-when-empty > NUL", "r"));
-                } else {
+                }
+            } else {
+                if (function_exists('exec')) {
                     exec("{$php} {$artisan} queue:work --stop-when-empty > /dev/null 2>&1 &");
                 }
             }
@@ -304,14 +306,18 @@ class ContentController extends Controller
             }
         }
         
-        // Trigger background worker for shared hosting / Windows
-        if ($count > 0 && function_exists('popen') && function_exists('pclose')) {
+        // Trigger background worker for shared hosting / Windows safely
+        if ($count > 0) {
             $php = PHP_BINARY;
             $artisan = base_path('artisan');
             if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                pclose(popen("start /B {$php} {$artisan} queue:work --stop-when-empty > NUL", "r"));
+                if (function_exists('popen') && function_exists('pclose')) {
+                    pclose(popen("start /B {$php} {$artisan} queue:work --stop-when-empty > NUL", "r"));
+                }
             } else {
-                exec("{$php} {$artisan} queue:work --stop-when-empty > /dev/null 2>&1 &");
+                if (function_exists('exec')) {
+                    exec("{$php} {$artisan} queue:work --stop-when-empty > /dev/null 2>&1 &");
+                }
             }
         }
 
