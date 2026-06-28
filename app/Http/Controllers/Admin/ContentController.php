@@ -325,6 +325,40 @@ class ContentController extends Controller
     }
 
     /**
+     * Trigger queue worker manually via AJAX.
+     */
+    public function workQueue(Request $request)
+    {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(120);
+        }
+        
+        try {
+            // Run exactly one job
+            \Illuminate\Support\Facades\Artisan::call('queue:work', [
+                '--once' => true,
+                '--force' => true,
+            ]);
+            
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            
+            $hasMore = \App\Models\AiGenerationJob::whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])->exists();
+            
+            return response()->json([
+                'success' => true,
+                'output' => $output,
+                'has_more' => $hasMore
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'has_more' => \App\Models\AiGenerationJob::whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])->exists()
+            ]);
+        }
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Content $content)

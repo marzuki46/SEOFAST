@@ -11,9 +11,19 @@
             <h1 class="text-2xl font-bold text-slate-900">AI Queue Monitor</h1>
             <p class="text-sm text-slate-500 mt-1">Pantau proses pembuatan konten yang sedang berjalan oleh AI di latar belakang.</p>
         </div>
-        <a href="{{ route('admin.content.prapost') }}" class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition">
-            Kembali ke Pra Post
-        </a>
+        <div class="flex items-center gap-3">
+            @if($activeJobs->count() > 0)
+            <button type="button" id="startAiWorker" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition shadow-lg shadow-emerald-500/20">
+                <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
+                </svg>
+                <span id="startAiWorkerText">Start AI Worker ({{ $activeJobs->count() }} jobs)</span>
+            </button>
+            @endif
+            <a href="{{ route('admin.content.prapost') }}" class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition">
+                Kembali ke Pra Post
+            </a>
+        </div>
     </div>
 
     <!-- Sessions Alert -->
@@ -88,11 +98,80 @@
 </div>
 
 <script>
-    // Auto-refresh the page every 10 seconds if there are active jobs
     @if($activeJobs->count() > 0)
-        setTimeout(() => {
-            window.location.reload();
-        }, 10000);
+        let isWorking = sessionStorage.getItem('ai_worker_running') === 'true';
+        const btn = document.getElementById('startAiWorker');
+        const btnText = document.getElementById('startAiWorkerText');
+
+        function setWorkingUI() {
+            if (!btn) return;
+            btn.classList.remove('from-emerald-500', 'to-emerald-600');
+            btn.classList.add('from-amber-500', 'to-amber-600');
+            btnText.innerHTML = 'AI Worker Running (Do not close this page)...';
+            btn.querySelector('svg').outerHTML = `<svg class="h-4.5 w-4.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+        }
+
+        if (btn) {
+            btn.addEventListener('click', async function() {
+                if (isWorking) {
+                    // Jika diklik saat jalan, kita stop
+                    isWorking = false;
+                    sessionStorage.setItem('ai_worker_running', 'false');
+                    window.location.reload();
+                    return;
+                }
+                
+                isWorking = true;
+                sessionStorage.setItem('ai_worker_running', 'true');
+                setWorkingUI();
+                await processNextJob();
+            });
+        }
+
+        // Auto-resume if it was running before reload
+        if (isWorking) {
+            setWorkingUI();
+            // Kasih jeda 1 detik biar user bisa lihat update UI
+            setTimeout(() => {
+                processNextJob();
+            }, 1000);
+        }
+
+        async function processNextJob() {
+            if (!isWorking) return;
+            
+            try {
+                const response = await fetch('{{ route("admin.content.work_queue") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (result.has_more) {
+                    // Reload halaman untuk update UI progress. Skrip ini akan otomatis resume lagi karena sessionStorage.
+                    window.location.reload();
+                } else {
+                    sessionStorage.setItem('ai_worker_running', 'false');
+                    btnText.innerHTML = 'All Jobs Completed!';
+                    btn.classList.remove('from-amber-500', 'to-amber-600');
+                    btn.classList.add('from-slate-500', 'to-slate-600');
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            } catch (err) {
+                console.error(err);
+                sessionStorage.setItem('ai_worker_running', 'false');
+                alert("Worker timeout or error. The job might still be processing in the background. Refreshing...");
+                window.location.reload();
+            }
+        }
+    @else
+        // Pastikan state dimatikan jika tidak ada job
+        sessionStorage.setItem('ai_worker_running', 'false');
     @endif
 </script>
 @endsection

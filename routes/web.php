@@ -159,6 +159,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\ContentController::class, 'index'])->name('index');
             Route::get('/prapost', [\App\Http\Controllers\Admin\ContentController::class, 'prapost'])->name('prapost');
             Route::get('/drafts', [\App\Http\Controllers\Admin\ContentController::class, 'drafts'])->name('drafts');
+            Route::post('/work-queue', [\App\Http\Controllers\Admin\ContentController::class, 'workQueue'])->name('work_queue');
             Route::post('/bulk-generate', [\App\Http\Controllers\Admin\ContentController::class, 'bulkGenerateAi'])->name('bulk_generate');
             Route::get('/create', [\App\Http\Controllers\Admin\ContentController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\Admin\ContentController::class, 'store'])->name('store');
