@@ -241,10 +241,30 @@
             }, 800);
         }
 
+        // Convert PHP active jobs to JS array
+        let jobQueue = @json($activeJobs->map(fn($job) => [
+            'job_id' => $job->id, 
+            'content_id' => $job->content_id, 
+            'keyword' => $job->content->target_keyword ?? 'Unknown',
+            'target_status' => $job->error_log['target_status'] ?? 'draft'
+        ])->values());
+
         async function processNextJob() {
             if (!isWorking) return;
+            
+            if (jobQueue.length === 0) {
+                isWorking = false;
+                sessionStorage.setItem('ai_worker_running', 'false');
+                setWorkingUI(false);
+                appendLog('success', '═══ Semua job AI selesai! Cek halaman Draft. ═══');
+                return;
+            }
+
+            const currentJob = jobQueue.shift(); // Get first job
+            appendLog('info', `▶ Memulai proses untuk: [${currentJob.keyword}]...`);
+
             try {
-                const res = await fetch('{{ route("admin.content.work_queue") }}', {
+                const res = await fetch('{{ route("admin.content.generate_single") }}', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN':     '{{ csrf_token() }}',
@@ -252,35 +272,34 @@
                         'Accept':           'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
                     },
+                    body: JSON.stringify({
+                        content_id: currentJob.content_id,
+                        job_id: currentJob.job_id,
+                        target_status: currentJob.target_status
+                    })
                 });
 
                 const data = await res.json();
 
                 // Render structured log entries
-                if (Array.isArray(data.logs)) {
+                if (data.logs && Array.isArray(data.logs)) {
                     data.logs.forEach(e => appendLog(e.level || 'info', e.message || ''));
-                } else if (data.output) {
-                    appendLog('info', data.output);
                 } else if (!data.success) {
                     appendLog('error', data.error || 'Unknown server error');
                 }
 
                 await refreshTable();
 
-                if (data.has_more) {
-                    setTimeout(processNextJob, 1200);
-                } else {
-                    isWorking = false;
-                    sessionStorage.setItem('ai_worker_running', 'false');
-                    setWorkingUI(false);
-                    appendLog('success', '═══ Semua job AI selesai! Cek halaman Draft. ═══');
-                }
+                // Continue to next job after a short delay
+                setTimeout(processNextJob, 1000);
+
             } catch (err) {
                 isWorking = false;
                 sessionStorage.setItem('ai_worker_running', 'false');
                 setWorkingUI(false);
                 appendLog('error', 'FATAL: ' + err.message);
-                setTimeout(() => window.location.reload(), 3000);
+                // We don't auto-reload here so user can see the error
+                btnText.textContent = 'Worker Error (Refresh Page)';
             }
         }
     @else
