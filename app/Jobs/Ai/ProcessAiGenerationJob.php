@@ -82,12 +82,17 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         try {
             $currentStatus = $job->status;
-            
-            // Initialization
+
+            // If still pending/processing, run phase_1 directly (no extra dispatch)
             if (in_array($currentStatus, ['pending', 'processing'])) {
                 $job->update(['status' => 'phase_1', 'started_at' => now()]);
-                self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
-                return;
+                $currentStatus = 'phase_1';
+            }
+
+            // If CQI failed, restart from phase_1 (re-generate the draft)
+            if ($currentStatus === 'failed_cqi') {
+                $job->update(['status' => 'phase_1', 'started_at' => now()]);
+                $currentStatus = 'phase_1';
             }
 
             // === PHASE 1: Draft generation ===
@@ -131,18 +136,17 @@ class ProcessAiGenerationJob implements ShouldQueue
 
                 $cqiScore = (int) ($critique['cqi_score'] ?? 88);
 
-                // CQI GATE
+                // CQI GATE — lower threshold to 70 to avoid excessive retries on shared hosting
                 $retryCount = $job->retry_count ?? 0;
-                if ($cqiScore < 80 && $retryCount < 3) {
+                if ($cqiScore < 70 && $retryCount < 2) {
                     $job->update([
-                        'status' => 'failed_cqi',
+                        'status' => 'phase_1', // restart from phase 1, not failed_cqi
                         'phase_2_critique' => $critique,
                         'retry_count' => $retryCount + 1,
                         'error_log' => ['cqi_score' => $cqiScore, 'message' => "CQI below threshold. Retry #{$retryCount}"],
                     ]);
-                    $content->update(['status' => 'failed_cqi']);
-                    
-                    self::dispatch($this->contentId, $this->jobId, $this->targetStatus)->delay(now()->addSeconds(10));
+                    $content->update(['status' => 'ai_processing']);
+                    self::dispatch($this->contentId, $this->jobId, $this->targetStatus)->delay(now()->addSeconds(5));
                     return;
                 }
 
