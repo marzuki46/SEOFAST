@@ -326,57 +326,186 @@ class ContentController extends Controller
 
     /**
      * Trigger queue worker manually via AJAX.
+     * Returns rich per-job status details so the terminal can display
+     * phase-by-phase progress information.
      */
     public function workQueue(Request $request)
     {
         if (function_exists('set_time_limit')) {
             @set_time_limit(120);
         }
-        
+
+        $activeStatuses = ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'];
+
         try {
-            // Check if there are any jobs in Laravel's queue
             $hasJobsInQueue = \Illuminate\Support\Facades\DB::table('jobs')->exists();
-            $output = "";
-            $hasMore = false;
+            $hasMore        = false;
+            $logs           = [];
+
+            // --- Take snapshot of all active jobs BEFORE running the worker ---
+            $jobsBefore = \App\Models\AiGenerationJob::withoutGlobalScopes()
+                ->whereIn('status', $activeStatuses)
+                ->with(['content' => fn($q) => $q->withoutGlobalScopes()])
+                ->get()
+                ->keyBy('id');
 
             if (!$hasJobsInQueue) {
-                // If queue is empty, but we still have active jobs in DB, they are orphans/stuck
-                $stuckJobs = \App\Models\AiGenerationJob::whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])->get();
+                // Queue table empty — check for orphaned DB jobs
+                $stuckJobs = \App\Models\AiGenerationJob::withoutGlobalScopes()
+                    ->whereIn('status', $activeStatuses)
+                    ->with(['content' => fn($q) => $q->withoutGlobalScopes()])
+                    ->get();
+
                 if ($stuckJobs->isNotEmpty()) {
                     foreach ($stuckJobs as $stuck) {
-                        $stuck->update(['status' => 'failed', 'error_log' => ['error' => 'Job execution timed out or was killed by server.']]);
-                        if ($stuck->content) {
-                            $stuck->content->update(['status' => 'failed_cqi']);
-                        }
+                        $stuck->update([
+                            'status'    => 'failed',
+                            'error_log' => ['error' => 'Job execution timed out or was killed by server.'],
+                        ]);
+                        $stuck->content?->update(['status' => 'failed_cqi']);
+
+                        $logs[] = [
+                            'level'   => 'error',
+                            'message' => "JOB #{$stuck->id} [{$stuck->content?->target_keyword}] → Cleaned up as STUCK (queue empty but DB shows active)",
+                        ];
                     }
-                    $output = "Cleaned up " . $stuckJobs->count() . " stuck jobs.";
+                } else {
+                    $logs[] = ['level' => 'info', 'message' => 'Queue empty. All jobs finished or no jobs queued.'];
                 }
+
                 $hasMore = false;
             } else {
-                // Run exactly one job
+                // Run exactly one queued job
                 \Illuminate\Support\Facades\Artisan::call('queue:work', [
-                    '--once' => true,
-                    '--force' => true,
-                    '--stop-when-empty' => true,
+                    '--once'           => true,
+                    '--force'          => true,
+                    '--stop-when-empty'=> true,
                 ]);
-                
-                $output = \Illuminate\Support\Facades\Artisan::output();
-                $hasMore = \App\Models\AiGenerationJob::whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])->exists();
+
+                // --- Take snapshot AFTER running ---
+                $jobsAfter = \App\Models\AiGenerationJob::withoutGlobalScopes()
+                    ->with(['content' => fn($q) => $q->withoutGlobalScopes()])
+                    ->whereIn('id', $jobsBefore->keys()->toArray())
+                    ->get()
+                    ->keyBy('id');
+
+                // Also check for any newly dispatched jobs from CQI retries
+                $allActiveNow = \App\Models\AiGenerationJob::withoutGlobalScopes()
+                    ->whereIn('status', $activeStatuses)
+                    ->with(['content' => fn($q) => $q->withoutGlobalScopes()])
+                    ->get();
+
+                // Build per-job log lines
+                foreach ($jobsBefore as $id => $before) {
+                    $after    = $jobsAfter->get($id);
+                    $keyword  = $before->content?->target_keyword ?? 'Unknown';
+                    $title    = $before->content?->title ?? "Content #{$before->content_id}";
+                    $elapsed  = $before->started_at ? now()->diffInSeconds($before->started_at) . 's' : '-';
+
+                    if (!$after) {
+                        $logs[] = ['level' => 'info', 'message' => "JOB #{$id} [{$keyword}] → No longer in active list (may have completed or failed)"];
+                        continue;
+                    }
+
+                    $fromStatus = strtoupper($before->status);
+                    $toStatus   = strtoupper($after->status);
+
+                    $phaseLabel = match($after->status) {
+                        'phase_1'  => '📝 Phase 1 — Generating Initial Draft',
+                        'phase_2'  => '🔍 Phase 2 — Quality Critique & CQI Scoring',
+                        'phase_3'  => '✍️  Phase 3 — Expanding & Enriching Content',
+                        'phase_4'  => '🎨 Phase 4 — Master Edit & Link Injection',
+                        'completed'=> '✅ COMPLETED — Content saved to DB',
+                        'failed'   => '❌ FAILED — ' . (($after->error_log['reason'] ?? $after->error_log['error'] ?? 'Unknown error')),
+                        'failed_cqi' => '⚠️  CQI FAILED — Retrying Phase 1',
+                        default    => strtoupper($after->status),
+                    };
+
+                    $cqiInfo    = '';
+                    $retryInfo  = '';
+                    if ($after->phase_2_critique && isset($after->phase_2_critique['cqi_score'])) {
+                        $cqiInfo = " | CQI: {$after->phase_2_critique['cqi_score']}/100";
+                    }
+                    if ($after->retry_count > 0) {
+                        $retryInfo = " | Retry: {$after->retry_count}/2";
+                    }
+
+                    $level = match(true) {
+                        $after->status === 'failed'     => 'error',
+                        $after->status === 'failed_cqi' => 'warn',
+                        $after->status === 'completed'  => 'success',
+                        default                          => 'info',
+                    };
+
+                    // Status transition log
+                    if ($fromStatus !== $toStatus) {
+                        $logs[] = [
+                            'level'   => $level,
+                            'message' => "JOB #{$id} [{$keyword}]{$cqiInfo}{$retryInfo} → {$fromStatus} ➜ {$phaseLabel}",
+                        ];
+                    } else {
+                        // Status unchanged (still same phase — running)
+                        $logs[] = [
+                            'level'   => 'running',
+                            'message' => "JOB #{$id} [{$keyword}] — {$phaseLabel}{$cqiInfo}{$retryInfo} (elapsed: {$elapsed})",
+                        ];
+                    }
+
+                    // If completed, show what content was saved
+                    if ($after->status === 'completed') {
+                        $bodyLen  = $after->phase_4_final ? mb_strlen($after->phase_4_final) : 0;
+                        $cqiFinal = $after->phase_2_critique['cqi_score'] ?? 'N/A';
+                        $logs[] = [
+                            'level'   => 'success',
+                            'message' => "   └─ \"{$title}\" saved | CQI: {$cqiFinal}/100 | Body: {$bodyLen} chars | Status: {$after->content?->status}",
+                        ];
+                    }
+
+                    // If failed, show the reason
+                    if ($after->status === 'failed') {
+                        $reason = $after->error_log['reason'] ?? $after->error_log['error'] ?? 'No reason recorded';
+                        $logs[] = [
+                            'level'   => 'error',
+                            'message' => "   └─ REASON: {$reason}",
+                        ];
+                    }
+                }
+
+                // Show count of remaining jobs
+                $remainingCount = $allActiveNow->count();
+                $hasMore        = $remainingCount > 0;
+
+                if ($hasMore) {
+                    $logs[] = [
+                        'level'   => 'info',
+                        'message' => "─── {$remainingCount} job(s) still in queue. Processing next... ───",
+                    ];
+                } else {
+                    $logs[] = [
+                        'level'   => 'success',
+                        'message' => '═══ All AI generation jobs completed! ═══',
+                    ];
+                }
             }
-            
+
             return response()->json([
                 'success' => true,
-                'output' => $output,
-                'has_more' => $hasMore
+                'logs'    => $logs,
+                'has_more'=> $hasMore,
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
-                'error' => $e->getMessage(),
-                'has_more' => \App\Models\AiGenerationJob::whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])->exists()
+                'success'  => false,
+                'logs'     => [['level' => 'error', 'message' => 'FATAL: ' . $e->getMessage()]],
+                'has_more' => \App\Models\AiGenerationJob::withoutGlobalScopes()
+                    ->whereIn('status', $activeStatuses)->exists(),
             ]);
         }
     }
+
+
+
 
     /**
      * Remove the specified resource from storage.
