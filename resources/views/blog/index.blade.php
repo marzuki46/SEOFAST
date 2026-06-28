@@ -4,6 +4,10 @@
 @section('meta_description', 'Discover advanced technical SEO workflows, AI-driven content generation, and closed-loop Google Search Console sync strategies.')
 
 @section('content')
+@if(request()->filled('q'))
+    @section('robots_meta', 'noindex, follow')
+@endif
+
 <!-- Blog Header -->
 <section class="relative pt-24 pb-12 border-b border-slate-200 bg-slate-100/30">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -42,8 +46,10 @@
                                     <span class="px-2 py-0.5 rounded-md bg-brand-indigo/10 text-brand-indigo font-semibold uppercase text-[10px]">
                                         {{ $post->siloBlueprint->silo_name ?? 'SEO' }}
                                     </span>
-                                    <span>•</span>
-                                    <span>{{ $post->published_at ? $post->published_at->format('M d, Y') : 'Draft' }}</span>
+                                    @if(!request()->filled('q'))
+                                        <span>•</span>
+                                        <span>{{ $post->published_at ? $post->published_at->format('M d, Y') : 'Draft' }}</span>
+                                    @endif
                                 </div>
                                 
                                 <!-- Title -->
