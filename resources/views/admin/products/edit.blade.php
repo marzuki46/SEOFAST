@@ -75,7 +75,7 @@
 
             <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
                 <a href="{{ route('admin.products.index') }}" class="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">Cancel</a>
-                <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition">
+                <button type="submit" class="px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition">
                     Update Product
                 </button>
             </div>

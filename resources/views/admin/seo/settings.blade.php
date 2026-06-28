@@ -176,7 +176,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-slate-700 mb-1">Translation Prompt</label>
-                                        <textarea name="ai_prompt_translation" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="You are a professional Translator...">{{ $settings['seo_multilingual']['ai_prompt_translation'] ?? \App\Models\SystemSetting::get('ai_prompt_translation', 'You are a professional Translator. Translate the following Indonesian text to English. Maintain the exact same formatting, markdown syntax, and tone. CRITICAL RULE: DO NOT translate any URLs inside href attributes or markdown links. Leave the URLs exactly as they are.') }}</textarea>
+                                        <textarea name="ai_prompt_translation" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="You are a professional Translator...">{{ $settings['seo_multilingual']['ai_prompt_translation'] ?? \App\Models\SystemSetting::get('ai_prompt_translation', 'You are a professional Translator. Translate the following Indonesian text to English. Maintain the exact same formatting, markdown syntax, and tone. CRITICAL RULE: DO NOT translate any URLs inside href attributes or markdown links. Leave the URLs exactly as they are.') }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -185,41 +185,41 @@
                             <div class="grid grid-cols-1 gap-6">
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Title Prompt Template</label>
-                                    <textarea name="ai_prompt_meta_title" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="Generate a highly click-worthy SEO Title...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_title'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_title', 'Generate a highly click-worthy SEO Title for the keyword "{keyword}". Maximum 60 characters. Return ONLY the title text, nothing else.') }}</textarea>
+                                    <textarea name="ai_prompt_meta_title" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Generate a highly click-worthy SEO Title...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_title'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_title', 'Generate a highly click-worthy SEO Title for the keyword "{keyword}". Maximum 60 characters. Return ONLY the title text, nothing else.') }}</textarea>
                                     <p class="text-xs text-slate-500 mt-1">Variables allowed: <code class="bg-slate-100 px-1 rounded">{keyword}</code>, <code class="bg-slate-100 px-1 rounded">{content_title}</code></p>
                                 </div>
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Description Prompt Template</label>
-                                    <textarea name="ai_prompt_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="Generate an engaging SEO Meta Description...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_description'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_description', 'Generate an engaging SEO Meta Description for the keyword "{keyword}". Must be between 150-160 characters. Include a call to action. Return ONLY the description text.') }}</textarea>
+                                    <textarea name="ai_prompt_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Generate an engaging SEO Meta Description...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_description'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_description', 'Generate an engaging SEO Meta Description for the keyword "{keyword}". Must be between 150-160 characters. Include a call to action. Return ONLY the description text.') }}</textarea>
                                 </div>
                                 <div class="border-t border-slate-200 pt-6">
                                     <h4 class="text-lg font-bold mb-4">Phase 1: Draft Generation</h4>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
-                                    <textarea name="ai_prompt_phase1_sys" rows="3" class="mt-1 mb-4 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">{{ $settings['seo_ai_prompt']['ai_prompt_phase1_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase1_sys', "You are a professional SEO Content Writer. Write an initial draft for an article about the target keyword: '{keyword}' using seed keyword hints '{seed_keyword}' in language '{lang}' for country '{country}'. Format in clean Markdown with appropriate headers (H2, H3).") }}</textarea>
+                                    <textarea name="ai_prompt_phase1_sys" rows="3" class="mt-1 mb-4 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase1_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase1_sys', "You are a professional SEO Content Writer. Write an initial draft for an article about the target keyword: '{keyword}' using seed keyword hints '{seed_keyword}' in language '{lang}' for country '{country}'. Format in clean Markdown with appropriate headers (H2, H3).") }}</textarea>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">User Prompt</label>
-                                    <textarea name="ai_prompt_phase1_user" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">{{ $settings['seo_ai_prompt']['ai_prompt_phase1_user'] ?? \App\Models\SystemSetting::get('ai_prompt_phase1_user', "Write a comprehensive 800-word draft about: {keyword}. Include an introduction, key concepts, and actionable tips.{image_context}") }}</textarea>
+                                    <textarea name="ai_prompt_phase1_user" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase1_user'] ?? \App\Models\SystemSetting::get('ai_prompt_phase1_user', "Write a comprehensive 800-word draft about: {keyword}. Include an introduction, key concepts, and actionable tips.{image_context}") }}</textarea>
                                 </div>
                                 <div class="border-t border-slate-200 pt-6">
                                     <h4 class="text-lg font-bold mb-4">Phase 2: Editor Critique</h4>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
-                                    <textarea name="ai_prompt_phase2_sys" rows="3" class="mt-1 mb-4 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">{{ $settings['seo_ai_prompt']['ai_prompt_phase2_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase2_sys', "You are a senior SEO Editor. Critique the following content draft to identify structural gaps, missing topical depth, or readability improvements. You MUST return your findings ONLY in JSON format containing: {'cqi_score': integer (0-100), 'gaps': array, 'improvements': array}.") }}</textarea>
+                                    <textarea name="ai_prompt_phase2_sys" rows="3" class="mt-1 mb-4 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase2_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase2_sys', "You are a senior SEO Editor. Critique the following content draft to identify structural gaps, missing topical depth, or readability improvements. You MUST return your findings ONLY in JSON format containing: {'cqi_score': integer (0-100), 'gaps': array, 'improvements': array}.") }}</textarea>
                                 </div>
                                 <div class="border-t border-slate-200 pt-6">
                                     <h4 class="text-lg font-bold mb-4">Phase 3: Content Expansion</h4>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
-                                    <textarea name="ai_prompt_phase3_sys" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">{{ $settings['seo_ai_prompt']['ai_prompt_phase3_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase3_sys', "You are an SEO Content Expander. Expand the draft by incorporating the following critique and improvements. Make the content richer, add bullet points, and structure the sections cleanly in Markdown.") }}</textarea>
+                                    <textarea name="ai_prompt_phase3_sys" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase3_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase3_sys', "You are an SEO Content Expander. Expand the draft by incorporating the following critique and improvements. Make the content richer, add bullet points, and structure the sections cleanly in Markdown.") }}</textarea>
                                 </div>
                                 <div class="border-t border-slate-200 pt-6">
                                     <h4 class="text-lg font-bold mb-4">Phase 4: HTML Conversion</h4>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
-                                    <textarea name="ai_prompt_phase4_sys" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">{{ $settings['seo_ai_prompt']['ai_prompt_phase4_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase4_sys', "You are a Master HTML and Web Layout Editor. Convert the following markdown text into clean, structured, semantic HTML (containing <h2>, <h3>, <p>, <ul>, <li> tags). Do not return markdown, html wrapper body, or head tags. Just the raw inner content HTML.") }}</textarea>
+                                    <textarea name="ai_prompt_phase4_sys" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase4_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase4_sys', "You are a Master HTML and Web Layout Editor. Convert the following markdown text into clean, structured, semantic HTML (containing <h2>, <h3>, <p>, <ul>, <li> tags). Do not return markdown, html wrapper body, or head tags. Just the raw inner content HTML.") }}</textarea>
                                 </div>
                             </div>
                         @elseif($key === 'schema')
                             <div class="grid grid-cols-1 gap-6">
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Default Schema Type</label>
-                                    <select name="seo_schema_default_type" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                                    <select name="seo_schema_default_type" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                         <option value="Article" {{ ($settings['seo_schema']['seo_schema_default_type'] ?? '') === 'Article' ? 'selected' : '' }}>Article / BlogPosting</option>
                                         <option value="LocalBusiness" {{ ($settings['seo_schema']['seo_schema_default_type'] ?? '') === 'LocalBusiness' ? 'selected' : '' }}>Local Business</option>
                                         <option value="Organization" {{ ($settings['seo_schema']['seo_schema_default_type'] ?? '') === 'Organization' ? 'selected' : '' }}>Organization</option>
@@ -228,22 +228,22 @@
                                 </div>
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Organization / Local Business Name</label>
-                                    <input type="text" name="seo_schema_org_name" value="{{ $settings['seo_schema']['seo_schema_org_name'] ?? \App\Models\SystemSetting::get('seo_schema_org_name') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="PT. Perusahaan Anda">
+                                    <input type="text" name="seo_schema_org_name" value="{{ $settings['seo_schema']['seo_schema_org_name'] ?? \App\Models\SystemSetting::get('seo_schema_org_name') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="PT. Perusahaan Anda">
                                 </div>
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Organization Logo URL</label>
-                                    <input type="url" name="seo_schema_org_logo" value="{{ $settings['seo_schema']['seo_schema_org_logo'] ?? \App\Models\SystemSetting::get('seo_schema_org_logo') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="https://domain.com/logo.png">
+                                    <input type="url" name="seo_schema_org_logo" value="{{ $settings['seo_schema']['seo_schema_org_logo'] ?? \App\Models\SystemSetting::get('seo_schema_org_logo') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="https://domain.com/logo.png">
                                 </div>
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Publisher / Author Name (Default)</label>
-                                    <input type="text" name="seo_schema_author" value="{{ $settings['seo_schema']['seo_schema_author'] ?? \App\Models\SystemSetting::get('seo_schema_author') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="Admin SEOFAST">
+                                    <input type="text" name="seo_schema_author" value="{{ $settings['seo_schema']['seo_schema_author'] ?? \App\Models\SystemSetting::get('seo_schema_author') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Admin SEOFAST">
                                 </div>
                             </div>
                         @elseif($key === 'indexing')
                             <div class="grid grid-cols-1 gap-6">
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Global Robots Meta</label>
-                                    <select name="seo_indexing_robots" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                                    <select name="seo_indexing_robots" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                         <option value="index, follow" {{ ($settings['seo_indexing']['seo_indexing_robots'] ?? '') === 'index, follow' ? 'selected' : '' }}>Index, Follow (Recommended)</option>
                                         <option value="noindex, nofollow" {{ ($settings['seo_indexing']['seo_indexing_robots'] ?? '') === 'noindex, nofollow' ? 'selected' : '' }}>Noindex, Nofollow</option>
                                     </select>
@@ -253,7 +253,7 @@
                                     @php
                                         $defaultRobots = "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /login\nDisallow: /dashboard\nDisallow: /buyer/\nDisallow: /ghost/\n\nSitemap: " . url('/sitemap.xml') . "\n";
                                     @endphp
-                                    <textarea name="robots_txt_content" rows="8" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-3">{{ $settings['seo_indexing']['robots_txt_content'] ?? \App\Models\SystemSetting::get('robots_txt_content', $defaultRobots) }}</textarea>
+                                    <textarea name="robots_txt_content" rows="8" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2">{{ $settings['seo_indexing']['robots_txt_content'] ?? \App\Models\SystemSetting::get('robots_txt_content', $defaultRobots) }}</textarea>
                                     <p class="text-xs text-slate-500 mt-1">Kosongkan jika Anda ingin mengembalikan file <code class="bg-slate-100 px-1 rounded">robots.txt</code> ke versi default sistem.</p>
                                 </div>
                             </div>
@@ -261,7 +261,7 @@
                             <div class="grid grid-cols-1 gap-6">
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">301 Redirect Rules (JSON)</label>
-                                    <textarea name="seo_redirect_rules" rows="6" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-3" placeholder='{"/old-page": "/new-page"}'>{{ $settings['seo_redirect']['seo_redirect_rules'] ?? \App\Models\SystemSetting::get('seo_redirect_rules', '{}') }}</textarea>
+                                    <textarea name="seo_redirect_rules" rows="6" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2" placeholder='{"/old-page": "/new-page"}'>{{ $settings['seo_redirect']['seo_redirect_rules'] ?? \App\Models\SystemSetting::get('seo_redirect_rules', '{}') }}</textarea>
                                     <p class="text-xs text-slate-500 mt-1">Format JSON key-value pair. Path awal menuju path tujuan.</p>
                                 </div>
                             </div>
@@ -269,16 +269,16 @@
                             <div class="grid grid-cols-1 gap-6">
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Custom Headers in &lt;head&gt;</label>
-                                    <textarea name="seo_advanced_head_code" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-3" placeholder="<script>...</script>">{{ $settings['seo_advanced']['seo_advanced_head_code'] ?? \App\Models\SystemSetting::get('seo_advanced_head_code') }}</textarea>
+                                    <textarea name="seo_advanced_head_code" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2" placeholder="<script>...</script>">{{ $settings['seo_advanced']['seo_advanced_head_code'] ?? \App\Models\SystemSetting::get('seo_advanced_head_code') }}</textarea>
                                 </div>
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Custom Code before &lt;/body&gt;</label>
-                                    <textarea name="seo_advanced_body_code" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-3" placeholder="<script>...</script>">{{ $settings['seo_advanced']['seo_advanced_body_code'] ?? \App\Models\SystemSetting::get('seo_advanced_body_code') }}</textarea>
+                                    <textarea name="seo_advanced_body_code" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2" placeholder="<script>...</script>">{{ $settings['seo_advanced']['seo_advanced_body_code'] ?? \App\Models\SystemSetting::get('seo_advanced_body_code') }}</textarea>
                                 </div>
                             </div>
                         @endif
                         <div class="pt-4 flex justify-end">
-                            <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-brand-indigo text-white text-sm font-medium rounded-lg shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-indigo">
+                            <button type="submit" class="inline-flex items-center px-4 py-2.5 bg-brand-indigo text-white text-sm font-medium rounded-lg shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-indigo">
                                 Simpan Pengaturan
                             </button>
                         </div>

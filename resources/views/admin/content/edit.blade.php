@@ -165,18 +165,18 @@
             <div>
                 <label for="body_raw" class="block text-sm font-semibold text-slate-700 mb-1">Raw Markdown Body</label>
                 <textarea name="body_raw" id="body_raw" rows="10"
-                          class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-800 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('body_raw', $content->body_raw) }}</textarea>
+                          class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-800 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('body_raw', $content->body_raw) }}</textarea>
             </div>
             <div>
                 <label for="rendered_html_path" class="block text-sm font-semibold text-slate-700 mb-1">Final HTML Rendering</label>
                 <textarea name="rendered_html_path" id="rendered_html_path" rows="10"
-                          class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-800 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('rendered_html_path', $content->rendered_html_path) }}</textarea>
+                          class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-800 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('rendered_html_path', $content->rendered_html_path) }}</textarea>
             </div>
         </div>
 
         <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
             <a href="{{ route('admin.content.show', $content->id) }}" class="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">Cancel</a>
-            <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition shadow-sm">
+            <button type="submit" class="px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition shadow-sm">
                 Save Changes
             </button>
         </div>

@@ -61,7 +61,7 @@
 
             <div class="flex justify-end gap-3 pt-4 border-t">
                 <a href="{{ route('admin.pages.index') }}" class="px-4 py-2 text-gray-600 font-semibold hover:text-gray-900">Cancel</a>
-                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow font-bold hover:bg-indigo-500 flex items-center gap-2">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow font-bold hover:bg-indigo-500 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                     </svg>

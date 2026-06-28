@@ -50,7 +50,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="md:col-span-2">
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Default AI Provider</label>
-                            <select name="ai_provider" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                            <select name="ai_provider" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                 @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
                                     <option value="{{ $provider }}" {{ ($settings['ai_provider'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint (OpenAI Compatible)' : ucfirst($provider) }}</option>
                                 @endforeach
@@ -59,7 +59,7 @@
                         
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 1: Keyword/Silo Architecture</label>
-                            <select name="ai_provider_keyword" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                            <select name="ai_provider_keyword" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                 @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
                                     <option value="{{ $provider }}" {{ ($settings['ai_provider_keyword'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
@@ -68,7 +68,7 @@
                         
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 1 (Content): Header & Subheading</label>
-                            <select name="ai_provider_1" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                            <select name="ai_provider_1" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                 @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
                                     <option value="{{ $provider }}" {{ ($settings['ai_provider_1'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
@@ -77,7 +77,7 @@
 
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 2: Full Body Content</label>
-                            <select name="ai_provider_2" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                            <select name="ai_provider_2" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                 @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
                                     <option value="{{ $provider }}" {{ ($settings['ai_provider_2'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
@@ -86,7 +86,7 @@
 
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 3: Markdown to HTML</label>
-                            <select name="ai_provider_3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                            <select name="ai_provider_3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                 @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
                                     <option value="{{ $provider }}" {{ ($settings['ai_provider_3'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
@@ -95,7 +95,7 @@
 
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 4: Schema & Meta SEO</label>
-                            <select name="ai_provider_4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                            <select name="ai_provider_4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                 @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
                                     <option value="{{ $provider }}" {{ ($settings['ai_provider_4'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
@@ -104,7 +104,7 @@
 
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Image Prompt Generator</label>
-                            <select name="ai_provider_image_prompt" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                            <select name="ai_provider_image_prompt" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                 @foreach(['openai', 'gemini', 'claude', 'openrouter', 'custom'] as $provider)
                                     <option value="{{ $provider }}" {{ ($settings['ai_provider_image_prompt'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                 @endforeach
@@ -120,19 +120,19 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">OpenAI API Key</label>
-                            <input type="password" name="openai_api_key" value="{{ $settings['openai_api_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="sk-...">
+                            <input type="password" name="openai_api_key" value="{{ $settings['openai_api_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="sk-...">
                         </div>
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Google Gemini API Key</label>
-                            <input type="password" name="gemini_api_key" value="{{ $settings['gemini_api_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="AIza...">
+                            <input type="password" name="gemini_api_key" value="{{ $settings['gemini_api_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="AIza...">
                         </div>
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Anthropic Claude API Key</label>
-                            <input type="password" name="claude_api_key" value="{{ $settings['claude_api_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="sk-ant-...">
+                            <input type="password" name="claude_api_key" value="{{ $settings['claude_api_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="sk-ant-...">
                         </div>
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">OpenRouter API Key</label>
-                            <input type="password" name="openrouter_api_key" value="{{ $settings['openrouter_api_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="sk-or-...">
+                            <input type="password" name="openrouter_api_key" value="{{ $settings['openrouter_api_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="sk-or-...">
                         </div>
                         <div class="md:col-span-2 border-t border-slate-200 pt-4 mt-2">
                             <h4 class="text-sm font-bold text-slate-700 mb-3">Custom Endpoint Configuration (Local LLM / LM Studio / Ollama)</h4>
@@ -161,7 +161,7 @@
                     <div class="grid grid-cols-1 gap-6">
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Midtrans Environment</label>
-                            <select name="midtrans_is_production" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3">
+                            <select name="midtrans_is_production" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                 <option value="false" {{ ($settings['midtrans_is_production'] ?? false) == false ? 'selected' : '' }}>Sandbox (Testing)</option>
                                 <option value="true" {{ ($settings['midtrans_is_production'] ?? false) == true ? 'selected' : '' }}>Production (Live)</option>
                             </select>
@@ -169,16 +169,16 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-base font-semibold text-slate-800 mb-1.5">Midtrans Merchant ID</label>
-                                <input type="text" name="midtrans_merchant_id" value="{{ $settings['midtrans_merchant_id'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="G...">
+                                <input type="text" name="midtrans_merchant_id" value="{{ $settings['midtrans_merchant_id'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="G...">
                             </div>
                             <div>
                                 <label class="block text-base font-semibold text-slate-800 mb-1.5">Midtrans Client Key</label>
-                                <input type="text" name="midtrans_client_key" value="{{ $settings['midtrans_client_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="SB-Mid-client-...">
+                                <input type="text" name="midtrans_client_key" value="{{ $settings['midtrans_client_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="SB-Mid-client-...">
                             </div>
                         </div>
                         <div>
                             <label class="block text-base font-semibold text-slate-800 mb-1.5">Midtrans Server Key</label>
-                            <input type="password" name="midtrans_server_key" value="{{ $settings['midtrans_server_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-base px-4 py-3" placeholder="SB-Mid-server-...">
+                            <input type="password" name="midtrans_server_key" value="{{ $settings['midtrans_server_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="SB-Mid-server-...">
                             <p class="text-xs text-slate-500 mt-1">Gunakan Server Key untuk menerima pembayaran produk digital di website Anda secara otomatis.</p>
                         </div>
                     </div>
@@ -186,7 +186,7 @@
             </div>
 
             <div class="pt-8 border-t border-slate-200 mt-8 flex justify-end">
-                <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-brand-indigo text-white text-sm font-medium rounded-lg shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-indigo">
+                <button type="submit" class="inline-flex items-center px-4 py-2.5 bg-brand-indigo text-white text-sm font-medium rounded-lg shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-indigo">
                     Simpan Pengaturan
                 </button>
             </div>

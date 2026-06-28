@@ -88,7 +88,7 @@
                     <p class="text-slate-500 mb-4 font-medium">Belum ada Pillar Page yang dibuat untuk topik utama ini.</p>
                     <form action="{{ route('admin.silo.generate_pillar', $silo->id) }}" method="POST">
                         @csrf
-                        <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base rounded-xl transition duration-150 shadow-sm">
+                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition duration-150 shadow-sm">
                             <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>

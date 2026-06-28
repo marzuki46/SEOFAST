@@ -97,7 +97,7 @@
                     <button type="button" onclick="document.querySelectorAll('.edit-panel').forEach(el => el.classList.toggle('hidden'))" class="text-sm text-indigo-600 hover:underline">
                         Toggle Details
                     </button>
-                    <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">
                         Save Menu
                     </button>
                 </div>

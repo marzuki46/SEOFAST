@@ -82,7 +82,7 @@
         </div>
 
         <div class="pt-4 flex justify-end">
-            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-sm transition">
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-sm transition">
                 Save Page Settings
             </button>
         </div>
