@@ -12,7 +12,7 @@
             <p class="text-sm text-slate-500 mt-1">Review dan edit konten yang telah digenerate oleh AI sebelum dipublish.</p>
         </div>
         <a href="{{ route('admin.content.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
-            <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             Write with AI
@@ -195,7 +195,7 @@
                 </select>
             </div>
             <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
-                <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                 </svg>
                 Generate Konten (Selected)
