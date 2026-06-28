@@ -282,12 +282,12 @@ class ContentController extends Controller
                     $job = AiGenerationJob::create([
                         'tenant_id'  => $content->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
                         'content_id' => $content->id,
-                        'job_type'   => 'initial_generation_' . $targetStatus,
+                        'job_type'   => 'initial_generation',
                         'status'     => 'pending',
                         'retry_count'=> 0
                     ]);
 
-                    ProcessAiGenerationJob::dispatch($content->id, $job->id);
+                    ProcessAiGenerationJob::dispatch($content->id, $job->id, $targetStatus);
                     $count++;
                 }
             }

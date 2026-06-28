@@ -25,7 +25,8 @@ class ProcessAiGenerationJob implements ShouldQueue
      */
     public function __construct(
         protected int $contentId,
-        protected int $jobId
+        protected int $jobId,
+        protected ?string $targetStatus = null
     ) {}
 
     /**
@@ -182,11 +183,8 @@ class ProcessAiGenerationJob implements ShouldQueue
                 'completed_at' => now(),
             ]);
 
-            // Determine target status based on job_type
-            $targetStatus = 'published';
-            if (str_contains($job->job_type, '_draft')) {
-                $targetStatus = 'draft';
-            }
+            // Determine target status
+            $targetStatus = $this->targetStatus ?? 'published';
 
             $content->body_raw = $finalHtml;
             $content->update([
