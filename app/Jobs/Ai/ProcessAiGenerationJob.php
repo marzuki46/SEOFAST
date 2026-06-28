@@ -373,6 +373,9 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         // Clean up temporary retry hints if any
         \App\Models\SystemSetting::where('key', '_ai_retry_improvements_' . $this->jobId)->delete();
+
+        // ── Chain: dispatch the next pending job so articles process one-by-one ──
+        $this->dispatchNextPendingJob();
     }
 
     // -------------------------------------------------------------------------
@@ -418,6 +421,7 @@ class ProcessAiGenerationJob implements ShouldQueue
     /**
      * Permanently fail a job and mark the content accordingly.
      * No fallback content is ever produced — quality is non-negotiable.
+     * After failing, dispatch the next pending job so the queue continues.
      */
     private function failJob(AiGenerationJob $job, Content $content, string $reason): void
     {
@@ -429,5 +433,37 @@ class ProcessAiGenerationJob implements ShouldQueue
         ]);
 
         $content->update(['status' => 'failed_cqi']);
+
+        // Even on failure, dispatch the next job in the queue
+        $this->dispatchNextPendingJob();
+    }
+
+    /**
+     * Find and dispatch the next pending AiGenerationJob that hasn't been
+     * dispatched yet. This enforces strict sequential (one-at-a-time) processing.
+     */
+    private function dispatchNextPendingJob(): void
+    {
+        // Find the next job that is still purely pending (never dispatched to queue)
+        $nextJob = \App\Models\AiGenerationJob::withoutGlobalScopes()
+            ->where('status', 'pending')
+            ->where('id', '!=', $this->jobId)  // not the current one
+            ->oldest()
+            ->first();
+
+        if (!$nextJob) {
+            Log::info('ProcessAiGenerationJob: No more pending jobs. Queue finished.');
+            return;
+        }
+
+        // Read the target_status that was stored during bulkGenerateAi
+        $nextTargetStatus = $nextJob->error_log['target_status'] ?? $this->targetStatus ?? 'draft';
+
+        // Clear the temporary storage from error_log
+        $nextJob->update(['error_log' => null]);
+
+        Log::info("ProcessAiGenerationJob: Dispatching next job #{$nextJob->id} (content_id={$nextJob->content_id})");
+
+        self::dispatch($nextJob->content_id, $nextJob->id, $nextTargetStatus);
     }
 }

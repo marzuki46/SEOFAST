@@ -273,55 +273,67 @@ class ContentController extends Controller
     public function bulkGenerateAi(Request $request)
     {
         $request->validate([
-            'content_ids' => 'required|array',
+            'content_ids'   => 'required|array',
             'content_ids.*' => 'exists:contents,id',
-            'target_status' => 'nullable|string|in:draft,published'
+            'target_status' => 'nullable|string|in:draft,published',
         ]);
 
         $targetStatus = $request->input('target_status', 'draft');
+        $tenantId     = \App\Models\Tenant::first()?->id ?? 1;
 
-        $count = 0;
+        $createdJobs = [];
+
+        // Step 1: Create ALL job records in DB as 'pending' — but don't dispatch to queue yet.
+        // This ensures we know about all items before the first job starts.
         foreach ($request->content_ids as $id) {
             $content = Content::withoutGlobalScopes()->find($id);
-            if ($content && in_array($content->status, ['blueprint', 'draft', 'failed_cqi', 'ai_processing'])) {
-                $content->update(['status' => 'ai_processing']);
-                
-                $existingJob = AiGenerationJob::withoutGlobalScopes()
-                    ->where('content_id', $content->id)
-                    ->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
-                    ->first();
-
-                if (!$existingJob) {
-                    $job = AiGenerationJob::create([
-                        'tenant_id'  => $content->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
-                        'content_id' => $content->id,
-                        'job_type'   => 'initial_generation',
-                        'status'     => 'pending',
-                        'retry_count'=> 0
-                    ]);
-
-                    ProcessAiGenerationJob::dispatch($content->id, $job->id, $targetStatus);
-                    $count++;
-                }
+            if (!$content || !in_array($content->status, ['blueprint', 'draft', 'failed_cqi', 'ai_processing'])) {
+                continue;
             }
-        }
-        
-        // Trigger background worker for shared hosting / Windows safely
-        if ($count > 0) {
-            $php = PHP_BINARY;
-            $artisan = base_path('artisan');
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                if (function_exists('popen') && function_exists('pclose')) {
-                    pclose(popen("start /B {$php} {$artisan} queue:work --stop-when-empty > NUL", "r"));
-                }
-            } else {
-                if (function_exists('exec')) {
-                    exec("{$php} {$artisan} queue:work --stop-when-empty > /dev/null 2>&1 &");
-                }
+
+            // Skip if this content already has an active AI job
+            $alreadyRunning = AiGenerationJob::withoutGlobalScopes()
+                ->where('content_id', $content->id)
+                ->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
+                ->exists();
+
+            if ($alreadyRunning) {
+                continue;
             }
+
+            $content->update(['status' => 'ai_processing']);
+
+            $job = AiGenerationJob::create([
+                'tenant_id'   => $content->tenant_id ?? $tenantId,
+                'content_id'  => $content->id,
+                'job_type'    => 'initial_generation',
+                'status'      => 'pending',
+                'retry_count' => 0,
+            ]);
+
+            // Store target_status in error_log temporarily so the job chain can read it
+            $job->update(['error_log' => ['target_status' => $targetStatus]]);
+
+            $createdJobs[] = $job;
         }
 
-        return redirect()->route('admin.content.create')->with('success', $count . ' contents queued for AI generation.');
+        // Step 2: Only dispatch the FIRST job to the queue.
+        // When it finishes, it will dispatch the next pending job automatically (see ProcessAiGenerationJob).
+        if (!empty($createdJobs)) {
+            $firstJob = $createdJobs[0];
+            \App\Jobs\Ai\ProcessAiGenerationJob::dispatch(
+                $firstJob->content_id,
+                $firstJob->id,
+                $targetStatus
+            );
+        }
+
+        $count = count($createdJobs);
+        return response()->json([
+            'success' => true,
+            'message' => $count . ' konten diantri. Proses berjalan satu per satu secara berurutan.',
+            'queued'  => $count,
+        ]);
     }
 
     /**
