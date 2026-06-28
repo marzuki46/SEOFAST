@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(60)->by($job->tenantId);
         });
 
-        if (config('app.env') === 'production' || str_contains(config('app.url'), 'https://')) {
+        if (config('app.env') === 'production' || str_contains(config('app.url'), 'https://') || request()->header('x-forwarded-proto') === 'https' || (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'juki.eu.org'))) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
     }
