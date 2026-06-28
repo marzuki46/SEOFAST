@@ -65,14 +65,21 @@ class BlogController extends Controller
     public function show(string $slug): View
     {
         // Find the post by slug in the current locale
-        $post = Content::where(function($q) use ($slug) {
+        $query = Content::where(function($q) use ($slug) {
                 $q->where('slug', $slug)
                   ->orWhere('slug', 'LIKE', '%"id":"' . $slug . '"%')
                   ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%');
-            })
-            ->where('status', 'published')
-            ->where('published_at', '<=', now())
-            ->first();
+            });
+            
+        if (auth()->check()) {
+            // Admins can preview drafts and unpublished posts
+            $post = $query->first();
+        } else {
+            // Public visitors only see published posts
+            $post = $query->where('status', 'published')
+                          ->where('published_at', '<=', now())
+                          ->first();
+        }
 
         // If not found, abort 404
         if (!$post) {
