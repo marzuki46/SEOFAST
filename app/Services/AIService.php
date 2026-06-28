@@ -120,36 +120,83 @@ class AIService
             FILE_APPEND
         );
 
-        try {
-            $response = match ($this->config['provider']) {
-                'openai' => $this->callOpenAI($systemPrompt, $userPrompt, $options),
-                'gemini' => $this->callGemini($systemPrompt, $userPrompt, $options),
-                'claude' => $this->callClaude($systemPrompt, $userPrompt, $options),
-                'deepseek' => $this->callDeepSeek($systemPrompt, $userPrompt, $options),
-                '9router' => $this->call9Router($systemPrompt, $userPrompt, $options),
-                'custom' => $this->callCustom($systemPrompt, $userPrompt, $options),
-                default => throw new \InvalidArgumentException("Unknown provider: {$this->config['provider']}"),
-            };
-
-            $this->logUsage($systemPrompt, $userPrompt, $response, $startTime);
-
-            return $response['content'] ?? null;
-
-        } catch (\Exception $e) {
-            Log::error("AI generation failed: {$e->getMessage()}", [
-                'tenant_id' => $this->tenant?->id ?? (\App\Models\Tenant::first()?->id ?? 1),
-                'provider' => $this->config['provider'],
-                'model' => $this->config['model'],
-            ]);
-
-            if (function_exists('session') && request()->hasSession()) {
-                session()->flash('ai_error', $e->getMessage());
+        $primaryProvider = $this->config['provider'];
+        $providersToTry = [$primaryProvider];
+        
+        // Setup smart fallbacks in order of preference
+        $fallbacks = ['gemini', 'openai', 'claude', 'deepseek', '9router', 'custom'];
+        foreach ($fallbacks as $fb) {
+            if ($fb !== $primaryProvider) {
+                $providersToTry[] = $fb;
             }
-
-            $this->logUsage($systemPrompt, $userPrompt, ['error' => $e->getMessage()], $startTime, 'failed');
-
-            return null;
         }
+
+        $lastError = null;
+
+        foreach ($providersToTry as $currentProvider) {
+            try {
+                // If falling back, reconfigure the provider and API key
+                if ($currentProvider !== $primaryProvider) {
+                    $this->config['provider'] = $currentProvider;
+                    $this->config['model'] = match ($currentProvider) {
+                        'openai'   => $this->getSetting('openai_model', 'gpt-4o'),
+                        'gemini'   => $this->getSetting('gemini_model', 'gemini-1.5-pro'),
+                        'claude'   => $this->getSetting('claude_model', 'claude-3-5-sonnet'),
+                        '9router'  => $this->getSetting('9router_model', 'meta-llama/llama-3-8b-instruct'),
+                        'deepseek' => $this->getSetting('deepseek_model', 'deepseek-chat'),
+                        'custom'   => $this->getSetting('custom_model', 'custom-model'),
+                        default    => 'gpt-4o',
+                    };
+                    $this->config['apiKey'] = match ($currentProvider) {
+                        'openai'   => $this->getSetting('openai_api_key'),
+                        'gemini'   => $this->getSetting('gemini_api_key'),
+                        'claude'   => $this->getSetting('claude_api_key'),
+                        '9router'  => $this->getSetting('9router_api_key'),
+                        'deepseek' => $this->getSetting('deepseek_api_key'),
+                        'custom'   => $this->getSetting('custom_api_key'),
+                        default    => null,
+                    } ?: config('ai.openai_api_key');
+                    
+                    // Skip provider if API key is clearly missing (unless custom/9router which might bypass)
+                    if (empty($this->config['apiKey']) && !in_array($currentProvider, ['custom', '9router'])) {
+                        continue;
+                    }
+                }
+
+                $response = match ($this->config['provider']) {
+                    'openai' => $this->callOpenAI($systemPrompt, $userPrompt, $options),
+                    'gemini' => $this->callGemini($systemPrompt, $userPrompt, $options),
+                    'claude' => $this->callClaude($systemPrompt, $userPrompt, $options),
+                    'deepseek' => $this->callDeepSeek($systemPrompt, $userPrompt, $options),
+                    '9router' => $this->call9Router($systemPrompt, $userPrompt, $options),
+                    'custom' => $this->callCustom($systemPrompt, $userPrompt, $options),
+                    default => throw new \InvalidArgumentException("Unknown provider: {$this->config['provider']}"),
+                };
+
+                $this->logUsage($systemPrompt, $userPrompt, $response, $startTime);
+
+                return $response['content'] ?? null;
+
+            } catch (\Exception $e) {
+                $lastError = $e->getMessage();
+                Log::warning("AI generation failed with {$currentProvider}, trying next fallback...", [
+                    'tenant_id' => $this->tenant?->id ?? (\App\Models\Tenant::first()?->id ?? 1),
+                    'provider' => $currentProvider,
+                    'error' => $lastError,
+                ]);
+                // Continue to the next provider in the fallback list
+            }
+        }
+
+        // If ALL providers failed
+        Log::error("ALL AI providers failed. Last error: {$lastError}");
+        if (function_exists('session') && request()->hasSession()) {
+            session()->flash('ai_error', "All AI providers failed. Last error: {$lastError}");
+        }
+
+        $this->logUsage($systemPrompt, $userPrompt, ['error' => $lastError], $startTime, 'failed');
+
+        return null;
     }
 
     /**
