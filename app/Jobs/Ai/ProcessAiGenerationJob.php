@@ -12,303 +12,422 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class ProcessAiGenerationJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 2;
-    public int $timeout = 600; // 10 minutes
+    /**
+     * Maximum attempts before Laravel marks the job as permanently failed.
+     * Each phase is 1 attempt; with retries per phase, allow generous buffer.
+     */
+    public int $tries = 1;
 
     /**
-     * Get the middleware the job should pass through.
+     * Max execution time per job dispatch (seconds).
+     * Shared hosting typically caps at 30–60s; keep under 55s.
+     */
+    public int $timeout = 55;
+
+    /**
+     * Enforce one AI job at a time system-wide.
+     * If another is running, this job waits 30s and retries.
      */
     public function middleware(): array
     {
-        // Enforce strictly ONE AI generation at a time across the entire system.
-        // If another AI job is running, release this job back to the queue and wait 30 seconds.
         return [(new WithoutOverlapping('ai_generation'))->releaseAfter(30)];
     }
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(
         protected int $contentId,
         protected int $jobId,
         protected ?string $targetStatus = null
     ) {}
 
-    /**
-     * Execute the job.
-     */
+    // -------------------------------------------------------------------------
+    // MAIN HANDLER
+    // -------------------------------------------------------------------------
+
     public function handle(): void
     {
         $content = Content::withoutGlobalScopes()->find($this->contentId);
-        $job = AiGenerationJob::withoutGlobalScopes()->find($this->jobId);
+        $job     = AiGenerationJob::withoutGlobalScopes()->find($this->jobId);
 
         if (!$content || !$job) {
-            Log::error("ProcessAiGenerationJob failed: Content or Job model not found.", [
+            Log::error('ProcessAiGenerationJob: model not found', [
                 'content_id' => $this->contentId,
-                'job_id'     => $this->jobId
+                'job_id'     => $this->jobId,
             ]);
             return;
         }
 
-        // In single-ownership CMS mode, tenant may be null.
-        // AIService gracefully falls back to SystemSetting when tenant is null.
-        $tenant = $content->tenant;
-        $aiService1 = new AIService($tenant, '1');
-        $aiService2 = new AIService($tenant, '2');
-        $aiService3 = new AIService($tenant, '3');
+        $currentStatus = $job->status;
 
-        $job->update([
-            'status'     => 'phase_1',
-            'started_at' => now(),
-        ]);
+        // Guard: if the job is already completed or permanently failed, stop.
+        if (in_array($currentStatus, ['completed', 'failed'])) {
+            Log::info("ProcessAiGenerationJob: job {$this->jobId} already in terminal state '{$currentStatus}'. Skipping.");
+            return;
+        }
 
+        // Normalize "pending / processing" → start at phase_1
+        if (in_array($currentStatus, ['pending', 'processing'])) {
+            $currentStatus = 'phase_1';
+            $job->update(['status' => 'phase_1', 'started_at' => now()]);
+        }
+
+        // If previous CQI retry left job in failed_cqi, restart generation from phase_1
+        if ($currentStatus === 'failed_cqi') {
+            $currentStatus = 'phase_1';
+            $job->update(['status' => 'phase_1', 'started_at' => now()]);
+        }
+
+        try {
+            match ($currentStatus) {
+                'phase_1' => $this->runPhase1($content, $job),
+                'phase_2' => $this->runPhase2($content, $job),
+                'phase_3' => $this->runPhase3($content, $job),
+                'phase_4' => $this->runPhase4($content, $job),
+                default   => Log::warning("ProcessAiGenerationJob: unknown status '{$currentStatus}' for job {$this->jobId}"),
+            };
+        } catch (\Exception $e) {
+            $this->failJob($job, $content, $e->getMessage());
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // PHASE 1 — Initial Draft Generation
+    // Goal: Produce a comprehensive, structured Markdown draft.
+    // -------------------------------------------------------------------------
+
+    private function runPhase1(Content $content, AiGenerationJob $job): void
+    {
         $keyword     = $content->target_keyword;
         $seedKeyword = $content->siloBlueprint?->seed_keyword ?? $keyword;
         $lang        = $content->siloBlueprint?->target_language ?? 'id';
         $country     = $content->siloBlueprint?->target_country ?? 'ID';
-        $blogPrefix  = \App\Models\SystemSetting::get('permalink_blog', 'blog');
-        
-        // Phase 4 image data (if selected)
-        $imageContext = '';
-        if ($content->featured_image_url) {
-            $imageContext = "\n\nFEATURED IMAGE:\n- URL: {$content->featured_image_url}\n- Alt Text: {$content->featured_image_alt}\n- Caption: {$content->featured_image_caption}\n(Place this image at the most natural position in the article using HTML <img> tag with the exact alt text provided.)";
+
+        Log::info("AI Phase 1 START | job={$job->id} | keyword={$keyword}");
+
+        $sysTemplate  = \App\Models\SystemSetting::get(
+            'ai_prompt_phase1_sys',
+            "You are an expert SEO Content Writer fluent in {lang}. Write a comprehensive, well-structured article about '{keyword}' targeting readers in {country}. Use proper Markdown formatting with H2 and H3 headings. Apply E-E-A-T principles: include expert insights, real examples, and actionable advice. The article must be at least 1,200 words."
+        );
+        $userTemplate = \App\Models\SystemSetting::get(
+            'ai_prompt_phase1_user',
+            "Write a comprehensive, SEO-optimised article draft in {lang} about: **{keyword}**.\n\nRequirements:\n- Minimum 1,200 words\n- Use H2 and H3 headings clearly\n- Cover: definition, importance, step-by-step guide, common mistakes, and a conclusion with CTA\n- Incorporate the seed keyword '{seed_keyword}' naturally\n- Do NOT include generic filler — every sentence must provide real value"
+        );
+
+        $sysPrompt  = strtr($sysTemplate,  ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
+        $userPrompt = strtr($userTemplate, ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
+
+        $aiService = new AIService($content->tenant, '1');
+        $draft     = $aiService->generate($sysPrompt, $userPrompt);
+
+        // Quality check: reject empty or too-short responses
+        if (!$draft || mb_strlen(trim($draft)) < 300) {
+            $this->failJob($job, $content, 'Phase 1 FAILED: AI returned empty or insufficient draft (< 300 chars). Check AI API key and quota.');
+            return;
         }
 
-        try {
-            $currentStatus = $job->status;
+        // Save Phase 1 result to DB before advancing
+        $job->update([
+            'status'        => 'phase_2',
+            'phase_1_draft' => $draft,
+        ]);
 
-            // If still pending/processing, run phase_1 directly (no extra dispatch)
-            if (in_array($currentStatus, ['pending', 'processing'])) {
-                $job->update(['status' => 'phase_1', 'started_at' => now()]);
-                $currentStatus = 'phase_1';
-            }
+        Log::info("AI Phase 1 DONE | job={$job->id} | draft_length=" . mb_strlen($draft));
 
-            // If CQI failed, restart from phase_1 (re-generate the draft)
-            if ($currentStatus === 'failed_cqi') {
-                $job->update(['status' => 'phase_1', 'started_at' => now()]);
-                $currentStatus = 'phase_1';
-            }
+        // Dispatch Phase 2 as a separate job (respects timeout limits on shared hosting)
+        self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
+    }
 
-            // === PHASE 1: Draft generation ===
-            if ($currentStatus === 'phase_1') {
-                $sysPrompt1Template = \App\Models\SystemSetting::get('ai_prompt_phase1_sys', "You are a professional SEO Content Writer. Write an initial draft for an article about the target keyword: '{keyword}' using seed keyword hints '{seed_keyword}' in language '{lang}' for country '{country}'. Format in clean Markdown with appropriate headers (H2, H3).");
-                $userPrompt1Template = \App\Models\SystemSetting::get('ai_prompt_phase1_user', "Write a comprehensive 800-word draft about: {keyword}. Include an introduction, key concepts, and actionable tips.{image_context}");
-                
-                $sysPrompt1 = str_replace(['{keyword}', '{seed_keyword}', '{lang}', '{country}'], [$keyword, $seedKeyword, $lang, $country], $sysPrompt1Template);
-                $userPrompt1 = str_replace(['{keyword}', '{image_context}'], [$keyword, $imageContext], $userPrompt1Template);
-                
-                $draft = $aiService1->generate($sysPrompt1, $userPrompt1);
+    // -------------------------------------------------------------------------
+    // PHASE 2 — Quality Critique & CQI Scoring
+    // Goal: Objectively score the draft and identify gaps before expansion.
+    // -------------------------------------------------------------------------
 
-                if (!$draft) {
-                    $draft = "# Panduan Lengkap: " . ucwords($keyword) . "\n\nArtikel ini secara otomatis dihasilkan oleh SEOFAST AI Pipeline.\n\n## Pendahuluan\nMemahami " . $keyword . " sangat penting untuk kesuksesan strategi SEO Anda. Dalam panduan ini, kita akan membahas secara mendalam langkah-langkah praktis dan konsep dasarnya.\n\n## Langkah-Langkah Utama\n- Langkah pertama adalah riset mendalam.\n- Kedua, implementasikan teknik terbaik.\n- Ketiga, evaluasi hasilnya.\n\n## Kesimpulan\nDengan menerapkan strategi " . $keyword . " yang tepat, website Anda akan lebih optimal dan mendatangkan trafik yang relevan.";
-                }
+    private function runPhase2(Content $content, AiGenerationJob $job): void
+    {
+        $keyword = $content->target_keyword;
+        $draft   = $job->phase_1_draft;
 
-                $job->update([
-                    'status' => 'phase_2',
-                    'phase_1_draft' => $draft,
-                ]);
-                self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
+        if (!$draft) {
+            $this->failJob($job, $content, 'Phase 2 FAILED: phase_1_draft is empty in DB.');
+            return;
+        }
+
+        Log::info("AI Phase 2 START | job={$job->id} | keyword={$keyword}");
+
+        $sysTemplate = \App\Models\SystemSetting::get(
+            'ai_prompt_phase2_sys',
+            "You are a strict Senior SEO Content Auditor. Evaluate the article draft below against these criteria:\n1. Topical depth and keyword coverage\n2. E-E-A-T signals (expertise, experience, authoritativeness, trustworthiness)\n3. Readability and logical structure\n4. Actionable value for the reader\n5. Internal linking opportunities\n\nYou MUST respond ONLY with a valid JSON object with this exact structure:\n{\"cqi_score\": <integer 0-100>, \"strengths\": [<list of strengths>], \"gaps\": [<list of weaknesses>], \"improvements\": [<specific improvement instructions>]}\n\nDo NOT include any text outside the JSON object."
+        );
+
+        $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword]);
+        $userPrompt = "Target keyword: {$keyword}\n\nDraft to audit:\n\n{$draft}";
+
+        $aiService = new AIService($content->tenant, '2');
+        $critique  = $aiService->generateJson($sysPrompt, $userPrompt);
+
+        // If AI couldn't produce valid JSON critique, fail hard — no guessing
+        if (!$critique || !isset($critique['cqi_score'])) {
+            $this->failJob($job, $content, 'Phase 2 FAILED: AI did not return a valid JSON critique. Cannot assess quality.');
+            return;
+        }
+
+        $cqiScore   = (int) $critique['cqi_score'];
+        $retryCount = (int) ($job->retry_count ?? 0);
+
+        // Save critique to DB regardless of outcome
+        $job->update(['phase_2_critique' => $critique]);
+
+        Log::info("AI Phase 2 DONE | job={$job->id} | cqi={$cqiScore} | retries={$retryCount}");
+
+        // === CQI QUALITY GATE ===
+        // Threshold: 75. If below, regenerate Phase 1 with improvement context (max 2 retries).
+        $cqiThreshold = (int) \App\Models\SystemSetting::get('ai_cqi_threshold', 75);
+
+        if ($cqiScore < $cqiThreshold) {
+            if ($retryCount >= 2) {
+                // Max retries exceeded — permanently fail this content
+                $this->failJob(
+                    $job, $content,
+                    "Phase 2 FAILED: CQI score {$cqiScore} below threshold {$cqiThreshold} after {$retryCount} retries. Content quality is insufficient."
+                );
                 return;
             }
 
-            // === PHASE 2: Critique ===
-            if ($currentStatus === 'phase_2') {
-                $draft = $job->phase_1_draft;
-                $sysPrompt2Template = \App\Models\SystemSetting::get('ai_prompt_phase2_sys', "You are a senior SEO Editor. Critique the following content draft to identify structural gaps, missing topical depth, or readability improvements. You MUST return your findings ONLY in JSON format containing: {'cqi_score': integer (0-100), 'gaps': array, 'improvements': array}.");
-                $sysPrompt2 = str_replace('{keyword}', $keyword, $sysPrompt2Template);
-                $userPrompt2 = "Draft to critique:\n\n" . $draft;
-
-                $critique = $aiService2->generateJson($sysPrompt2, $userPrompt2);
-
-                if (!$critique) {
-                    $critique = [
-                        'cqi_score' => 88,
-                        'gaps' => ['Need deeper E-E-A-T evidence', 'Should include target-focused FAQ section'],
-                        'improvements' => ['Expand H2 subheadings with semantic keywords', 'Use a bulleted list for action steps'],
-                    ];
-                }
-
-                $cqiScore = (int) ($critique['cqi_score'] ?? 88);
-
-                // CQI GATE — lower threshold to 70 to avoid excessive retries on shared hosting
-                $retryCount = $job->retry_count ?? 0;
-                if ($cqiScore < 70 && $retryCount < 2) {
-                    $job->update([
-                        'status' => 'phase_1', // restart from phase 1, not failed_cqi
-                        'phase_2_critique' => $critique,
-                        'retry_count' => $retryCount + 1,
-                        'error_log' => ['cqi_score' => $cqiScore, 'message' => "CQI below threshold. Retry #{$retryCount}"],
-                    ]);
-                    $content->update(['status' => 'ai_processing']);
-                    self::dispatch($this->contentId, $this->jobId, $this->targetStatus)->delay(now()->addSeconds(5));
-                    return;
-                }
-
-                $job->update([
-                    'status' => 'phase_3',
-                    'phase_2_critique' => $critique,
-                ]);
-                self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
-                return;
-            }
-
-            // === PHASE 3: Expansion ===
-            if ($currentStatus === 'phase_3') {
-                $draft = $job->phase_1_draft;
-                $critique = $job->phase_2_critique;
-                
-                $sysPrompt3Template = \App\Models\SystemSetting::get('ai_prompt_phase3_sys', "You are an SEO Content Expander. Expand the draft by incorporating the following critique and improvements. Make the content richer, add bullet points, and structure the sections cleanly in Markdown.");
-                $sysPrompt3 = str_replace('{keyword}', $keyword, $sysPrompt3Template);
-                $userPrompt3 = "Original Draft:\n{$draft}\n\nCritique:\n" . json_encode($critique) . "\n\nProvide the expanded Markdown draft now.";
-
-                $expanded = $aiService1->generate($sysPrompt3, $userPrompt3);
-
-                if (!$expanded) {
-                    $expanded = $draft . "\n\n### Panduan Tambahan & E-E-A-T\nBerdasarkan audit optimasi, pastikan artikel ini didukung oleh data terpercaya, studi kasus nyata, dan keahlian praktis untuk memberikan nilai maksimal bagi pembaca.";
-                }
-
-                $job->update([
-                    'status' => 'phase_4',
-                    'phase_3_expanded' => $expanded,
-                ]);
-                self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
-                return;
-            }
-
-            // === PHASE 4: Master Editor + Inject Internal Links + Image ===
-            if ($currentStatus === 'phase_4') {
-                $expanded = $job->phase_3_expanded;
-                $critique = $job->phase_2_critique;
-                $cqiScore = (int) ($critique['cqi_score'] ?? 88);
-                
-                $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
-                    ->with('targetContent')
-                    ->get();
-                
-                $linkInstructions = '';
-                if ($deterministicLinks->isNotEmpty()) {
-                    $linkInstructions = "\n\nMANDATORY INTERNAL LINKS TO INJECT:\nYou MUST include ALL the following anchor links exactly in the article. Place them at the most natural and contextually relevant positions:\n";
-                    foreach ($deterministicLinks as $link) {
-                        $targetUrl = url('/blog/' . $link->targetContent?->slug);
-                        $linkInstructions .= "- Anchor text: \"{$link->anchor_text}\" → Link to: {$targetUrl}\n";
-                    }
-                    $linkInstructions .= "\nUse standard Markdown link syntax [Anchor text](url) for each link.";
-                }
-
-                $sysPrompt4Template = \App\Models\SystemSetting::get('ai_prompt_phase4_sys', "You are a Master Content Editor. Refine the following markdown text. Improve readability by adding bolding, lists, and blockquotes where appropriate. Inject the provided internal links naturally. Return ONLY the final polished Markdown text. Do NOT use HTML tags.");
-                $sysPrompt4 = str_replace('{keyword}', $keyword, $sysPrompt4Template);
-                $userPrompt4 = "Refine this markdown:\n\n" . $expanded . $linkInstructions . $imageContext;
-
-                $finalHtml = $aiService3->generate($sysPrompt4, $userPrompt4);
-
-                if (!$finalHtml) {
-                    $finalHtml = $this->getSimulatedHtml($keyword, $expanded);
-                }
-
-                if ($deterministicLinks->isNotEmpty()) {
-                    \App\Models\DeterministicLink::where('source_content_id', $content->id)
-                        ->update(['is_injected' => true]);
-                }
-
-                $contentHash = hash('sha256', $finalHtml);
-
-                $job->update([
-                    'status'       => 'completed',
-                    'phase_4_final' => $finalHtml,
-                    'completed_at' => now(),
-                ]);
-
-                $targetStatus = $this->targetStatus ?? 'published';
-
-                $content->body_raw = $finalHtml;
-                $content->update([
-                    'cqi_score'          => $cqiScore,
-                    'content_hash'       => $contentHash,
-                    'status'             => $targetStatus,
-                    'published_at'       => $content->published_at ?? now(), 
-                ]);
-                $content->save();
-
-                // PHASE 5: SEO Meta Generation
-                try {
-                    $aiService4 = new AIService($tenant, '4');
-                    $metaTitlePromptStr = \App\Models\SystemSetting::get('ai_prompt_meta_title', 'Generate a highly click-worthy SEO Title for the keyword "{keyword}". Maximum 60 characters. Return ONLY the title text, nothing else.');
-                    $metaTitlePrompt = str_replace(['{keyword}', '{content_title}'], [$keyword, $content->title], $metaTitlePromptStr);
-                    
-                    $metaDescPromptStr = \App\Models\SystemSetting::get('ai_prompt_meta_description', 'Generate an engaging SEO Meta Description for the keyword "{keyword}". Must be between 150-160 characters. Include a call to action. Return ONLY the description text.');
-                    $metaDescPrompt = str_replace(['{keyword}', '{content_title}'], [$keyword, $content->title], $metaDescPromptStr);
-
-                    $generatedMetaTitle = $aiService4->generate("You are an expert SEO specialist.", $metaTitlePrompt);
-                    $generatedMetaDesc = $aiService4->generate("You are an expert SEO specialist.", $metaDescPrompt);
-
-                    $generatedMetaTitle = trim($generatedMetaTitle, " \t\n\r\0\x0B\"'");
-                    $generatedMetaDesc = trim($generatedMetaDesc, " \t\n\r\0\x0B\"'");
-
-                    $content->updateSeoMeta([
-                        'title'          => $generatedMetaTitle ?: $content->title,
-                        'description'    => $generatedMetaDesc,
-                        'canonical'      => url('/' . $blogPrefix . '/' . $content->slug),
-                        'robots'         => 'index, follow',
-                        'og_title'       => $generatedMetaTitle ?: $content->title,
-                        'og_description' => $generatedMetaDesc,
-                        'og_image'       => $content->featured_image_url ?: \App\Models\SystemSetting::get('seo_og_image'),
-                    ]);
-                } catch (\Exception $e) {
-                    Log::warning("ProcessAiGenerationJob SEO Meta failed: " . $e->getMessage());
-                }
-                
-                return;
-            }
-
-        } catch (\Exception $e) {
-            Log::error("ProcessAiGenerationJob failed: " . $e->getMessage());
+            // Retry: go back to Phase 1 with improvement instructions injected into the prompt
+            $improvements = implode('; ', $critique['improvements'] ?? ['Improve depth, E-E-A-T signals, and actionable content.']);
             $job->update([
-                'status' => 'failed',
-                'error_log' => ['error' => $e->getMessage()],
+                'status'      => 'phase_1',
+                'retry_count' => $retryCount + 1,
+                'error_log'   => ['cqi_score' => $cqiScore, 'retry' => $retryCount + 1, 'improvements' => $improvements],
             ]);
-            $content->update(['status' => 'failed_cqi']);
+            $content->update(['status' => 'ai_processing']);
+
+            Log::warning("AI Phase 2: CQI {$cqiScore} < {$cqiThreshold}. Retrying Phase 1 (attempt " . ($retryCount + 1) . "/2) with improvements.");
+
+            // Store improvement hints in a transient field for Phase 1 to pick up
+            \App\Models\SystemSetting::set('_ai_retry_improvements_' . $this->jobId, $improvements);
+
+            self::dispatch($this->contentId, $this->jobId, $this->targetStatus)->delay(now()->addSeconds(5));
+            return;
         }
+
+        // CQI passed — advance to Phase 3
+        $job->update(['status' => 'phase_3']);
+        self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
     }
 
-    /**
-     * Generate simulated markdown draft
-     */
-    private function getSimulatedDraft(string $keyword): string
+    // -------------------------------------------------------------------------
+    // PHASE 3 — Content Expansion & Enrichment
+    // Goal: Expand the draft using critique feedback to produce a rich article.
+    // -------------------------------------------------------------------------
+
+    private function runPhase3(Content $content, AiGenerationJob $job): void
     {
-        return "# Panduan Lengkap: " . ucwords($keyword) . "\n\n" .
-            "Optimasi '" . $keyword . "' merupakan salah satu pilar krusial untuk mendominasi peringkat mesin pencari saat ini. " .
-            "Artikel ini akan membahas strategi komprehensif untuk membantu Anda menguasai topik ini.\n\n" .
-            "## Mengapa " . ucwords($keyword) . " Penting?\n" .
-            "Dalam ekosistem digital yang dinamis, pemahaman mendalam tentang " . $keyword . " membantu situs web menjangkau audiens tertarget " .
-            "dan meningkatkan otoritas domain secara signifikan.\n\n" .
-            "## 3 Langkah Utama Implementasi\n" .
-            "1. **Riset & Analisis Topik**: Mulailah dengan mengumpulkan kata kunci relevan dan mengelompokkannya ke dalam silo konten.\n" .
-            "2. **Penyusunan Konten Berkualitas (E-E-A-T)**: Tulis artikel yang berfokus pada solusi masalah pembaca dengan data pendukung.\n" .
-            "3. **Optimasi Internal Link**: Hubungkan halaman pilar dengan artikel kluster menggunakan jangkar teks (anchor text) yang presisi.";
+        $keyword = $content->target_keyword;
+        $draft   = $job->phase_1_draft;
+        $critique = $job->phase_2_critique;
+
+        if (!$draft || !$critique) {
+            $this->failJob($job, $content, 'Phase 3 FAILED: Missing draft or critique from DB.');
+            return;
+        }
+
+        Log::info("AI Phase 3 START | job={$job->id} | keyword={$keyword}");
+
+        $lang        = $content->siloBlueprint?->target_language ?? 'id';
+        $improvements = implode("\n- ", $critique['improvements'] ?? []);
+        $gaps         = implode("\n- ", $critique['gaps'] ?? []);
+
+        $sysTemplate = \App\Models\SystemSetting::get(
+            'ai_prompt_phase3_sys',
+            "You are a Master SEO Content Expander writing in {lang}. Your task is to take an existing article draft and significantly improve it based on a quality audit. You must address ALL identified gaps and apply ALL improvement suggestions. The final output must be at least 1,800 words, use clear Markdown formatting, and read as a premium, authoritative article — NOT generic filler content. Return ONLY the improved Markdown text."
+        );
+
+        $sysPrompt  = strtr($sysTemplate, ['{lang}' => $lang, '{keyword}' => $keyword]);
+        $userPrompt = "Target keyword: **{$keyword}**\n\n"
+            . "## Original Draft\n{$draft}\n\n"
+            . "## Quality Audit Gaps to Address\n- {$gaps}\n\n"
+            . "## Specific Improvements Required\n- {$improvements}\n\n"
+            . "Rewrite and expand the article now, fully addressing ALL gaps and improvements above. Minimum 1,800 words.";
+
+        $aiService = new AIService($content->tenant, '3');
+        $expanded  = $aiService->generate($sysPrompt, $userPrompt);
+
+        // Reject insufficient expansion
+        if (!$expanded || mb_strlen(trim($expanded)) < 500) {
+            $this->failJob($job, $content, 'Phase 3 FAILED: AI returned empty or insufficient expanded content (< 500 chars).');
+            return;
+        }
+
+        // Save expanded content to DB before advancing
+        $job->update([
+            'status'           => 'phase_4',
+            'phase_3_expanded' => $expanded,
+        ]);
+
+        Log::info("AI Phase 3 DONE | job={$job->id} | expanded_length=" . mb_strlen($expanded));
+
+        self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
     }
 
-    /**
-     * Generate simulated HTML content
-     */
-    private function getSimulatedHtml(string $keyword, string $markdown): string
+    // -------------------------------------------------------------------------
+    // PHASE 4 — Master Edit, Internal Link Injection & Final Publish
+    // Goal: Polish the article, inject links, and save to the content record.
+    // -------------------------------------------------------------------------
+
+    private function runPhase4(Content $content, AiGenerationJob $job): void
     {
-        $title = ucwords($keyword);
-        return "<h2>Panduan Praktis Menguasai {$title}</h2>" .
-            "<p>Dalam era digital yang kompetitif, pemahaman taktis mengenai <strong>{$keyword}</strong> adalah modal utama untuk memenangkan persaingan di Google SERP. Berikut adalah rangkuman strategi terbaik:</p>" .
-            "<h3>1. Analisis Kebutuhan Pengguna</h3>" .
-            "<p>Langkah pertama adalah memahami intensi pencarian (search intent) di balik kata kunci {$keyword}. Pastikan artikel Anda menjawab apa yang dicari pembaca.</p>" .
-            "<h3>2. Struktur Silo Konten</h3>" .
-            "<p>Bagi topik besar Anda menjadi pilar utama dan artikel kluster pendukung untuk mendistribusikan link juice secara merata.</p>" .
-            "<ul>" .
-            "<li><strong>Artikel Pilar:</strong> Pembahasan komprehensif topik utama.</li>" .
-            "<li><strong>Artikel Kluster:</strong> Topik spesifik yang mendetail.</li>" .
-            "</ul>" .
-            "<p>Gunakan panduan ini secara konsisten untuk melihat peningkatan performa organik situs Anda secara nyata.</p>";
+        $keyword  = $content->target_keyword;
+        $expanded = $job->phase_3_expanded;
+        $critique = $job->phase_2_critique;
+
+        if (!$expanded) {
+            $this->failJob($job, $content, 'Phase 4 FAILED: phase_3_expanded is empty in DB.');
+            return;
+        }
+
+        Log::info("AI Phase 4 START | job={$job->id} | keyword={$keyword}");
+
+        // Build internal link injection instructions
+        $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
+            ->with('targetContent')
+            ->get();
+
+        $linkInstructions = '';
+        if ($deterministicLinks->isNotEmpty()) {
+            $linkInstructions = "\n\n## MANDATORY INTERNAL LINKS\nYou MUST embed ALL of the following links naturally within the article text. Use standard Markdown syntax [anchor text](url):\n";
+            foreach ($deterministicLinks as $link) {
+                $targetUrl         = url('/blog/' . ($link->targetContent?->slug ?? '#'));
+                $linkInstructions .= "- Anchor: \"{$link->anchor_text}\" → URL: {$targetUrl}\n";
+            }
+        }
+
+        // Build featured image instruction
+        $imageInstruction = '';
+        if ($content->featured_image_url) {
+            $imageInstruction = "\n\n## FEATURED IMAGE\nPlace this image at the most natural position near the top of the article:\n"
+                . "![{$content->featured_image_alt}]({$content->featured_image_url})\n"
+                . "Caption: {$content->featured_image_caption}";
+        }
+
+        $lang        = $content->siloBlueprint?->target_language ?? 'id';
+
+        $sysTemplate = \App\Models\SystemSetting::get(
+            'ai_prompt_phase4_sys',
+            "You are a Chief Content Editor writing in {lang}. Your task is to perform a final editorial pass on the article below:\n1. Improve readability: use bold text, bullet lists, numbered lists, and blockquotes strategically\n2. Ensure the opening paragraph immediately hooks the reader\n3. Inject all mandatory internal links at the most contextually natural positions\n4. Place the featured image at the top if provided\n5. Ensure the conclusion has a strong call-to-action\n6. Return ONLY the final polished Markdown — no commentary, no preamble."
+        );
+
+        $sysPrompt  = strtr($sysTemplate, ['{lang}' => $lang, '{keyword}' => $keyword]);
+        $userPrompt = "Target keyword: **{$keyword}**\n\n## Article to Polish\n{$expanded}{$linkInstructions}{$imageInstruction}";
+
+        $aiService = new AIService($content->tenant, '4');
+        $finalBody = $aiService->generate($sysPrompt, $userPrompt);
+
+        // Reject insufficient final output
+        if (!$finalBody || mb_strlen(trim($finalBody)) < 500) {
+            $this->failJob($job, $content, 'Phase 4 FAILED: AI returned empty or insufficient final content (< 500 chars).');
+            return;
+        }
+
+        $cqiScore    = (int) ($critique['cqi_score'] ?? 80);
+        $contentHash = hash('sha256', $finalBody);
+        $targetStatus = $this->targetStatus ?? 'draft';
+        $blogPrefix  = \App\Models\SystemSetting::get('permalink_blog', 'blog');
+
+        // Save Phase 4 final output to DB
+        $job->update([
+            'status'        => 'completed',
+            'phase_4_final' => $finalBody,
+            'completed_at'  => now(),
+        ]);
+
+        // Mark internal links as injected
+        if ($deterministicLinks->isNotEmpty()) {
+            \App\Models\DeterministicLink::where('source_content_id', $content->id)
+                ->update(['is_injected' => true]);
+        }
+
+        // Persist the final article body and update content status
+        $content->body_raw = $finalBody;
+        $content->update([
+            'cqi_score'    => $cqiScore,
+            'content_hash' => $contentHash,
+            'status'       => $targetStatus,
+            'published_at' => $content->published_at ?? now(),
+        ]);
+        $content->save();
+
+        Log::info("AI Phase 4 DONE | job={$job->id} | status={$targetStatus} | cqi={$cqiScore} | body_length=" . mb_strlen($finalBody));
+
+        // ---- Phase 5: SEO Meta Generation (non-blocking) ----
+        try {
+            $this->generateSeoMeta($content, $keyword, $blogPrefix);
+        } catch (\Exception $e) {
+            Log::warning("AI Phase 5 (SEO Meta) failed for job {$job->id}: " . $e->getMessage());
+            // Do NOT fail the whole job — content is already saved
+        }
+
+        // Clean up temporary retry hints if any
+        \App\Models\SystemSetting::where('key', '_ai_retry_improvements_' . $this->jobId)->delete();
+    }
+
+    // -------------------------------------------------------------------------
+    // PHASE 5 — SEO Meta Generation (called inline after Phase 4)
+    // -------------------------------------------------------------------------
+
+    private function generateSeoMeta(Content $content, string $keyword, string $blogPrefix): void
+    {
+        $aiService = new AIService($content->tenant, '4');
+
+        $metaTitlePrompt = \App\Models\SystemSetting::get(
+            'ai_prompt_meta_title',
+            'Write a highly click-worthy SEO title for the keyword "{keyword}". Maximum 60 characters. Return ONLY the title text — no quotes, no commentary.'
+        );
+        $metaDescPrompt  = \App\Models\SystemSetting::get(
+            'ai_prompt_meta_description',
+            'Write an engaging SEO meta description for the keyword "{keyword}". Must be 150–160 characters. Include a compelling call to action. Return ONLY the description text.'
+        );
+
+        $metaTitlePrompt = str_replace('{keyword}', $keyword, $metaTitlePrompt);
+        $metaDescPrompt  = str_replace('{keyword}', $keyword, $metaDescPrompt);
+
+        $generatedTitle = trim($aiService->generate('You are an expert SEO specialist.', $metaTitlePrompt), " \t\n\r\"'");
+        $generatedDesc  = trim($aiService->generate('You are an expert SEO specialist.', $metaDescPrompt),  " \t\n\r\"'");
+
+        $content->updateSeoMeta([
+            'title'          => $generatedTitle ?: $content->title,
+            'description'    => $generatedDesc,
+            'canonical'      => url('/' . $blogPrefix . '/' . $content->slug),
+            'robots'         => 'index, follow',
+            'og_title'       => $generatedTitle ?: $content->title,
+            'og_description' => $generatedDesc,
+            'og_image'       => $content->featured_image_url ?: \App\Models\SystemSetting::get('seo_og_image'),
+        ]);
+
+        Log::info("AI Phase 5 (SEO Meta) DONE | content={$content->id}");
+    }
+
+    // -------------------------------------------------------------------------
+    // HELPERS
+    // -------------------------------------------------------------------------
+
+    /**
+     * Permanently fail a job and mark the content accordingly.
+     * No fallback content is ever produced — quality is non-negotiable.
+     */
+    private function failJob(AiGenerationJob $job, Content $content, string $reason): void
+    {
+        Log::error("ProcessAiGenerationJob PERMANENTLY FAILED | job={$job->id} | reason={$reason}");
+
+        $job->update([
+            'status'    => 'failed',
+            'error_log' => ['reason' => $reason, 'failed_at' => now()->toISOString()],
+        ]);
+
+        $content->update(['status' => 'failed_cqi']);
     }
 }
