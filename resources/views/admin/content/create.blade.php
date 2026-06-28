@@ -242,12 +242,17 @@
         }
 
         // Convert PHP active jobs to JS array
-        let jobQueue = @json($activeJobs->map(fn($job) => [
-            'job_id' => $job->id, 
-            'content_id' => $job->content_id, 
-            'keyword' => $job->content->target_keyword ?? 'Unknown',
-            'target_status' => $job->error_log['target_status'] ?? 'draft'
-        ])->values());
+        @php
+            $queueArray = $activeJobs->map(function($job) {
+                return [
+                    'job_id' => $job->id,
+                    'content_id' => $job->content_id,
+                    'keyword' => $job->content->target_keyword ?? 'Unknown',
+                    'target_status' => is_array($job->error_log) ? ($job->error_log['target_status'] ?? 'draft') : 'draft'
+                ];
+            })->values()->toArray();
+        @endphp
+        let jobQueue = {!! json_encode($queueArray) !!};
 
         async function processNextJob() {
             if (!isWorking) return;
