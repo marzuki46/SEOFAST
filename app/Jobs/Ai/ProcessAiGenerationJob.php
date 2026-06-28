@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -19,6 +20,16 @@ class ProcessAiGenerationJob implements ShouldQueue
 
     public int $tries = 2;
     public int $timeout = 600; // 10 minutes
+
+    /**
+     * Get the middleware the job should pass through.
+     */
+    public function middleware(): array
+    {
+        // Enforce strictly ONE AI generation at a time across the entire system.
+        // If another AI job is running, release this job back to the queue and wait 30 seconds.
+        return [(new WithoutOverlapping('ai_generation'))->releaseAfter(30)];
+    }
 
     /**
      * Create a new job instance.
