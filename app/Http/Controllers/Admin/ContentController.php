@@ -60,8 +60,11 @@ class ContentController extends Controller
      */
     public function create()
     {
-        $activeJobs = AiGenerationJob::whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
-            ->with('content')
+        $activeJobs = AiGenerationJob::withoutGlobalScopes()
+            ->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
+            ->with(['content' => function($q) {
+                $q->withoutGlobalScopes();
+            }])
             ->latest()
             ->get();
             
@@ -146,7 +149,7 @@ class ContentController extends Controller
      */
     public function show(Content $content)
     {
-        $job = AiGenerationJob::where('content_id', $content->id)->latest()->first();
+        $job = AiGenerationJob::withoutGlobalScopes()->where('content_id', $content->id)->latest()->first();
 
         return view('admin.content.show', compact('content', 'job'));
     }
@@ -234,7 +237,8 @@ class ContentController extends Controller
         $content->update(['status' => 'ai_processing']);
 
         // Check if there's already a pending/processing job
-        $existingJob = AiGenerationJob::where('content_id', $content->id)
+        $existingJob = AiGenerationJob::withoutGlobalScopes()
+            ->where('content_id', $content->id)
             ->whereIn('status', ['pending', 'processing'])
             ->first();
 
@@ -274,7 +278,8 @@ class ContentController extends Controller
             if ($content && in_array($content->status, ['blueprint', 'draft', 'failed_cqi'])) {
                 $content->update(['status' => 'ai_processing']);
                 
-                $existingJob = AiGenerationJob::where('content_id', $content->id)
+                $existingJob = AiGenerationJob::withoutGlobalScopes()
+                    ->where('content_id', $content->id)
                     ->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
                     ->first();
 
