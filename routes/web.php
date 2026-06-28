@@ -160,7 +160,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/prapost', [\App\Http\Controllers\Admin\ContentController::class, 'prapost'])->name('prapost');
             Route::get('/drafts', [\App\Http\Controllers\Admin\ContentController::class, 'drafts'])->name('drafts');
             Route::post('/work-queue', [\App\Http\Controllers\Admin\ContentController::class, 'workQueue'])->name('work_queue');
-            Route::post('/bulk-generate', [\App\Http\Controllers\Admin\ContentController::class, 'bulkGenerateAi'])->name('bulk_generate');
+            Route::match(['get', 'post'], '/bulk-generate', [\App\Http\Controllers\Admin\ContentController::class, 'bulkGenerateAi'])->name('bulk_generate');
             Route::get('/create', [\App\Http\Controllers\Admin\ContentController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\Admin\ContentController::class, 'store'])->name('store');
             
@@ -272,8 +272,8 @@ Route::prefix('buyer')->name('buyer.')->group(function () {
         Route::post('/orders/{order}/upload-proof', [\App\Http\Controllers\Buyer\BuyerOrderController::class, 'uploadProof'])->name('orders.upload_proof');
         Route::get('/products', [\App\Http\Controllers\Buyer\BuyerProductController::class, 'index'])->name('products.index');
         Route::get('/products/{access}', [\App\Http\Controllers\Buyer\BuyerProductController::class, 'access'])->name('products.access');
-        Route::get('/profile', [\App\Http\Controllers\Buyer\BuyerProfileController::class, 'index'])->name('profile');
-        Route::put('/profile', [\App\Http\Controllers\Buyer\BuyerProfileController::class, 'update'])->name('profile.update');
+        // Route::get('/profile', [\App\Http\Controllers\Buyer\BuyerProfileController::class, 'index'])->name('profile');
+        // Route::put('/profile', [\App\Http\Controllers\Buyer\BuyerProfileController::class, 'update'])->name('profile.update');
     });
 });
 Route::get('/{slug}', [\App\Http\Controllers\PageController::class, 'show'])->where('slug', '.*')->name('page.show');
