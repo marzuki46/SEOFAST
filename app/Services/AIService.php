@@ -390,11 +390,31 @@ class AIService
     }
 
     /**
+     * Get pre-configured HTTP client with keep-alive progress callback.
+     */
+    private function getHttpClient()
+    {
+        return Http::withOptions([
+            'progress' => function () {
+                static $lastPing = 0;
+                $now = microtime(true);
+                // Ping every 5 seconds if running inside a stream (ob_get_level > 0)
+                if ($now - $lastPing > 5 && ob_get_level() > 0) {
+                    echo " ";
+                    @ob_flush();
+                    @flush();
+                    $lastPing = $now;
+                }
+            }
+        ]);
+    }
+
+    /**
      * Call OpenAI API.
      */
     private function callOpenAI(string $systemPrompt, string $userPrompt, array $options): array
     {
-        $response = Http::withToken($this->config['apiKey'])
+        $response = $this->getHttpClient()->withToken($this->config['apiKey'])
             ->timeout(300)
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => $options['model'] ?? $this->config['model'],
@@ -428,7 +448,7 @@ class AIService
         $apiKey = $this->config['apiKey'];
         $model = $options['model'] ?? $this->config['model'];
 
-        $response = Http::withHeaders([
+        $response = $this->getHttpClient()->withHeaders([
             'Content-Type' => 'application/json',
         ])
         ->timeout(300)
@@ -460,7 +480,7 @@ class AIService
      */
     private function callClaude(string $systemPrompt, string $userPrompt, array $options): array
     {
-        $response = Http::withHeaders([
+        $response = $this->getHttpClient()->withHeaders([
             'x-api-key' => $this->config['apiKey'],
             'anthropic-version' => '2023-06-01',
             'Content-Type' => 'application/json',
@@ -493,7 +513,7 @@ class AIService
      */
     private function callDeepSeek(string $systemPrompt, string $userPrompt, array $options): array
     {
-        $response = Http::withToken($this->config['apiKey'])
+        $response = $this->getHttpClient()->withToken($this->config['apiKey'])
             ->timeout(300)
             ->post('https://api.deepseek.com/v1/chat/completions', [
                 'model' => $options['model'] ?? $this->config['model'],
@@ -526,7 +546,7 @@ class AIService
         $apiBase = $this->config['apiBase'] ?: 'https://api.9router.com/v1';
         $url = rtrim($apiBase, '/') . '/chat/completions';
 
-        $response = Http::withToken($this->config['apiKey'])
+        $response = $this->getHttpClient()->withToken($this->config['apiKey'])
             ->timeout(300)
             ->withHeaders([
                 'HTTP-Referer' => config('app.url', 'https://seofast.test'),
@@ -568,7 +588,7 @@ class AIService
         $apiBase = $this->config['apiBase'] ?: 'http://localhost:20128/v1';
         $url = rtrim($apiBase, '/') . '/chat/completions';
 
-        $request = Http::asJson()
+        $request = $this->getHttpClient()->asJson()
             ->timeout(300)
             ->withHeaders([
                 'Bypass-Tunnel-Reminder' => 'true',

@@ -382,6 +382,10 @@ class ContentController extends Controller
             $addLog = function(string $level, string $message) use (&$logs) {
                 $logs[] = ['level' => $level, 'message' => $message];
                 \Illuminate\Support\Facades\Log::info("AI [{$level}] {$message}");
+                // Send keep-alive byte immediately if in stream mode
+                echo " ";
+                if (ob_get_level() > 0) ob_flush();
+                flush();
             };
 
             if (!$content || !$job) {
