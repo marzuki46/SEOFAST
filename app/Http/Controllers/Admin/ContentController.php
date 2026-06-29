@@ -380,6 +380,9 @@ class ContentController extends Controller
 
     private function _doGenerateSingle(Request $request)
     {
+        set_time_limit(0);
+        ignore_user_abort(true);
+
         try {
             $request->validate([
                 'content_id'    => 'required|exists:contents,id',
@@ -392,10 +395,21 @@ class ContentController extends Controller
             $targetStatus = $request->input('target_status', 'draft');
             $logs         = [];
 
+            if (!$content || !$job) {
+                return ['success' => false, 'error' => 'Content or Job not found.', 'logs' => []];
+            }
+
+            $lockKey = "ai_job_lock_{$job->id}";
+            $lock = \Illuminate\Support\Facades\Cache::lock($lockKey, 120);
+            if (!$lock->get()) {
+                return ['success' => true, 'status' => 'continue', 'keyword' => $content->target_keyword, 'logs' => [['level' => 'running', 'message' => 'Proses masih berjalan di latar belakang (menunggu 10d)...']]];
+            }
+
+            try {
+
             $addLog = function(string $level, string $message) use (&$logs) {
                 $logs[] = ['level' => $level, 'message' => $message];
                 \Illuminate\Support\Facades\Log::info("AI [{$level}] {$message}");
-                // Send keep-alive byte immediately if in stream mode
                 echo " ";
                 if (ob_get_level() > 0) ob_flush();
                 flush();
@@ -414,15 +428,27 @@ class ContentController extends Controller
             $job->update(['status' => 'phase_1', 'started_at' => now()]);
             $addLog('info', "Mulai Phase 1: Generating draft untuk [{$keyword}]...");
 
-            // ── PHASE 1: LSI/Entity Draft ─────────────────────────────────────
+            // ── PHASE 1: LSI/Entity Draft & Links ─────────────────────────────
             $draft = $job->phase_1_draft;
             if (!$draft) {
-                $addLog('info', "Mulai Phase 1: Generating LSI/Entity draft untuk [{$keyword}]...");
+                $addLog('info', "Mulai Phase 1: Generating draft lengkap untuk [{$keyword}]...");
                 $aiService1 = new \App\Services\AIService($tenant, 'default');
+
+                $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
+                    ->with('targetContent')->get();
+                $linkInstructions = '';
+                if ($deterministicLinks->isNotEmpty()) {
+                    $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (Embed organically in text using Markdown):\n";
+                    foreach ($deterministicLinks as $link) {
+                        $url = url('/blog/' . ($link->targetContent?->slug ?? '#'));
+                        $linkInstructions .= "- [{$link->anchor_text}]({$url})\n";
+                    }
+                }
+
                 $sysP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
-                    "You are an Expert SEO Writer writing in {lang}. First, identify semantic entities and LSI keywords for the topic '{keyword}'. Then, write a concise but highly informative article draft (around 600-800 words). **Make the LSI keywords bold** in the text. Return ONLY the article draft in Markdown format, do not output the list of LSI keywords separately.");
+                    "You are an Expert SEO Writer writing in {lang}. First, identify semantic entities and LSI keywords for the topic '{keyword}'. Then, write a comprehensive article draft (minimum 1,200 words) using those entities. **Make the LSI keywords bold** in the text. You must also naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Return ONLY the article draft in Markdown.");
                 $userP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_user',
-                    "Write an SEO-optimised article draft in {lang} about: **{keyword}**.\n\nRequirements:\n- Generate and use LSI/Entity keywords\n- Make all LSI keywords **bold**\n- Around 600-800 words\n- Use H2 and H3 headings\n- Incorporate seed keyword '{seed_keyword}' naturally\n- Do NOT output the LSI list, just use them in the article");
+                    "Write an SEO-optimised comprehensive article in {lang} about: **{keyword}**.\n\nRequirements:\n- Minimum 1,200 words\n- Generate and use LSI/Entity keywords\n- Make all LSI keywords **bold**\n- Use H2 and H3 headings\n- Incorporate seed keyword '{seed_keyword}' naturally\n{$linkInstructions}\nDo NOT output the LSI list separately, just weave everything seamlessly.");
 
                 $sysP1  = strtr($sysP1,  ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
                 $userP1 = strtr($userP1, ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
@@ -503,7 +529,7 @@ class ContentController extends Controller
                 $criticalQs = implode("\n- ", is_array($critique) ? $critique : ['Berikan pembahasan lebih mendalam.']);
                 
                 $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
-                    "You are a Master SEO Content Expander writing in {lang}. Rewrite and combine the original draft with answers to the 'Critical Questions' to form one cohesive article. Keep it concise, engaging, and under 1,200 words if possible. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.");
+                    "You are a Master SEO Content Expander writing in {lang}. Rewrite and drastically expand the original draft with comprehensive answers to ALL the 'Critical Questions' to form one cohesive, deeply researched article. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.");
                 $sysP3 = strtr($sysP3, ['{lang}' => $lang, '{keyword}' => $keyword]);
                 
                 $userP3 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nCritical Questions to Answer & Combine:\n- {$criticalQs}\n\nRewrite and combine into a full article now (Markdown only):";
@@ -529,25 +555,10 @@ class ContentController extends Controller
                 $addLog('info', "Phase 4: Ekspansi akhir, internal links & konversi ke HTML...");
                 $aiService4 = new \App\Services\AIService($tenant, 'default');
 
-                $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
-                    ->with('targetContent')->get();
-                $linkInstructions = '';
-                if ($deterministicLinks->isNotEmpty()) {
-                    $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (embed all organically):\n";
-                    foreach ($deterministicLinks as $link) {
-                        $url = url('/blog/' . ($link->targetContent?->slug ?? '#'));
-                        $linkInstructions .= "- <a href=\"{$url}\">{$link->anchor_text}</a>\n";
-                    }
-                }
-                $imageInstruction = '';
-                if ($content->featured_image_url) {
-                    $imageInstruction = "\n\nFEATURED IMAGE at top:\n<img src=\"{$content->featured_image_url}\" alt=\"{$content->featured_image_alt}\" />";
-                }
-
                 $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
-                    "You are a Chief Content Editor writing in {lang}. Inject all mandatory internal links naturally into the provided text. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the length similar to the input.");
+                    "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the comprehensive length.");
                 $sysP4 = strtr($sysP4, ['{lang}' => $lang, '{keyword}' => $keyword]);
-                $userP4 = "Keyword: **{$keyword}**\n\nArticle:\n{$expanded}{$linkInstructions}{$imageInstruction}";
+                $userP4 = "Keyword: **{$keyword}**\n\nArticle:\n{$expanded}{$imageInstruction}";
 
                 $finalBody = $aiService4->generate($sysP4, $userP4);
                 $finalBody = preg_replace('/^```html|```$/i', '', trim($finalBody)); // Remove markdown HTML blocks if any
@@ -630,7 +641,16 @@ class ContentController extends Controller
                 'logs'     => $logs,
             ];
 
+            } finally {
+                if (isset($lock)) {
+                    $lock->release();
+                }
+            }
+
         } catch (\Throwable $e) {
+            if (isset($lock)) {
+                $lock->release();
+            }
             if (isset($job) && $job) {
                 $job->update(['status' => 'failed', 'error_log' => ['reason' => $e->getMessage()]]);
             }

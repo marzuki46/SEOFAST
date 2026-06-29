@@ -374,6 +374,13 @@
                 });
 
                 if (!res.ok) {
+                    if (res.status === 524 || res.status === 520) {
+                        appendLog('warn', `Cloudflare Timeout ${res.status}. Server masih bekerja di belakang layar...`);
+                        currentJob.resumed = true;
+                        jobQueue.unshift(currentJob); // Kembalikan ke antrean
+                        setTimeout(processNextJob, 10000); // Polling lagi 10 detik kemudian
+                        return;
+                    }
                     appendLog('error', `HTTP ${res.status} — Kemungkinan server kehabisan memory/timeout.`);
                 }
 
@@ -381,7 +388,8 @@
                 try {
                     data = await res.json();
                 } catch (e) {
-                    throw new Error(`Gagal membaca respons dari server (kemungkinan blank page atau error PHP fatal). Status: ${res.status}`);
+                    if (res.status === 524 || res.status === 520) return;
+                    throw new Error(`Gagal membaca respons dari server. Status: ${res.status}`);
                 }
 
                 // Render structured log entries
