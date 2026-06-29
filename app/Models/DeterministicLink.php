@@ -32,4 +32,9 @@ class DeterministicLink extends Model
     {
         return $this->belongsTo(Content::class, 'target_content_id');
     }
+
+    public function targetContent(): BelongsTo
+    {
+        return $this->belongsTo(Content::class, 'target_content_id');
+    }
 }
