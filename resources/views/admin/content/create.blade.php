@@ -17,7 +17,7 @@
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
                 </svg>
-                <span id="startAiBtnText">Start AI Worker ({{ $activeJobs->whereIn('status', ['pending', 'processing'])->count() }} jobs)</span>
+                <span id="startAiWorkerText">Start AI Worker ({{ $activeJobs->whereIn('status', ['pending', 'processing'])->count() }} jobs)</span>
             </button>
             @endif
             <a href="{{ route('admin.content.prapost') }}" class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition">
