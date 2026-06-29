@@ -572,14 +572,20 @@ class ContentController extends Controller
 
             if ($deterministicLinks->isNotEmpty()) {
                 \App\Models\DeterministicLink::where('source_content_id', $content->id)
-                    ->update(['is_injected' => true]);
+                    ->update([
+                        'is_injected_successfully' => true,
+                        'injected_at' => now()
+                    ]);
             }
+
+            // Fallback for draft status which doesn't exist in the DB enum
+            $finalDbStatus = $targetStatus === 'draft' ? 'blueprint' : $targetStatus;
 
             $content->body_raw = $finalBody;
             $content->update([
                 'cqi_score'    => $cqiScore,
                 'content_hash' => $contentHash,
-                'status'       => $targetStatus,
+                'status'       => $finalDbStatus,
                 'published_at' => $content->published_at ?? now(),
             ]);
             $content->save();
