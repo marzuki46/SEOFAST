@@ -339,6 +339,7 @@ class ContentController extends Controller
     public function generateSingle(Request $request)
     {
         @set_time_limit(300);
+        @ini_set('memory_limit', '512M');
 
         try {
             $request->validate([

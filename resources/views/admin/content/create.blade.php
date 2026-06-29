@@ -357,13 +357,24 @@
                     })
                 });
 
-                const data = await res.json();
+                if (!res.ok) {
+                    appendLog('error', `HTTP ${res.status} — Kemungkinan server kehabisan memory/timeout.`);
+                }
+
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch (e) {
+                    throw new Error(`Gagal membaca respons dari server (kemungkinan blank page atau error PHP fatal). Status: ${res.status}`);
+                }
 
                 // Render structured log entries
-                if (data.logs && Array.isArray(data.logs)) {
+                if (data.logs && Array.isArray(data.logs) && data.logs.length > 0) {
                     data.logs.forEach(e => appendLog(e.level || 'info', e.message || ''));
-                } else if (!data.success) {
-                    appendLog('error', data.error || 'Unknown server error');
+                }
+                
+                if (!data.success) {
+                    appendLog('error', data.error || data.message || `Server Error ${res.status}`);
                 }
 
                 await refreshTable();
