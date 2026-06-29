@@ -102,12 +102,12 @@
                                     $phaseName = [
                                         'pending'    => 'Pending',
                                         'phase_1'    => '📝 Phase 1: Draft',
-                                        'phase_2'    => '🔍 Phase 2: CQI Check',
+                                        'phase_2'    => '🔍 Phase 2: Questions',
                                         'phase_3'    => '✍️ Phase 3: Expand',
                                         'phase_4'    => '🎨 Phase 4: Polish',
                                         'completed'  => '✅ Completed',
                                         'failed'     => '❌ Failed',
-                                        'failed_cqi' => '⚠️ CQI Retry',
+                                        'failed_cqi' => '⚠️ Error',
                                     ];
                                     $color = $phaseColors[$job->status] ?? 'bg-slate-100 text-slate-600';
                                     $label = $phaseName[$job->status] ?? strtoupper($job->status);
