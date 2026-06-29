@@ -555,6 +555,11 @@ class ContentController extends Controller
                 $addLog('info', "Phase 4: Ekspansi akhir, internal links & konversi ke HTML...");
                 $aiService4 = new \App\Services\AIService($tenant, 'default');
 
+                $imageInstruction = '';
+                if ($content->featured_image_url) {
+                    $imageInstruction = "\n\nFEATURED IMAGE at top:\n<img src=\"{$content->featured_image_url}\" alt=\"{$content->featured_image_alt}\" />";
+                }
+
                 $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
                     "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the comprehensive length.");
                 $sysP4 = strtr($sysP4, ['{lang}' => $lang, '{keyword}' => $keyword]);
