@@ -474,12 +474,12 @@ class ContentController extends Controller
                 $addLog('info', "Phase 2: CQI Quality Check untuk [{$keyword}]...");
                 $aiService2 = new \App\Services\AIService($tenant, 'default');
                 $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
-                    "You are a strict Senior SEO Content Auditor. Evaluate the article draft and respond ONLY with valid JSON:\n{\"cqi_score\": <0-100>, \"strengths\": [], \"gaps\": [], \"improvements\": []}");
+                    "You are a strict Senior SEO Content Auditor. Evaluate the article draft. Identify missing depth and generate a list of 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Respond ONLY with valid JSON:\n{\"cqi_score\": <0-100>, \"critical_questions\": [], \"improvements\": []}");
                 $critique = $aiService2->generateJson($sysP2, "Keyword: {$keyword}\n\nDraft:\n{$draft}");
 
                 if (!$critique || !isset($critique['cqi_score'])) {
                     // If critique fails, use a reasonable default and continue
-                    $critique = ['cqi_score' => 75, 'gaps' => [], 'improvements' => ['Improve E-E-A-T signals and depth.']];
+                    $critique = ['cqi_score' => 75, 'critical_questions' => ['What are the advanced strategies?', 'How to avoid common mistakes?'], 'improvements' => ['Improve E-E-A-T signals and depth.']];
                     $addLog('warn', "Phase 2: Critique tidak dapat di-parse, menggunakan skor default 75.");
                 }
 
@@ -504,11 +504,13 @@ class ContentController extends Controller
                 $addLog('info', "Phase 3: Expanding & enriching content...");
                 $aiService3 = new \App\Services\AIService($tenant, 'default');
                 $improvements = implode("\n- ", $critique['improvements'] ?? ['Improve depth and E-E-A-T']);
-                $gaps         = implode("\n- ", $critique['gaps'] ?? []);
+                $criticalQs   = implode("\n- ", $critique['critical_questions'] ?? $critique['gaps'] ?? ['Provide more detailed examples and depth.']);
+                
                 $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
-                    "You are a Master SEO Content Expander writing in {lang}. Rewrite and expand the article to address ALL gaps and improvements. Minimum 1,800 words. Return ONLY the improved Markdown.");
+                    "You are a Master SEO Content Expander writing in {lang}. Rewrite and drastically expand the article to naturally answer ALL the 'Critical Questions' and apply the improvements. Do NOT just add an FAQ section; weave the answers seamlessly into the article body with proper H2/H3 headings. Minimum 1,800 words. Return ONLY the improved Markdown.");
                 $sysP3 = strtr($sysP3, ['{lang}' => $lang, '{keyword}' => $keyword]);
-                $userP3 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nGaps:\n- {$gaps}\n\nImprovements:\n- {$improvements}\n\nRewrite and expand now:";
+                
+                $userP3 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nCritical Questions to Answer in Body:\n- {$criticalQs}\n\nImprovements to Apply:\n- {$improvements}\n\nRewrite and expand now (Markdown only):";
 
                 $expanded = $aiService3->generate($sysP3, $userP3);
 
