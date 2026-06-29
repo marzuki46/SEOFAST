@@ -306,6 +306,7 @@ class AIService
     private function callOpenAI(string $systemPrompt, string $userPrompt, array $options): array
     {
         $response = Http::withToken($this->config['apiKey'])
+            ->timeout(120)
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => $options['model'] ?? $this->config['model'],
                 'messages' => [
@@ -340,7 +341,9 @@ class AIService
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-        ])->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
+        ])
+        ->timeout(120)
+        ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
             'contents' => [
                 ['parts' => [['text' => $systemPrompt . "\n\n" . $userPrompt]]],
             ],
@@ -372,7 +375,9 @@ class AIService
             'x-api-key' => $this->config['apiKey'],
             'anthropic-version' => '2023-06-01',
             'Content-Type' => 'application/json',
-        ])->post('https://api.anthropic.com/v1/messages', [
+        ])
+        ->timeout(120)
+        ->post('https://api.anthropic.com/v1/messages', [
             'model' => $options['model'] ?? $this->config['model'],
             'max_tokens' => $options['max_tokens'] ?? $this->config['max_tokens'],
             'system' => $systemPrompt,
@@ -400,6 +405,7 @@ class AIService
     private function callDeepSeek(string $systemPrompt, string $userPrompt, array $options): array
     {
         $response = Http::withToken($this->config['apiKey'])
+            ->timeout(120)
             ->post('https://api.deepseek.com/v1/chat/completions', [
                 'model' => $options['model'] ?? $this->config['model'],
                 'messages' => [
@@ -428,10 +434,11 @@ class AIService
      */
     private function call9Router(string $systemPrompt, string $userPrompt, array $options): array
     {
-        $apiBase = $this->config['apiBase'] ?: 'https://api.9router.com/v1'; // fallback 9router endpoint if needed
+        $apiBase = $this->config['apiBase'] ?: 'https://api.9router.com/v1';
         $url = rtrim($apiBase, '/') . '/chat/completions';
 
         $response = Http::withToken($this->config['apiKey'])
+            ->timeout(120)
             ->withHeaders([
                 'HTTP-Referer' => config('app.url', 'https://seofast.test'),
                 'X-Title' => 'SEOFAST Optimizer',
@@ -467,9 +474,11 @@ class AIService
         $apiBase = $this->config['apiBase'] ?: 'http://localhost:20128/v1';
         $url = rtrim($apiBase, '/') . '/chat/completions';
 
-        $request = Http::asJson()->withHeaders([
-            'Bypass-Tunnel-Reminder' => 'true',
-        ]);
+        $request = Http::asJson()
+            ->timeout(120)
+            ->withHeaders([
+                'Bypass-Tunnel-Reminder' => 'true',
+            ]);
         if (!empty($this->config['apiKey'])) {
             $request = $request->withToken($this->config['apiKey']);
         }
@@ -482,21 +491,73 @@ class AIService
             ],
             'temperature' => $options['temperature'] ?? $this->config['temperature'],
             'max_tokens' => $options['max_tokens'] ?? $this->config['max_tokens'],
+            'stream' => false, // explicitly request non-streaming
         ]);
 
         $rawBody = $response->body();
-        // The tunnel might append "data: [DONE]" at the end even for non-streaming requests
+
+        // ── Handle SSE / streaming response format ────────────────────────────
+        // Some free/proxy APIs return SSE chunks even when stream=false.
+        // Format: "data: {json}\n\ndata: {json}\n\ndata: [DONE]"
+        // We detect this by checking if the body starts with 'data:'
+        if (str_starts_with(ltrim($rawBody), 'data:')) {
+            $fullContent = '';
+            $lastUsage   = [];
+            $lastModel   = $options['model'] ?? $this->config['model'];
+
+            foreach (explode("\n", $rawBody) as $line) {
+                $line = trim($line);
+                if (!str_starts_with($line, 'data:')) continue;
+                $json = trim(substr($line, 5));
+                if ($json === '[DONE]' || $json === '') continue;
+
+                $chunk = json_decode($json, true);
+                if (!is_array($chunk)) continue;
+
+                // Accumulate delta content (streaming format)
+                $delta = $chunk['choices'][0]['delta']['content'] ?? null;
+                if ($delta !== null) {
+                    $fullContent .= $delta;
+                }
+
+                // Also handle non-delta (some APIs mix formats)
+                $msg = $chunk['choices'][0]['message']['content'] ?? null;
+                if ($msg !== null && empty($fullContent)) {
+                    $fullContent = $msg;
+                }
+
+                if (!empty($chunk['usage'])) $lastUsage = $chunk['usage'];
+                if (!empty($chunk['model'])) $lastModel = $chunk['model'];
+            }
+
+            if (!empty($fullContent)) {
+                return [
+                    'content' => $fullContent,
+                    'usage'   => $lastUsage,
+                    'model'   => $lastModel,
+                ];
+            }
+        }
+
+        // ── Standard JSON response ────────────────────────────────────────────
+        // Strip any trailing "data: [DONE]" just in case
         $rawBody = preg_replace('/data:\s*\[DONE\]\s*$/i', '', trim($rawBody));
         $body = json_decode($rawBody, true);
 
         if (!$response->successful()) {
-            throw new \RuntimeException($body['error']['message'] ?? 'Custom API error');
+            throw new \RuntimeException(
+                (is_array($body) ? ($body['error']['message'] ?? '') : '') ?: 'Custom API error (HTTP ' . $response->status() . ')'
+            );
+        }
+
+        if (!is_array($body)) {
+            throw new \RuntimeException('Custom API returned non-JSON response. Raw: ' . substr($rawBody, 0, 200));
         }
 
         return [
             'content' => $body['choices'][0]['message']['content'] ?? '',
-            'usage' => $body['usage'] ?? [],
-            'model' => $body['model'] ?? ($options['model'] ?? $this->config['model']),
+            'usage'   => $body['usage'] ?? [],
+            'model'   => $body['model'] ?? ($options['model'] ?? $this->config['model']),
         ];
     }
 
