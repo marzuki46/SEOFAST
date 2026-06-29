@@ -238,8 +238,8 @@
         formData.append('target_status', targetStatus);
         ids.forEach(id => formData.append('content_ids[]', id));
 
-        // Use absolute HTTPS URL on same origin — no redirect can convert POST→GET
-        const endpoint = 'https://' + window.location.host + '/content/start-ai-batch';
+        // Gunakan route Laravel yang valid
+        const endpoint = '{{ route("admin.content.bulk_generate") }}';
 
         fetch(endpoint, {
             method: 'POST',
