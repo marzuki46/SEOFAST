@@ -102,31 +102,6 @@ Route::middleware(['auth'])->group(function () {
     // Admin Dashboard
     Route::middleware(['auth.admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/fix-drafts', function() {
-            $contents = App\Models\Content::withoutGlobalScopes()->where('status', 'draft')->get();
-            $count = 0;
-            foreach($contents as $content) {
-                $content->update(['status' => 'blueprint', 'body_raw' => null]);
-                
-                $job = App\Models\AiGenerationJob::withoutGlobalScopes()->where('content_id', $content->id)->first();
-                if ($job) {
-                    $job->update([
-                        'status' => 'pending',
-                        'phase_1_draft' => null,
-                        'phase_1_lsi' => null,
-                        'phase_2_critique' => null,
-                        'phase_3_expanded' => null,
-                        'phase_4_answers' => null,
-                        'phase_4_final' => null,
-                        'phase_5_combined' => null,
-                        'phase_6_html' => null,
-                        'error_log' => null
-                    ]);
-                }
-                $count++;
-            }
-            return "Selesai mereset TOTAL {$count} artikel dari Draft kembali ke Keywords beserta seluruh log AI-nya. Silakan mulai ulang dari Phase 1.";
-        });
 
         // Users Management
         Route::prefix('users')->name('admin.users.')->group(function () {
