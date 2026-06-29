@@ -594,14 +594,11 @@ class ContentController extends Controller
                     ]);
             }
 
-            // Fallback for draft status which doesn't exist in the DB enum
-            $finalDbStatus = $targetStatus === 'draft' ? 'blueprint' : $targetStatus;
-
             $content->body_raw = $finalBody;
             $content->update([
                 'cqi_score'    => $cqiScore,
                 'content_hash' => $contentHash,
-                'status'       => $finalDbStatus,
+                'status'       => $targetStatus,
                 'published_at' => $content->published_at ?? now(),
             ]);
             $content->save();
