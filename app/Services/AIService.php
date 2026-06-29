@@ -372,7 +372,7 @@ class AIService
     private function callOpenAI(string $systemPrompt, string $userPrompt, array $options): array
     {
         $response = Http::withToken($this->config['apiKey'])
-            ->timeout(120)
+            ->timeout(300)
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => $options['model'] ?? $this->config['model'],
                 'messages' => [
@@ -408,7 +408,7 @@ class AIService
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
         ])
-        ->timeout(120)
+        ->timeout(300)
         ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
             'contents' => [
                 ['parts' => [['text' => $systemPrompt . "\n\n" . $userPrompt]]],
@@ -442,7 +442,7 @@ class AIService
             'anthropic-version' => '2023-06-01',
             'Content-Type' => 'application/json',
         ])
-        ->timeout(120)
+        ->timeout(300)
         ->post('https://api.anthropic.com/v1/messages', [
             'model' => $options['model'] ?? $this->config['model'],
             'max_tokens' => $options['max_tokens'] ?? $this->config['max_tokens'],
@@ -471,7 +471,7 @@ class AIService
     private function callDeepSeek(string $systemPrompt, string $userPrompt, array $options): array
     {
         $response = Http::withToken($this->config['apiKey'])
-            ->timeout(120)
+            ->timeout(300)
             ->post('https://api.deepseek.com/v1/chat/completions', [
                 'model' => $options['model'] ?? $this->config['model'],
                 'messages' => [
@@ -504,7 +504,7 @@ class AIService
         $url = rtrim($apiBase, '/') . '/chat/completions';
 
         $response = Http::withToken($this->config['apiKey'])
-            ->timeout(120)
+            ->timeout(300)
             ->withHeaders([
                 'HTTP-Referer' => config('app.url', 'https://seofast.test'),
                 'X-Title' => 'SEOFAST Optimizer',
@@ -546,7 +546,7 @@ class AIService
         $url = rtrim($apiBase, '/') . '/chat/completions';
 
         $request = Http::asJson()
-            ->timeout(120)
+            ->timeout(300)
             ->withHeaders([
                 'Bypass-Tunnel-Reminder' => 'true',
             ]);
