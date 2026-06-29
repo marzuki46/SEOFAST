@@ -390,6 +390,13 @@ class ContentController extends Controller
                 'target_status' => 'nullable|string|in:draft,published',
             ]);
 
+            // RELEASE SESSION LOCK IMMEDIATELY
+            // This prevents subsequent AJAX polling requests from hanging and causing Cloudflare 524 timeouts
+            // while the background process is running (since PHP default file session blocks concurrent requests).
+            if ($request->hasSession()) {
+                $request->session()->save();
+            }
+
             $content      = Content::withoutGlobalScopes()->find($request->content_id);
             $job          = AiGenerationJob::withoutGlobalScopes()->find($request->job_id);
             $targetStatus = $request->input('target_status', 'draft');
