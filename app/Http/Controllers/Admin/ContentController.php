@@ -367,6 +367,7 @@ class ContentController extends Controller
 
     private function _doGenerateSingle(Request $request)
     {
+        try {
             $request->validate([
                 'content_id'    => 'required|exists:contents,id',
                 'job_id'        => 'required|exists:ai_generation_jobs,id',
