@@ -419,9 +419,9 @@ class ContentController extends Controller
             if (!$draft) {
                 $aiService1  = new \App\Services\AIService($tenant, 'default');
                 $sysP1  = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
-                    "You are an expert SEO Content Writer fluent in {lang}. Write a comprehensive, well-structured article about '{keyword}' targeting readers in {country}. Use proper Markdown formatting with H2 and H3 headings. Apply E-E-A-T principles: include expert insights, real examples, and actionable advice. The article must be at least 1,200 words.");
+                    "You are an Expert SEO Writer writing in {lang}. First, identify semantic entities and LSI keywords for the topic '{keyword}'. Then, write a comprehensive article draft (min 1,200 words) using those entities. **Make the LSI keywords bold** in the text. Return ONLY the article draft in Markdown format, do not output the list of LSI keywords separately.");
                 $userP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_user',
-                    "Write a comprehensive, SEO-optimised article in {lang} about: **{keyword}**.\n\nRequirements:\n- Minimum 1,200 words\n- Use H2 and H3 headings\n- Cover: definition, importance, step-by-step guide, common mistakes, conclusion with CTA\n- Incorporate seed keyword '{seed_keyword}' naturally\n- Do NOT use generic filler - every sentence must provide real value");
+                    "Write a comprehensive, SEO-optimised article in {lang} about: **{keyword}**.\n\nRequirements:\n- Generate and use LSI/Entity keywords\n- Make all LSI keywords **bold**\n- Minimum 1,200 words\n- Use H2 and H3 headings\n- Incorporate seed keyword '{seed_keyword}' naturally\n- Do NOT output the LSI list, just use them in the article");
 
                 $sysP1  = strtr($sysP1,  ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
                 $userP1 = strtr($userP1, ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
@@ -468,49 +468,44 @@ class ContentController extends Controller
                 $addLog('info', "Memulihkan Phase 1 Draft dari sesi sebelumnya...");
             }
 
-            // ── PHASE 2: CQI Critique ─────────────────────────────────────────
+            // ── PHASE 2: Critical Questions (No CQI) ──────────────────────────
             $critique = $job->phase_2_critique;
-            if (!$critique || !isset($critique['cqi_score'])) {
-                $addLog('info', "Phase 2: CQI Quality Check untuk [{$keyword}]...");
+            if (!$critique || !is_array($critique)) {
+                $addLog('info', "Phase 2: Generating Critical Questions untuk [{$keyword}]...");
                 $aiService2 = new \App\Services\AIService($tenant, 'default');
                 $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
-                    "You are a strict Senior SEO Content Auditor. Evaluate the article draft. Identify missing depth and generate a list of 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Respond ONLY with valid JSON:\n{\"cqi_score\": <0-100>, \"critical_questions\": [], \"improvements\": []}");
+                    "You are a strict Senior SEO Content Auditor. Read the draft and generate a list of 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]");
                 $critique = $aiService2->generateJson($sysP2, "Keyword: {$keyword}\n\nDraft:\n{$draft}");
 
-                if (!$critique || !isset($critique['cqi_score'])) {
-                    // If critique fails, use a reasonable default and continue
-                    $critique = ['cqi_score' => 75, 'critical_questions' => ['What are the advanced strategies?', 'How to avoid common mistakes?'], 'improvements' => ['Improve E-E-A-T signals and depth.']];
-                    $addLog('warn', "Phase 2: Critique tidak dapat di-parse, menggunakan skor default 75.");
+                if (!$critique || !is_array($critique) || (isset($critique['cqi_score']))) {
+                    // If critique fails or returns old format, use a reasonable default array
+                    $critique = ['Apa saja strategi lanjutan yang belum dibahas?', 'Bagaimana cara menghindari kesalahan umum?'];
+                    $addLog('warn', "Phase 2: JSON array gagal di-parse, menggunakan default pertanyaan.");
                 }
 
-                $cqiScore = (int) $critique['cqi_score'];
                 $job->update(['status' => 'phase_3', 'phase_2_critique' => $critique]);
-                $addLog('info', "Phase 2 SELESAI | CQI Score: {$cqiScore}/100");
-
-                $cqiThreshold = (int) \App\Models\SystemSetting::get('ai_cqi_threshold', 70);
-                if ($cqiScore < $cqiThreshold) {
-                    $addLog('warn', "CQI {$cqiScore} di bawah threshold {$cqiThreshold}. Artikel tetap diproses dengan catatan improvement.");
-                }
+                $addLog('info', "Phase 2 SELESAI | Dihasilkan " . count($critique) . " Pertanyaan Kritis");
 
                 return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
             } else {
-                $addLog('info', "Memulihkan hasil CQI Phase 2 dari sesi sebelumnya...");
-                $cqiScore = (int) $critique['cqi_score'];
+                $addLog('info', "Memulihkan Pertanyaan Kritis Phase 2 dari sesi sebelumnya...");
             }
+            
+            // Default CQI to null since we removed it from Phase 2
+            $cqiScore = null;
 
-            // ── PHASE 3: Expansion ────────────────────────────────────────────
+            // ── PHASE 3: Expansion & Combine ──────────────────────────────────
             $expanded = $job->phase_3_expanded;
             if (!$expanded) {
-                $addLog('info', "Phase 3: Expanding & enriching content...");
+                $addLog('info', "Phase 3: Menjawab pertanyaan kritis & menyusun konten utuh...");
                 $aiService3 = new \App\Services\AIService($tenant, 'default');
-                $improvements = implode("\n- ", $critique['improvements'] ?? ['Improve depth and E-E-A-T']);
-                $criticalQs   = implode("\n- ", $critique['critical_questions'] ?? $critique['gaps'] ?? ['Provide more detailed examples and depth.']);
+                $criticalQs = implode("\n- ", is_array($critique) ? $critique : ['Berikan pembahasan lebih mendalam.']);
                 
                 $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
-                    "You are a Master SEO Content Expander writing in {lang}. Rewrite and drastically expand the article to naturally answer ALL the 'Critical Questions' and apply the improvements. Do NOT just add an FAQ section; weave the answers seamlessly into the article body with proper H2/H3 headings. Minimum 1,800 words. Return ONLY the improved Markdown.");
+                    "You are a Master SEO Content Expander writing in {lang}. Rewrite and combine the original draft with comprehensive answers to ALL the 'Critical Questions' to form one cohesive, deeply researched article. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.");
                 $sysP3 = strtr($sysP3, ['{lang}' => $lang, '{keyword}' => $keyword]);
                 
-                $userP3 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nCritical Questions to Answer in Body:\n- {$criticalQs}\n\nImprovements to Apply:\n- {$improvements}\n\nRewrite and expand now (Markdown only):";
+                $userP3 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nCritical Questions to Answer & Combine:\n- {$criticalQs}\n\nRewrite and combine into a full article now (Markdown only):";
 
                 $expanded = $aiService3->generate($sysP3, $userP3);
 
@@ -527,31 +522,32 @@ class ContentController extends Controller
                 $addLog('info', "Memulihkan Expanded Phase 3 dari sesi sebelumnya...");
             }
 
-            // ── PHASE 4: Master Edit + Links + Publish ────────────────────────
-            $addLog('info', "Phase 4: Master edit, internal links & SEO meta...");
+            // ── PHASE 4: Master Edit + Links + HTML ───────────────────────────
+            $addLog('info', "Phase 4: Ekspansi akhir, internal links & konversi ke HTML...");
             $aiService4 = new \App\Services\AIService($tenant, 'default');
 
             $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
                 ->with('targetContent')->get();
             $linkInstructions = '';
             if ($deterministicLinks->isNotEmpty()) {
-                $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (embed all using Markdown):\n";
+                $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (embed all organically):\n";
                 foreach ($deterministicLinks as $link) {
                     $url = url('/blog/' . ($link->targetContent?->slug ?? '#'));
-                    $linkInstructions .= "- [{$link->anchor_text}]({$url})\n";
+                    $linkInstructions .= "- <a href=\"{$url}\">{$link->anchor_text}</a>\n";
                 }
             }
             $imageInstruction = '';
             if ($content->featured_image_url) {
-                $imageInstruction = "\n\nFEATURED IMAGE at top:\n![{$content->featured_image_alt}]({$content->featured_image_url})";
+                $imageInstruction = "\n\nFEATURED IMAGE at top:\n<img src=\"{$content->featured_image_url}\" alt=\"{$content->featured_image_alt}\" />";
             }
 
             $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
-                "You are a Chief Content Editor writing in {lang}. Final editorial pass: improve readability, inject all internal links naturally, add featured image if provided, ensure strong CTA in conclusion. Return ONLY the final Markdown.");
+                "You are a Chief Content Editor writing in {lang}. Do a final drastic expansion of the article for maximum depth. Inject all mandatory internal links naturally. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body.");
             $sysP4 = strtr($sysP4, ['{lang}' => $lang, '{keyword}' => $keyword]);
             $userP4 = "Keyword: **{$keyword}**\n\nArticle:\n{$expanded}{$linkInstructions}{$imageInstruction}";
 
             $finalBody = $aiService4->generate($sysP4, $userP4);
+            $finalBody = preg_replace('/^```html|```$/i', '', trim($finalBody)); // Remove markdown HTML blocks if any
 
             if (!$finalBody || mb_strlen(trim($finalBody)) < 300) {
                 $finalBody = $expanded; // Fall back to Phase 3 if final edit fails
