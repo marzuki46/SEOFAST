@@ -277,7 +277,7 @@ class AIService
             $result = $this->generate(
                 'You are a connectivity test assistant. Reply concisely.',
                 'Say exactly: OK',
-                ['max_tokens' => 20, 'temperature' => 0]
+                ['max_tokens' => 500, 'temperature' => 0]
             );
 
             // Always collect diagnostics regardless of success/fail
