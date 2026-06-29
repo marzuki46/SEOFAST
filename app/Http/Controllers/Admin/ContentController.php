@@ -523,46 +523,53 @@ class ContentController extends Controller
             }
 
             // ── PHASE 4: Master Edit + Links + HTML ───────────────────────────
-            $addLog('info', "Phase 4: Ekspansi akhir, internal links & konversi ke HTML...");
-            $aiService4 = new \App\Services\AIService($tenant, 'default');
+            $finalBody = $job->phase_4_final;
+            if (!$finalBody) {
+                $addLog('info', "Phase 4: Ekspansi akhir, internal links & konversi ke HTML...");
+                $aiService4 = new \App\Services\AIService($tenant, 'default');
 
-            $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
-                ->with('targetContent')->get();
-            $linkInstructions = '';
-            if ($deterministicLinks->isNotEmpty()) {
-                $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (embed all organically):\n";
-                foreach ($deterministicLinks as $link) {
-                    $url = url('/blog/' . ($link->targetContent?->slug ?? '#'));
-                    $linkInstructions .= "- <a href=\"{$url}\">{$link->anchor_text}</a>\n";
+                $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
+                    ->with('targetContent')->get();
+                $linkInstructions = '';
+                if ($deterministicLinks->isNotEmpty()) {
+                    $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (embed all organically):\n";
+                    foreach ($deterministicLinks as $link) {
+                        $url = url('/blog/' . ($link->targetContent?->slug ?? '#'));
+                        $linkInstructions .= "- <a href=\"{$url}\">{$link->anchor_text}</a>\n";
+                    }
                 }
-            }
-            $imageInstruction = '';
-            if ($content->featured_image_url) {
-                $imageInstruction = "\n\nFEATURED IMAGE at top:\n<img src=\"{$content->featured_image_url}\" alt=\"{$content->featured_image_alt}\" />";
-            }
+                $imageInstruction = '';
+                if ($content->featured_image_url) {
+                    $imageInstruction = "\n\nFEATURED IMAGE at top:\n<img src=\"{$content->featured_image_url}\" alt=\"{$content->featured_image_alt}\" />";
+                }
 
-            $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
-                "You are a Chief Content Editor writing in {lang}. Do a final drastic expansion of the article for maximum depth. Inject all mandatory internal links naturally. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body.");
-            $sysP4 = strtr($sysP4, ['{lang}' => $lang, '{keyword}' => $keyword]);
-            $userP4 = "Keyword: **{$keyword}**\n\nArticle:\n{$expanded}{$linkInstructions}{$imageInstruction}";
+                $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
+                    "You are a Chief Content Editor writing in {lang}. Do a final drastic expansion of the article for maximum depth. Inject all mandatory internal links naturally. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body.");
+                $sysP4 = strtr($sysP4, ['{lang}' => $lang, '{keyword}' => $keyword]);
+                $userP4 = "Keyword: **{$keyword}**\n\nArticle:\n{$expanded}{$linkInstructions}{$imageInstruction}";
 
-            $finalBody = $aiService4->generate($sysP4, $userP4);
-            $finalBody = preg_replace('/^```html|```$/i', '', trim($finalBody)); // Remove markdown HTML blocks if any
+                $finalBody = $aiService4->generate($sysP4, $userP4);
+                $finalBody = preg_replace('/^```html|```$/i', '', trim($finalBody)); // Remove markdown HTML blocks if any
 
-            if (!$finalBody || mb_strlen(trim($finalBody)) < 300) {
-                $finalBody = $expanded; // Fall back to Phase 3 if final edit fails
-                $addLog('warn', "Phase 4: Final edit gagal, menggunakan konten Phase 3.");
+                if (!$finalBody || mb_strlen(trim($finalBody)) < 300) {
+                    $finalBody = $expanded; // Fall back to Phase 3 if final edit fails
+                    $addLog('warn', "Phase 4: Final edit gagal, menggunakan konten Phase 3.");
+                } else {
+                    $addLog('success', "Phase 4 SELESAI | Final: " . mb_strlen($finalBody) . " karakter");
+                }
+
+                $job->update(['phase_4_final' => $finalBody]);
+                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
             } else {
-                $addLog('success', "Phase 4 SELESAI | Final: " . mb_strlen($finalBody) . " karakter");
+                $addLog('info', "Memulihkan HTML Phase 4 dari sesi sebelumnya...");
             }
 
-            // ── Save to DB ────────────────────────────────────────────────────
+            // ── Save to DB & Phase 5 (SEO Meta) ───────────────────────────────
             $blogPrefix  = \App\Models\SystemSetting::get('permalink_blog', 'blog');
             $contentHash = hash('sha256', $finalBody);
 
             $job->update([
                 'status'        => 'completed',
-                'phase_4_final' => $finalBody,
                 'completed_at'  => now(),
             ]);
 
