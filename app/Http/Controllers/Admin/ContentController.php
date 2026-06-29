@@ -459,7 +459,9 @@ class ContentController extends Controller
                 $lsi = $aiService1->generate($sysP1, $userP1);
                 
                 if (!$lsi || mb_strlen(trim($lsi)) < 10) {
-                    throw new \Exception("Phase 1 gagal menghasilkan LSI keywords.");
+                    $diags = $aiService1->getLastDiagnostics();
+                    $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
+                    throw new \Exception("Phase 1 gagal menghasilkan LSI keywords. Reason: " . $reason);
                 }
                 
                 $job->update(['status' => 'phase_2', 'phase_1_lsi' => $lsi]);
@@ -493,7 +495,9 @@ class ContentController extends Controller
                 $draft = $aiService2->generate($sysP2, $userP2);
 
                 if (!$draft || mb_strlen(trim($draft)) < 300) {
-                    throw new \Exception("Phase 2 gagal menghasilkan draf konten yang valid.");
+                    $diags = $aiService2->getLastDiagnostics();
+                    $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
+                    throw new \Exception("Phase 2 gagal menghasilkan draf konten yang valid. Reason: " . $reason);
                 }
 
                 $job->update(['status' => 'phase_3', 'phase_1_draft' => $draft]);
@@ -539,7 +543,9 @@ class ContentController extends Controller
                 $answers = $aiService4->generate($sysP4, $userP4);
 
                 if (!$answers || mb_strlen(trim($answers)) < 100 || str_contains($answers, '{"error"')) {
-                    throw new \Exception("Phase 4 gagal menghasilkan jawaban yang valid.");
+                    $diags = $aiService4->getLastDiagnostics();
+                    $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
+                    throw new \Exception("Phase 4 gagal menghasilkan jawaban yang valid. Reason: " . $reason);
                 }
 
                 $job->update(['status' => 'phase_5', 'phase_4_answers' => $answers]);
@@ -563,7 +569,9 @@ class ContentController extends Controller
                 $combined = $aiService5->generate($sysP5, $userP5);
 
                 if (!$combined || mb_strlen(trim($combined)) < 300 || str_contains($combined, '{"error"')) {
-                    throw new \Exception("Phase 5 gagal menghasilkan konten kombinasi yang valid.");
+                    $diags = $aiService5->getLastDiagnostics();
+                    $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
+                    throw new \Exception("Phase 5 gagal menghasilkan konten kombinasi yang valid. Reason: " . $reason);
                 }
 
                 $job->update(['status' => 'phase_6', 'phase_5_combined' => $combined]);
@@ -588,7 +596,9 @@ class ContentController extends Controller
                 $finalBody = preg_replace('/^```html|```$/i', '', trim($finalBody)); // Remove markdown HTML blocks if any
 
                 if (!$finalBody || mb_strlen(trim($finalBody)) < 300 || str_contains($finalBody, '{"error"')) {
-                    throw new \Exception("Phase 6 gagal mengkonversi ke HTML dengan valid.");
+                    $diags = $aiService6->getLastDiagnostics();
+                    $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
+                    throw new \Exception("Phase 6 gagal mengkonversi ke HTML dengan valid. Reason: " . $reason);
                 }
 
                 $job->update(['status' => 'phase_7', 'phase_6_html' => $finalBody]);

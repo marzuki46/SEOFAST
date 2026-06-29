@@ -605,9 +605,7 @@ class AIService
             ],
             'temperature' => $options['temperature'] ?? $this->config['temperature'],
             'max_tokens'  => $options['max_tokens'] ?? $this->config['max_tokens'],
-            // Note: 'stream' is intentionally omitted — many free/proxy APIs
-            // reject stream:false and return 400/422. We detect SSE format from
-            // the response body instead.
+            'stream'      => true, // Enable stream to prevent 524 Cloudflare timeouts
         ]);
 
         $rawBody = $response->body();
