@@ -430,41 +430,43 @@ class ContentController extends Controller
 
                 // ── Push diagnostics to terminal log ──────────────────────────────
                 foreach ($aiService1->getLastDiagnostics() as $diag) {
-                $icon   = match($diag['status']) { 'success' => '✔', 'failed' => '✘', 'skipped' => '⊘', default => '?' };
-                $timing = $diag['elapsed_ms'] !== null ? " [{$diag['elapsed_ms']}ms]" : '';
-                $fmt    = $diag['response_format'] !== 'unknown' ? " | fmt:{$diag['response_format']}" : '';
-                $len    = $diag['content_length'] !== null ? " | {$diag['content_length']} chars" : '';
-                $http   = $diag['http_status'] !== null ? " | HTTP {$diag['http_status']}" : '';
+                    $icon   = match($diag['status']) { 'success' => '✔', 'failed' => '✘', 'skipped' => '⊘', default => '?' };
+                    $timing = $diag['elapsed_ms'] !== null ? " [{$diag['elapsed_ms']}ms]" : '';
+                    $fmt    = $diag['response_format'] !== 'unknown' ? " | fmt:{$diag['response_format']}" : '';
+                    $len    = $diag['content_length'] !== null ? " | {$diag['content_length']} chars" : '';
+                    $http   = $diag['http_status'] !== null ? " | HTTP {$diag['http_status']}" : '';
 
-                $statusLine = "  {$icon} [{$diag['provider']}] {$diag['model']}{$timing}{$http}{$fmt}{$len}";
-                if (!empty($diag['error'])) {
-                    $statusLine .= " → " . $diag['error'];
-                }
-                $addLog($diag['status'] === 'success' ? 'success' : ($diag['status'] === 'skipped' ? 'warn' : 'error'), $statusLine);
+                    $statusLine = "  {$icon} [{$diag['provider']}] {$diag['model']}{$timing}{$http}{$fmt}{$len}";
+                    if (!empty($diag['error'])) {
+                        $statusLine .= " → " . $diag['error'];
+                    }
+                    $addLog($diag['status'] === 'success' ? 'success' : ($diag['status'] === 'skipped' ? 'warn' : 'error'), $statusLine);
 
-                if (!empty($diag['raw_snippet'])) {
-                    $addLog('warn', "  RAW: " . substr($diag['raw_snippet'], 0, 200));
+                    if (!empty($diag['raw_snippet'])) {
+                        $addLog('warn', "  RAW: " . substr($diag['raw_snippet'], 0, 200));
+                    }
                 }
+
+                if (!$draft || mb_strlen(trim($draft)) < 300) {
+                    $draftLen = $draft ? mb_strlen(trim($draft)) : 0;
+                    $reason   = $draft === null
+                        ? 'AI return null — semua provider gagal (lihat diagnostik di atas)'
+                        : "Draft terlalu pendek: {$draftLen} karakter (minimum 300)";
+
+                    $job->update(['status' => 'failed', 'error_log' => ['reason' => "Phase 1: {$reason}"]]);
+                    $content->update(['status' => 'failed_cqi']);
+                    $addLog('error', "Phase 1 GAGAL: {$reason}");
+                    return ['success' => false, 'error' => "Phase 1 GAGAL: {$reason}", 'logs' => $logs, 'keyword' => $keyword];
                 }
+
+                $job->update(['status' => 'phase_2', 'phase_1_draft' => $draft]);
+                $addLog('success', "Phase 1 SELESAI | Draft: " . mb_strlen($draft) . " karakter");
+                
+                // Return early to allow JS to make a new request for the next phase
+                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
             } else {
                 $addLog('info', "Memulihkan Phase 1 Draft dari sesi sebelumnya...");
             }
-
-            if (!$draft || mb_strlen(trim($draft)) < 300) {
-                $draftLen = $draft ? mb_strlen(trim($draft)) : 0;
-                $reason   = $draft === null
-                    ? 'AI return null — semua provider gagal (lihat diagnostik di atas)'
-                    : "Draft terlalu pendek: {$draftLen} karakter (minimum 300)";
-
-                $job->update(['status' => 'failed', 'error_log' => ['reason' => "Phase 1: {$reason}"]]);
-                $content->update(['status' => 'failed_cqi']);
-                $addLog('error', "Phase 1 GAGAL: {$reason}");
-                return ['success' => false, 'error' => "Phase 1 GAGAL: {$reason}", 'logs' => $logs, 'keyword' => $keyword];
-            }
-
-
-            $job->update(['status' => 'phase_2', 'phase_1_draft' => $draft]);
-            $addLog('success', "Phase 1 SELESAI | Draft: " . mb_strlen($draft) . " karakter");
 
             // ── PHASE 2: CQI Critique ─────────────────────────────────────────
             $critique = $job->phase_2_critique;
@@ -480,17 +482,20 @@ class ContentController extends Controller
                     $critique = ['cqi_score' => 75, 'gaps' => [], 'improvements' => ['Improve E-E-A-T signals and depth.']];
                     $addLog('warn', "Phase 2: Critique tidak dapat di-parse, menggunakan skor default 75.");
                 }
+
+                $cqiScore = (int) $critique['cqi_score'];
+                $job->update(['status' => 'phase_3', 'phase_2_critique' => $critique]);
+                $addLog('info', "Phase 2 SELESAI | CQI Score: {$cqiScore}/100");
+
+                $cqiThreshold = (int) \App\Models\SystemSetting::get('ai_cqi_threshold', 70);
+                if ($cqiScore < $cqiThreshold) {
+                    $addLog('warn', "CQI {$cqiScore} di bawah threshold {$cqiThreshold}. Artikel tetap diproses dengan catatan improvement.");
+                }
+
+                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
             } else {
                 $addLog('info', "Memulihkan hasil CQI Phase 2 dari sesi sebelumnya...");
-            }
-
-            $cqiScore = (int) $critique['cqi_score'];
-            $job->update(['status' => 'phase_3', 'phase_2_critique' => $critique]);
-            $addLog('info', "Phase 2 SELESAI | CQI Score: {$cqiScore}/100");
-
-            $cqiThreshold = (int) \App\Models\SystemSetting::get('ai_cqi_threshold', 70);
-            if ($cqiScore < $cqiThreshold) {
-                $addLog('warn', "CQI {$cqiScore} di bawah threshold {$cqiThreshold}. Artikel tetap diproses dengan catatan improvement.");
+                $cqiScore = (int) $critique['cqi_score'];
             }
 
             // ── PHASE 3: Expansion ────────────────────────────────────────────
@@ -513,11 +518,12 @@ class ContentController extends Controller
                 } else {
                     $addLog('success', "Phase 3 SELESAI | Expanded: " . mb_strlen($expanded) . " karakter");
                 }
+
+                $job->update(['status' => 'phase_4', 'phase_3_expanded' => $expanded]);
+                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
             } else {
                 $addLog('info', "Memulihkan Expanded Phase 3 dari sesi sebelumnya...");
             }
-
-            $job->update(['status' => 'phase_4', 'phase_3_expanded' => $expanded]);
 
             // ── PHASE 4: Master Edit + Links + Publish ────────────────────────
             $addLog('info', "Phase 4: Master edit, internal links & SEO meta...");

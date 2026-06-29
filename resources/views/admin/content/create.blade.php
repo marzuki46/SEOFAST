@@ -347,7 +347,10 @@
             }
 
             const currentJob = jobQueue.shift(); // Get first job
-            appendLog('info', `▶ Memulai proses untuk: [${currentJob.keyword}]...`);
+            
+            if (!currentJob.resumed) {
+                appendLog('info', `▶ Memulai proses untuk: [${currentJob.keyword}]...`);
+            }
 
             try {
                 const res = await fetch('{{ route("admin.content.generate_single") }}', {
@@ -383,12 +386,16 @@
                 
                 if (!data.success) {
                     appendLog('error', data.error || data.message || `Server Error ${res.status}`);
+                } else if (data.status === 'continue') {
+                    // Masukkan kembali ke antrean paling depan untuk lanjut ke phase berikutnya
+                    currentJob.resumed = true;
+                    jobQueue.unshift(currentJob);
                 }
 
                 await refreshTable();
 
                 // Continue to next job after a short delay
-                setTimeout(processNextJob, 1000);
+                setTimeout(processNextJob, 500);
 
             } catch (err) {
                 isWorking = false;
