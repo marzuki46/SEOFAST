@@ -102,6 +102,24 @@ Route::middleware(['auth'])->group(function () {
     // Admin Dashboard
     Route::middleware(['auth.admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/fix-drafts', function() {
+            $jobs = App\Models\AiGenerationJob::withoutGlobalScopes()->where('status', 'completed')->get();
+            $count = 0;
+            foreach($jobs as $job) {
+                if ($job->phase_4_final && !str_contains($job->phase_4_final, '<p>')) {
+                    $job->update([
+                        'phase_3_expanded' => null, 
+                        'phase_4_final' => null, 
+                        'status' => 'failed'
+                    ]);
+                    if ($job->content) {
+                        $job->content->update(['status' => 'blueprint']);
+                    }
+                    $count++;
+                }
+            }
+            return "Selesai mereset {$count} draft yang corrupt kembali ke Keywords.";
+        });
 
         // Users Management
         Route::prefix('users')->name('admin.users.')->group(function () {
