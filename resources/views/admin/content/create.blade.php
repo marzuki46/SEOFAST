@@ -336,7 +336,7 @@
                     'target_status' => is_array($job->error_log) ? ($job->error_log['target_status'] ?? 'draft') : 'draft',
                     'status' => $job->status
                 ];
-            })->filter(fn($j) => in_array($j['status'], ['pending', 'processing']))->values()->toArray();
+            })->filter(fn($j) => !in_array($j['status'], ['completed']))->values()->toArray();
         @endphp
         let jobQueue = {!! json_encode($queueArray) !!};
 
