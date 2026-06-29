@@ -53,7 +53,7 @@
                     @csrf
                     <input type="hidden" name="group" value="{{ $key }}">
                     
-                    <div class="space-y-6 max-w-3xl">
+                    <div class="space-y-6 w-full">
                         @if($key === 'general')
                             <div class="grid grid-cols-1 gap-6">
                                 <div>
@@ -255,7 +255,7 @@
                                 </div>
                             </div>
                         @elseif($key === 'ai')
-                            <div class="space-y-6 max-w-4xl">
+                            <div class="space-y-6 w-full">
                                 <h3 class="text-lg font-bold border-b pb-2">AI Pipeline Configuration</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="md:col-span-2">
@@ -365,31 +365,38 @@
                                             </div>
                                             <div class="relative">
                                                 <label class="block text-xs font-semibold text-slate-600 mb-1 flex justify-between">
-                                                    Custom Model Name
-                                                    <button type="button" @click="syncModels" :disabled="isSyncing" class="text-[10px] text-brand-indigo hover:underline flex items-center gap-1">
-                                                        <span x-show="isSyncing" class="animate-spin inline-block w-3 h-3 border-2 border-current border-t-transparent text-brand-indigo rounded-full"></span>
-                                                        <span x-text="isSyncing ? 'Syncing...' : 'Sync Models'"></span>
+                                                    Custom Model Name (Pisahkan dengan koma untuk Fallback)
+                                                    <button type="button" @click="syncModels" :disabled="isSyncing" class="px-3 py-1 bg-brand-indigo text-white rounded-md text-xs hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                                                        <span x-show="isSyncing" class="animate-spin inline-block w-3 h-3 border-2 border-current border-t-transparent text-white rounded-full"></span>
+                                                        <span x-text="isSyncing ? 'Loading...' : 'Sync Models'"></span>
                                                     </button>
                                                 </label>
                                                 
-                                                <input type="text" x-model="modelName" name="custom_model" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="Pilih atau ketik model...">
-                                                
-                                                <!-- Dropdown hasil sync -->
-                                                <div x-show="models.length > 0" @click.away="models = []" class="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl" style="display: none;">
-                                                    <div class="p-2 bg-slate-50 border-b border-slate-200 text-xs text-slate-500 flex justify-between items-center">
-                                                        <span>Pilih Model Aktif:</span>
-                                                        <button type="button" @click="models = []" class="hover:text-red-500">Tutup</button>
-                                                    </div>
-                                                    <template x-for="m in models" :key="m.id">
-                                                        <div @click="selectModel(m.id)" class="px-3 py-2 text-sm text-slate-700 hover:bg-brand-indigo hover:text-white cursor-pointer border-b border-slate-100 last:border-0 transition-colors">
-                                                            <div class="font-medium" x-text="m.id"></div>
-                                                            <div class="text-[10px] opacity-75" x-show="m.owned_by" x-text="'By: ' + m.owned_by"></div>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                                <p x-show="syncError" x-text="syncError" class="text-xs text-red-500 mt-1"></p>
+                                                <input type="text" x-model="modelName" name="custom_model" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="contoh: gpt-5.4-mini, minimax-m2.7">
                                             </div>
                                         </div>
+
+                                        <!-- Container untuk Daftar Model -->
+                                        <div x-show="models.length > 0" class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-xl" style="display: none;">
+                                            <div class="flex justify-between items-center mb-4">
+                                                <h5 class="text-sm font-bold text-slate-800">Pilih Model Prioritas (Centang untuk menambahkan fallback)</h5>
+                                                <button type="button" @click="models = []" class="text-xs text-slate-500 hover:text-red-500">Tutup</button>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-96 overflow-y-auto pr-2">
+                                                <template x-for="m in models" :key="m.id">
+                                                    <label class="flex items-start p-3 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-brand-indigo transition-colors" :class="isSelected(m.id) ? 'border-brand-indigo ring-1 ring-brand-indigo bg-indigo-50/30' : ''">
+                                                        <div class="flex items-center h-5">
+                                                            <input type="checkbox" :value="m.id" @change="toggleModel(m.id)" :checked="isSelected(m.id)" class="w-4 h-4 text-brand-indigo bg-gray-100 border-gray-300 rounded focus:ring-brand-indigo">
+                                                        </div>
+                                                        <div class="ml-3 text-sm flex-1">
+                                                            <div class="font-medium text-slate-700 break-all" x-text="m.id"></div>
+                                                            <div class="text-[10px] text-slate-400 mt-0.5" x-show="m.owned_by" x-text="'By: ' + m.owned_by"></div>
+                                                        </div>
+                                                    </label>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <p x-show="syncError" x-text="syncError" class="text-xs text-red-500 mt-2"></p>
                                     </div>
                                     
                                     <!-- AlpineJS Script for Model Sync -->
@@ -434,9 +441,19 @@
                                                     }
                                                 },
                                                 
-                                                selectModel(id) {
-                                                    this.modelName = id;
-                                                    this.models = [];
+                                                isSelected(id) {
+                                                    const selected = this.modelName.split(',').map(s => s.trim()).filter(s => s);
+                                                    return selected.includes(id);
+                                                },
+                                                
+                                                toggleModel(id) {
+                                                    let selected = this.modelName.split(',').map(s => s.trim()).filter(s => s);
+                                                    if (selected.includes(id)) {
+                                                        selected = selected.filter(s => s !== id);
+                                                    } else {
+                                                        selected.push(id);
+                                                    }
+                                                    this.modelName = selected.join(', ');
                                                 }
                                             }));
                                         });
