@@ -411,7 +411,7 @@ class ContentController extends Controller
                 $job->update(['status' => 'failed', 'error_log' => ['reason' => "Phase 1: {$reason}"]]);
                 $content->update(['status' => 'failed_cqi']);
                 $addLog('error', "Phase 1 GAGAL: {$reason}");
-                return response()->json(['success' => false, 'logs' => $logs, 'keyword' => $keyword]);
+                return response()->json(['success' => false, 'error' => "Phase 1 GAGAL: {$reason}", 'logs' => $logs, 'keyword' => $keyword]);
             }
 
 
