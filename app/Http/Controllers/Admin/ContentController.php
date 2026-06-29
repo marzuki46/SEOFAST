@@ -61,7 +61,13 @@ class ContentController extends Controller
     public function create()
     {
         $activeJobs = AiGenerationJob::withoutGlobalScopes()
-            ->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
+            ->where(function ($q) {
+                $q->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
+                  ->orWhere(function ($q2) {
+                      $q2->whereIn('status', ['failed', 'failed_cqi', 'completed'])
+                         ->where('updated_at', '>=', now()->subHours(12));
+                  });
+            })
             ->with(['content' => function($q) {
                 $q->withoutGlobalScopes();
             }])
@@ -299,19 +305,26 @@ class ContentController extends Controller
                 ->exists();
             if ($alreadyActive) continue;
 
-            // Clean up any previous failed jobs for this content
-            AiGenerationJob::withoutGlobalScopes()
+            // Reuse existing job if it failed, so we can resume
+            $job = AiGenerationJob::withoutGlobalScopes()
                 ->where('content_id', $content->id)
                 ->whereIn('status', ['failed', 'failed_cqi', 'completed'])
-                ->delete();
+                ->first();
 
-            $job = AiGenerationJob::create([
-                'tenant_id'   => $content->tenant_id ?? $tenantId,
-                'content_id'  => $content->id,
-                'job_type'    => 'initial_generation',
-                'status'      => 'pending',
-                'retry_count' => 0,
-            ]);
+            if ($job) {
+                $job->update([
+                    'status'      => 'pending',
+                    'retry_count' => $job->retry_count + 1,
+                ]);
+            } else {
+                $job = AiGenerationJob::create([
+                    'tenant_id'   => $content->tenant_id ?? $tenantId,
+                    'content_id'  => $content->id,
+                    'job_type'    => 'initial_generation',
+                    'status'      => 'pending',
+                    'retry_count' => 0,
+                ]);
+            }
 
             $content->update(['status' => 'ai_processing']);
 
@@ -402,19 +415,21 @@ class ContentController extends Controller
             $addLog('info', "Mulai Phase 1: Generating draft untuk [{$keyword}]...");
 
             // ── PHASE 1: Draft Generation ─────────────────────────────────────
-            $aiService1  = new \App\Services\AIService($tenant, 'default');
-            $sysP1  = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
-                "You are an expert SEO Content Writer fluent in {lang}. Write a comprehensive, well-structured article about '{keyword}' targeting readers in {country}. Use proper Markdown formatting with H2 and H3 headings. Apply E-E-A-T principles: include expert insights, real examples, and actionable advice. The article must be at least 1,200 words.");
-            $userP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_user',
-                "Write a comprehensive, SEO-optimised article in {lang} about: **{keyword}**.\n\nRequirements:\n- Minimum 1,200 words\n- Use H2 and H3 headings\n- Cover: definition, importance, step-by-step guide, common mistakes, conclusion with CTA\n- Incorporate seed keyword '{seed_keyword}' naturally\n- Do NOT use generic filler - every sentence must provide real value");
+            $draft = $job->phase_1_draft;
+            if (!$draft) {
+                $aiService1  = new \App\Services\AIService($tenant, 'default');
+                $sysP1  = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
+                    "You are an expert SEO Content Writer fluent in {lang}. Write a comprehensive, well-structured article about '{keyword}' targeting readers in {country}. Use proper Markdown formatting with H2 and H3 headings. Apply E-E-A-T principles: include expert insights, real examples, and actionable advice. The article must be at least 1,200 words.");
+                $userP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_user',
+                    "Write a comprehensive, SEO-optimised article in {lang} about: **{keyword}**.\n\nRequirements:\n- Minimum 1,200 words\n- Use H2 and H3 headings\n- Cover: definition, importance, step-by-step guide, common mistakes, conclusion with CTA\n- Incorporate seed keyword '{seed_keyword}' naturally\n- Do NOT use generic filler - every sentence must provide real value");
 
-            $sysP1  = strtr($sysP1,  ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
-            $userP1 = strtr($userP1, ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
+                $sysP1  = strtr($sysP1,  ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
+                $userP1 = strtr($userP1, ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
 
-            $draft = $aiService1->generate($sysP1, $userP1);
+                $draft = $aiService1->generate($sysP1, $userP1);
 
-            // ── Push diagnostics to terminal log ──────────────────────────────
-            foreach ($aiService1->getLastDiagnostics() as $diag) {
+                // ── Push diagnostics to terminal log ──────────────────────────────
+                foreach ($aiService1->getLastDiagnostics() as $diag) {
                 $icon   = match($diag['status']) { 'success' => '✔', 'failed' => '✘', 'skipped' => '⊘', default => '?' };
                 $timing = $diag['elapsed_ms'] !== null ? " [{$diag['elapsed_ms']}ms]" : '';
                 $fmt    = $diag['response_format'] !== 'unknown' ? " | fmt:{$diag['response_format']}" : '';
@@ -430,6 +445,9 @@ class ContentController extends Controller
                 if (!empty($diag['raw_snippet'])) {
                     $addLog('warn', "  RAW: " . substr($diag['raw_snippet'], 0, 200));
                 }
+                }
+            } else {
+                $addLog('info', "Memulihkan Phase 1 Draft dari sesi sebelumnya...");
             }
 
             if (!$draft || mb_strlen(trim($draft)) < 300) {
@@ -449,16 +467,21 @@ class ContentController extends Controller
             $addLog('success', "Phase 1 SELESAI | Draft: " . mb_strlen($draft) . " karakter");
 
             // ── PHASE 2: CQI Critique ─────────────────────────────────────────
-            $addLog('info', "Phase 2: CQI Quality Check untuk [{$keyword}]...");
-            $aiService2 = new \App\Services\AIService($tenant, 'default');
-            $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
-                "You are a strict Senior SEO Content Auditor. Evaluate the article draft and respond ONLY with valid JSON:\n{\"cqi_score\": <0-100>, \"strengths\": [], \"gaps\": [], \"improvements\": []}");
-            $critique = $aiService2->generateJson($sysP2, "Keyword: {$keyword}\n\nDraft:\n{$draft}");
-
+            $critique = $job->phase_2_critique;
             if (!$critique || !isset($critique['cqi_score'])) {
-                // If critique fails, use a reasonable default and continue
-                $critique = ['cqi_score' => 75, 'gaps' => [], 'improvements' => ['Improve E-E-A-T signals and depth.']];
-                $addLog('warn', "Phase 2: Critique tidak dapat di-parse, menggunakan skor default 75.");
+                $addLog('info', "Phase 2: CQI Quality Check untuk [{$keyword}]...");
+                $aiService2 = new \App\Services\AIService($tenant, 'default');
+                $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
+                    "You are a strict Senior SEO Content Auditor. Evaluate the article draft and respond ONLY with valid JSON:\n{\"cqi_score\": <0-100>, \"strengths\": [], \"gaps\": [], \"improvements\": []}");
+                $critique = $aiService2->generateJson($sysP2, "Keyword: {$keyword}\n\nDraft:\n{$draft}");
+
+                if (!$critique || !isset($critique['cqi_score'])) {
+                    // If critique fails, use a reasonable default and continue
+                    $critique = ['cqi_score' => 75, 'gaps' => [], 'improvements' => ['Improve E-E-A-T signals and depth.']];
+                    $addLog('warn', "Phase 2: Critique tidak dapat di-parse, menggunakan skor default 75.");
+                }
+            } else {
+                $addLog('info', "Memulihkan hasil CQI Phase 2 dari sesi sebelumnya...");
             }
 
             $cqiScore = (int) $critique['cqi_score'];
@@ -471,22 +494,27 @@ class ContentController extends Controller
             }
 
             // ── PHASE 3: Expansion ────────────────────────────────────────────
-            $addLog('info', "Phase 3: Expanding & enriching content...");
-            $aiService3 = new \App\Services\AIService($tenant, 'default');
-            $improvements = implode("\n- ", $critique['improvements'] ?? ['Improve depth and E-E-A-T']);
-            $gaps         = implode("\n- ", $critique['gaps'] ?? []);
-            $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
-                "You are a Master SEO Content Expander writing in {lang}. Rewrite and expand the article to address ALL gaps and improvements. Minimum 1,800 words. Return ONLY the improved Markdown.");
-            $sysP3 = strtr($sysP3, ['{lang}' => $lang, '{keyword}' => $keyword]);
-            $userP3 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nGaps:\n- {$gaps}\n\nImprovements:\n- {$improvements}\n\nRewrite and expand now:";
+            $expanded = $job->phase_3_expanded;
+            if (!$expanded) {
+                $addLog('info', "Phase 3: Expanding & enriching content...");
+                $aiService3 = new \App\Services\AIService($tenant, 'default');
+                $improvements = implode("\n- ", $critique['improvements'] ?? ['Improve depth and E-E-A-T']);
+                $gaps         = implode("\n- ", $critique['gaps'] ?? []);
+                $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
+                    "You are a Master SEO Content Expander writing in {lang}. Rewrite and expand the article to address ALL gaps and improvements. Minimum 1,800 words. Return ONLY the improved Markdown.");
+                $sysP3 = strtr($sysP3, ['{lang}' => $lang, '{keyword}' => $keyword]);
+                $userP3 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nGaps:\n- {$gaps}\n\nImprovements:\n- {$improvements}\n\nRewrite and expand now:";
 
-            $expanded = $aiService3->generate($sysP3, $userP3);
+                $expanded = $aiService3->generate($sysP3, $userP3);
 
-            if (!$expanded || mb_strlen(trim($expanded)) < 300) {
-                $expanded = $draft; // Fall back to Phase 1 draft if expansion fails
-                $addLog('warn', "Phase 3: Expansion gagal, menggunakan draft Phase 1.");
+                if (!$expanded || mb_strlen(trim($expanded)) < 300) {
+                    $expanded = $draft; // Fall back to Phase 1 draft if expansion fails
+                    $addLog('warn', "Phase 3: Expansion gagal, menggunakan draft Phase 1.");
+                } else {
+                    $addLog('success', "Phase 3 SELESAI | Expanded: " . mb_strlen($expanded) . " karakter");
+                }
             } else {
-                $addLog('success', "Phase 3 SELESAI | Expanded: " . mb_strlen($expanded) . " karakter");
+                $addLog('info', "Memulihkan Expanded Phase 3 dari sesi sebelumnya...");
             }
 
             $job->update(['status' => 'phase_4', 'phase_3_expanded' => $expanded]);

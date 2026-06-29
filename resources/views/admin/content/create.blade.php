@@ -17,7 +17,7 @@
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
                 </svg>
-                <span id="startAiWorkerText">Start AI Worker ({{ $activeJobs->count() }} jobs)</span>
+                <span id="startAiBtnText">Start AI Worker ({{ $activeJobs->whereIn('status', ['pending', 'processing'])->count() }} jobs)</span>
             </button>
             @endif
             <a href="{{ route('admin.content.prapost') }}" class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition">
@@ -198,7 +198,7 @@
                 termTitle.textContent = 'Live AI Pipeline Log — Running';
             } else {
                 btn.className = btn.className.replace('from-amber-500 to-amber-600','from-emerald-500 to-emerald-600');
-                btnText.textContent = 'Start AI Worker ({{ $activeJobs->count() }} jobs)';
+                btnText.textContent = 'Start AI Worker ({{ $activeJobs->whereIn('status', ['pending', 'processing'])->count() }} jobs)';
                 termTitle.textContent = 'AI Pipeline Log — Idle';
                 termDot.classList.replace('bg-emerald-400','bg-slate-500');
                 termDot.classList.remove('animate-pulse');
@@ -214,6 +214,13 @@
                 if (nb) document.querySelector('tbody').innerHTML = nb.innerHTML;
             } catch (_) {}
         }
+        
+        // Auto-refresh the UI table periodically if AI Worker is running
+        setInterval(() => {
+            if (isWorking) {
+                refreshTable();
+            }
+        }, 5000);
 
         /**
          * Cek koneksi ke AI provider sebelum batch dimulai.
@@ -321,9 +328,10 @@
                     'job_id' => $job->id,
                     'content_id' => $job->content_id,
                     'keyword' => $job->content->target_keyword ?? 'Unknown',
-                    'target_status' => is_array($job->error_log) ? ($job->error_log['target_status'] ?? 'draft') : 'draft'
+                    'target_status' => is_array($job->error_log) ? ($job->error_log['target_status'] ?? 'draft') : 'draft',
+                    'status' => $job->status
                 ];
-            })->values()->toArray();
+            })->filter(fn($j) => in_array($j['status'], ['pending', 'processing']))->values()->toArray();
         @endphp
         let jobQueue = {!! json_encode($queueArray) !!};
 
