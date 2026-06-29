@@ -403,6 +403,12 @@
                     // Masukkan kembali ke antrean paling depan untuk lanjut ke phase berikutnya
                     currentJob.resumed = true;
                     jobQueue.unshift(currentJob);
+                } else if (data.status === 'wait') {
+                    // Lock masih tertahan oleh background, tunggu lebih lama sebelum polling lagi
+                    currentJob.resumed = true;
+                    jobQueue.unshift(currentJob);
+                    setTimeout(processNextJob, 10000); // Tunggu 10 detik
+                    return;
                 }
 
                 await refreshTable();

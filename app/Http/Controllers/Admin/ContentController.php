@@ -399,10 +399,21 @@ class ContentController extends Controller
                 return ['success' => false, 'error' => 'Content or Job not found.', 'logs' => []];
             }
 
+            if ($job->status === 'completed') {
+                return [
+                    'success' => true,
+                    'keyword' => $content->target_keyword,
+                    'title'    => $content->title,
+                    'cqi'      => $content->cqi_score,
+                    'status'   => $content->status,
+                    'logs'     => [['level' => 'success', 'message' => '✅ Artikel telah berhasil diselesaikan oleh background process.']]
+                ];
+            }
+
             $lockKey = "ai_job_lock_{$job->id}";
             $lock = \Illuminate\Support\Facades\Cache::lock($lockKey, 120);
             if (!$lock->get()) {
-                return ['success' => true, 'status' => 'continue', 'keyword' => $content->target_keyword, 'logs' => [['level' => 'running', 'message' => 'Proses masih berjalan di latar belakang (menunggu 10d)...']]];
+                return ['success' => true, 'status' => 'wait', 'keyword' => $content->target_keyword, 'logs' => [['level' => 'running', 'message' => 'Proses masih berjalan di latar belakang (menunggu 10d)...']]];
             }
 
             try {
