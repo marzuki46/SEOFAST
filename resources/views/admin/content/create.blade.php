@@ -234,19 +234,35 @@
                 });
 
                 if (!res.ok) {
-                    appendLog('error', `Koneksi check HTTP gagal: ${res.status} ${res.statusText}`);
+                    appendLog('error', `Koneksi check HTTP ${res.status} — ${res.statusText}`);
                     return false;
                 }
 
                 const data = await res.json();
 
+                // Render per-provider diagnostics (always, for visibility)
+                if (data.diagnostics && data.diagnostics.length > 0) {
+                    data.diagnostics.forEach(d => {
+                        const icon    = d.status === 'success' ? '✔' : (d.status === 'skipped' ? '⊘' : '✘');
+                        const timing  = d.elapsed_ms != null ? ` [${d.elapsed_ms}ms]` : '';
+                        const fmt     = d.response_format && d.response_format !== 'unknown' ? ` fmt:${d.response_format}` : '';
+                        const http    = d.http_status != null ? ` HTTP ${d.http_status}` : '';
+                        const len     = d.content_length != null ? ` ${d.content_length}chars` : '';
+                        let line = `  ${icon} [${d.provider}] ${d.model}${timing}${http}${fmt}${len}`;
+                        if (d.error) line += ` → ${d.error}`;
+                        const lvl = d.status === 'success' ? 'success' : (d.status === 'skipped' ? 'warn' : 'error');
+                        appendLog(lvl, line);
+                        if (d.raw_snippet) appendLog('warn', `     RAW: ${d.raw_snippet.substring(0, 200)}`);
+                    });
+                }
+
                 if (data.ok) {
                     appendLog('success', `✅ Koneksi AI OK — Provider: [${data.provider}] | Model: [${data.model}]`);
-                    appendLog('info', 'Semua phase (1-4) akan menggunakan provider yang sama untuk konsistensi.');
+                    appendLog('info', 'Semua phase (1-4) menggunakan provider yang sama.');
                     return true;
                 } else {
-                    appendLog('error', `❌ Koneksi AI GAGAL — Provider: [${data.provider}] | Error: ${data.error}`);
-                    appendLog('warn', 'Periksa API Key di Settings → AI Configuration sebelum mencoba lagi.');
+                    appendLog('error', `❌ Koneksi AI GAGAL — ${data.error}`);
+                    appendLog('warn', 'Periksa API Key & Base URL di Settings → AI Configuration.');
                     return false;
                 }
             } catch (err) {
@@ -254,6 +270,7 @@
                 return false;
             }
         }
+
 
         if (btn) {
             btn.addEventListener('click', async function () {

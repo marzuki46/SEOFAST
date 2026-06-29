@@ -277,30 +277,42 @@ class AIService
             $result = $this->generate(
                 'You are a connectivity test assistant. Reply concisely.',
                 'Say exactly: OK',
-                ['max_tokens' => 10, 'temperature' => 0]
+                ['max_tokens' => 20, 'temperature' => 0]
             );
 
-            if ($result !== null) {
+            // Always collect diagnostics regardless of success/fail
+            $diagnostics = $this->getLastDiagnostics();
+
+            if ($result !== null && trim($result) !== '') {
                 return [
-                    'ok'       => true,
-                    'provider' => $this->config['provider'], // may have changed via fallback
-                    'model'    => $this->config['model'],
-                    'error'    => null,
+                    'ok'          => true,
+                    'provider'    => $this->config['provider'],
+                    'model'       => $this->config['model'],
+                    'error'       => null,
+                    'diagnostics' => $diagnostics,
                 ];
             }
 
+            // Build a helpful error from diagnostics
+            $diagErrors = collect($diagnostics)
+                ->where('status', 'failed')
+                ->map(fn($d) => "[{$d['provider']}] {$d['error']}")
+                ->implode(' | ');
+
             return [
-                'ok'       => false,
-                'provider' => $provider,
-                'model'    => $model,
-                'error'    => 'AI merespons null. Periksa API key dan kuota.',
+                'ok'          => false,
+                'provider'    => $provider,
+                'model'       => $model,
+                'error'       => $diagErrors ?: 'AI merespons null — tidak ada konten dikembalikan.',
+                'diagnostics' => $diagnostics,
             ];
         } catch (\Exception $e) {
             return [
-                'ok'       => false,
-                'provider' => $provider,
-                'model'    => $model,
-                'error'    => $e->getMessage(),
+                'ok'          => false,
+                'provider'    => $provider,
+                'model'       => $model,
+                'error'       => $e->getMessage(),
+                'diagnostics' => $this->getLastDiagnostics(),
             ];
         }
     }
@@ -549,8 +561,10 @@ class AIService
                 ['role' => 'user', 'content' => $userPrompt],
             ],
             'temperature' => $options['temperature'] ?? $this->config['temperature'],
-            'max_tokens' => $options['max_tokens'] ?? $this->config['max_tokens'],
-            'stream' => false, // explicitly request non-streaming
+            'max_tokens'  => $options['max_tokens'] ?? $this->config['max_tokens'],
+            // Note: 'stream' is intentionally omitted — many free/proxy APIs
+            // reject stream:false and return 400/422. We detect SSE format from
+            // the response body instead.
         ]);
 
         $rawBody = $response->body();

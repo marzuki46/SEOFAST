@@ -575,10 +575,11 @@ class ContentController extends Controller
         $result    = $aiService->testConnection();
 
         return response()->json([
-            'ok'       => $result['ok'],
-            'provider' => $result['provider'],
-            'model'    => $result['model'],
-            'error'    => $result['error'],
+            'ok'          => $result['ok'],
+            'provider'    => $result['provider'],
+            'model'       => $result['model'],
+            'error'       => $result['error'],
+            'diagnostics' => $result['diagnostics'] ?? [],
         ]);
     }
 
