@@ -263,7 +263,7 @@
         </nav>
 
         <!-- Mobile Menu Panel -->
-        <div x-show="mobileMenuOpen" x-transition.opacity style="display:none;" class="md:hidden absolute top-20 left-0 w-full bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-xl">
+        <div x-show="mobileMenuOpen" x-transition.opacity style="display:none;" class="md:hidden absolute top-20 left-0 w-full bg-white border-b border-slate-200 shadow-xl">
             <div class="px-4 pt-4 pb-6 space-y-1 max-h-[calc(100vh-5rem)] overflow-y-auto">
                 @if($primaryMenu && $primaryMenu->items->isNotEmpty())
                     @foreach($primaryMenu->items as $item)

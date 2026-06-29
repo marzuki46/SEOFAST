@@ -507,87 +507,37 @@ class ContentController extends Controller
             }
 
             // ── PHASE 2: Critical Questions (No CQI) ──────────────────────────
-            $critique = $job->phase_2_critique;
-            if (!$critique || !is_array($critique)) {
-                $addLog('info', "Phase 2: Generating Critical Questions untuk [{$keyword}]...");
-                $aiService2 = new \App\Services\AIService($tenant, 'default');
-                $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
-                    "You are a strict Senior SEO Content Auditor. Read the draft and generate a list of 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]");
-                $critique = $aiService2->generateJson($sysP2, "Keyword: {$keyword}\n\nDraft:\n{$draft}");
-
-                if (!$critique || !is_array($critique) || (isset($critique['cqi_score']))) {
-                    // If critique fails or returns old format, use a reasonable default array
-                    $critique = ['Apa saja strategi lanjutan yang belum dibahas?', 'Bagaimana cara menghindari kesalahan umum?'];
-                    $addLog('warn', "Phase 2: JSON array gagal di-parse, menggunakan default pertanyaan.");
-                }
-
-                $job->update(['status' => 'phase_3', 'phase_2_critique' => $critique]);
-                $addLog('info', "Phase 2 SELESAI | Dihasilkan " . count($critique) . " Pertanyaan Kritis");
-
-                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
-            } else {
-                $addLog('info', "Memulihkan Pertanyaan Kritis Phase 2 dari sesi sebelumnya...");
-            }
-            
-            // Default CQI to null since we removed it from Phase 2
-            $cqiScore = null;
-
-            // ── PHASE 3: Expansion & Combine ──────────────────────────────────
-            $expanded = $job->phase_3_expanded;
-            if (!$expanded) {
-                $addLog('info', "Phase 3: Menjawab pertanyaan kritis & menyusun konten utuh...");
-                $aiService3 = new \App\Services\AIService($tenant, 'default');
-                $criticalQs = implode("\n- ", is_array($critique) ? $critique : ['Berikan pembahasan lebih mendalam.']);
-                
-                $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
-                    "You are a Master SEO Content Expander writing in {lang}. Rewrite and drastically expand the original draft with comprehensive answers to ALL the 'Critical Questions' to form one cohesive, deeply researched article. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.");
-                $sysP3 = strtr($sysP3, ['{lang}' => $lang, '{keyword}' => $keyword]);
-                
-                $userP3 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nCritical Questions to Answer & Combine:\n- {$criticalQs}\n\nRewrite and combine into a full article now (Markdown only):";
-
-                $expanded = $aiService3->generate($sysP3, $userP3);
-
-                if (!$expanded || mb_strlen(trim($expanded)) < 300 || str_contains($expanded, '{"error"')) {
-                    throw new \Exception("Phase 3 gagal menghasilkan konten yang valid.");
-                } else {
-                    $addLog('success', "Phase 3 SELESAI | Expanded: " . mb_strlen($expanded) . " karakter");
-                }
-
-                $job->update(['status' => 'phase_4', 'phase_3_expanded' => $expanded]);
-                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
-            } else {
-                $addLog('info', "Memulihkan Expanded Phase 3 dari sesi sebelumnya...");
-            }
-
-            // ── PHASE 4: Master Edit + Links + HTML ───────────────────────────
-            $finalBody = $job->phase_4_final;
+            // ── PHASE 2: Final Edit + HTML ───────────────────────────
+            $finalBody = $job->phase_2_critique; // Re-use this column for HTML output
             if (!$finalBody) {
-                $addLog('info', "Phase 4: Ekspansi akhir, internal links & konversi ke HTML...");
-                $aiService4 = new \App\Services\AIService($tenant, 'default');
+                $addLog('info', "Phase 2: Konversi ke HTML & optimasi akhir...");
+                $aiService2 = new \App\Services\AIService($tenant, 'default');
 
-                $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
+                $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
                     "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the comprehensive length.");
-                $sysP4 = strtr($sysP4, ['{lang}' => $lang, '{keyword}' => $keyword]);
-                $userP4 = "Keyword: **{$keyword}**\n\nArticle:\n{$expanded}";
+                $sysP2 = strtr($sysP2, ['{lang}' => $lang, '{keyword}' => $keyword]);
+                $userP2 = "Keyword: **{$keyword}**\n\nArticle:\n{$draft}";
 
-                $finalBody = $aiService4->generate($sysP4, $userP4);
+                $finalBody = $aiService2->generate($sysP2, $userP2);
                 $finalBody = preg_replace('/^```html|```$/i', '', trim($finalBody)); // Remove markdown HTML blocks if any
 
                 if (!$finalBody || mb_strlen(trim($finalBody)) < 300 || str_contains($finalBody, '{"error"')) {
-                    throw new \Exception("Phase 4 gagal mengkonversi ke HTML dengan valid.");
+                    throw new \Exception("Phase 2 gagal mengkonversi ke HTML dengan valid.");
                 } else {
-                    $addLog('success', "Phase 4 SELESAI | Final: " . mb_strlen($finalBody) . " karakter");
+                    $addLog('success', "Phase 2 SELESAI | HTML: " . mb_strlen($finalBody) . " karakter");
                 }
 
-                $job->update(['phase_4_final' => $finalBody]);
+                $job->update(['status' => 'phase_3', 'phase_2_critique' => $finalBody]);
                 return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
             } else {
-                $addLog('info', "Memulihkan HTML Phase 4 dari sesi sebelumnya...");
+                $addLog('info', "Memulihkan HTML Phase 2 dari sesi sebelumnya...");
             }
 
-            // ── Save to DB & Phase 5 (SEO Meta) ───────────────────────────────
+            // ── Save to DB & Phase 3 (SEO Meta) ───────────────────────────────
             $blogPrefix  = \App\Models\SystemSetting::get('permalink_blog', 'blog');
             $contentHash = hash('sha256', $finalBody);
+            
+            $cqiScore = null;
 
             $job->update([
                 'status'        => 'completed',
@@ -605,22 +555,23 @@ class ContentController extends Controller
 
             $content->body_raw = $finalBody;
             $content->update([
-                'cqi_score'    => $cqiScore,
                 'content_hash' => $contentHash,
                 'status'       => $targetStatus,
                 'published_at' => $content->published_at ?? now(),
             ]);
             $content->save();
 
-            // ── Phase 5: SEO Meta (non-blocking) ─────────────────────────────
+            // ── Phase 3: SEO Meta (non-blocking) ─────────────────────────────
             try {
+                $aiService3 = new \App\Services\AIService($tenant, 'default');
+                $addLog('info', "Phase 3: Generating SEO Meta...");
                 $metaTitlePrompt = str_replace('{keyword}', $keyword, \App\Models\SystemSetting::get('ai_prompt_meta_title',
                     'Write a highly click-worthy SEO title for "{keyword}". Max 60 chars. Return ONLY the title.'));
                 $metaDescPrompt  = str_replace('{keyword}', $keyword, \App\Models\SystemSetting::get('ai_prompt_meta_description',
                     'Write an engaging SEO meta description for "{keyword}". 150-160 chars with CTA. Return ONLY the description.'));
 
-                $metaTitle = trim($aiService4->generate('You are an expert SEO specialist.', $metaTitlePrompt), " \t\n\r\"'");
-                $metaDesc  = trim($aiService4->generate('You are an expert SEO specialist.', $metaDescPrompt), " \t\n\r\"'");
+                $metaTitle = trim($aiService3->generate('You are an expert SEO specialist.', $metaTitlePrompt), " \t\n\r\"'");
+                $metaDesc  = trim($aiService3->generate('You are an expert SEO specialist.', $metaDescPrompt), " \t\n\r\"'");
 
                 $content->updateSeoMeta([
                     'title'          => $metaTitle ?: $content->title,
@@ -631,12 +582,12 @@ class ContentController extends Controller
                     'og_description' => $metaDesc,
                     'og_image'       => $content->featured_image_url ?: \App\Models\SystemSetting::get('seo_og_image'),
                 ]);
-                $addLog('success', "SEO Meta dibuat: \"{$metaTitle}\"");
+                $addLog('success', "Phase 3 SELESAI | SEO Meta dibuat: \"{$metaTitle}\"");
             } catch (\Exception $e) {
-                $addLog('warn', "SEO Meta gagal (non-fatal): " . $e->getMessage());
+                $addLog('warn', "Phase 3 SEO Meta gagal (non-fatal): " . $e->getMessage());
             }
 
-            $addLog('success', "✅ [{$keyword}] SELESAI → status: {$targetStatus} | CQI: {$cqiScore}/100 | {$contentHash}");
+            $addLog('success', "✅ [{$keyword}] GENERATION SELESAI → status: {$targetStatus} | {$contentHash}");
 
             return [
                 'success' => true,

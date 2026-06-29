@@ -102,9 +102,8 @@
                                     $phaseName = [
                                         'pending'    => 'Pending',
                                         'phase_1'    => '📝 Phase 1: Draft',
-                                        'phase_2'    => '🔍 Phase 2: Questions',
-                                        'phase_3'    => '✍️ Phase 3: Expand',
-                                        'phase_4'    => '🎨 Phase 4: Polish',
+                                        'phase_2'    => '🎨 Phase 2: HTML',
+                                        'phase_3'    => '🔍 Phase 3: SEO Meta',
                                         'completed'  => '✅ Completed',
                                         'failed'     => '❌ Failed',
                                         'failed_cqi' => '⚠️ Error',
