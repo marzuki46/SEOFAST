@@ -573,6 +573,7 @@ class ContentController extends Controller
                 'completed_at'  => now(),
             ]);
 
+            $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)->get();
             if ($deterministicLinks->isNotEmpty()) {
                 \App\Models\DeterministicLink::where('source_content_id', $content->id)
                     ->update([
