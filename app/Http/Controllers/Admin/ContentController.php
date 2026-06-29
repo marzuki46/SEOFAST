@@ -547,9 +547,8 @@ class ContentController extends Controller
 
                 $expanded = $aiService3->generate($sysP3, $userP3);
 
-                if (!$expanded || mb_strlen(trim($expanded)) < 300) {
-                    $expanded = $draft; // Fall back to Phase 1 draft if expansion fails
-                    $addLog('warn', "Phase 3: Expansion gagal, menggunakan draft Phase 1.");
+                if (!$expanded || mb_strlen(trim($expanded)) < 300 || str_contains($expanded, '{"error"')) {
+                    throw new \Exception("Phase 3 gagal menghasilkan konten yang valid.");
                 } else {
                     $addLog('success', "Phase 3 SELESAI | Expanded: " . mb_strlen($expanded) . " karakter");
                 }
@@ -574,9 +573,8 @@ class ContentController extends Controller
                 $finalBody = $aiService4->generate($sysP4, $userP4);
                 $finalBody = preg_replace('/^```html|```$/i', '', trim($finalBody)); // Remove markdown HTML blocks if any
 
-                if (!$finalBody || mb_strlen(trim($finalBody)) < 300) {
-                    $finalBody = $expanded; // Fall back to Phase 3 if final edit fails
-                    $addLog('warn', "Phase 4: Final edit gagal, menggunakan konten Phase 3.");
+                if (!$finalBody || mb_strlen(trim($finalBody)) < 300 || str_contains($finalBody, '{"error"')) {
+                    throw new \Exception("Phase 4 gagal mengkonversi ke HTML dengan valid.");
                 } else {
                     $addLog('success', "Phase 4 SELESAI | Final: " . mb_strlen($finalBody) . " karakter");
                 }

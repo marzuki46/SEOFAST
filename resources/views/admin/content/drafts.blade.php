@@ -49,8 +49,8 @@
                         <th class="px-6 py-3.5">Title / Target Keyword</th>
                         <th class="px-6 py-3.5">Hierarchy</th>
                         <th class="px-6 py-3.5">Silo Category</th>
-                        <th class="px-6 py-3.5">Target Anchor</th>
-                        <th class="px-6 py-3.5">CQI Score</th>
+                        <th class="px-6 py-3.5">Get Image</th>
+                        <th class="px-6 py-3.5">Publish Schedule</th>
                         <th class="px-6 py-3.5">Status</th>
                         <th class="px-6 py-3.5 text-right">Actions</th>
                     </tr>
@@ -81,32 +81,19 @@
                         <td class="px-6 py-4 text-slate-600">
                             {{ $post->siloBlueprint?->silo_name ?? 'N/A' }}
                         </td>
-                        <td class="px-6 py-4 text-xs">
-                            @php
-                                $links = \App\Models\DeterministicLink::where('target_content_id', $post->id)->get();
-                            @endphp
-                            @if($links->count() > 0)
-                                <div class="flex flex-col gap-1">
-                                    @foreach($links as $link)
-                                        <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
-                                            {{ $link->mandatory_anchor_text }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @else
-                                <span class="text-slate-400 font-normal">--</span>
-                            @endif
-                        </td>
                         <td class="px-6 py-4">
-                            @if($post->cqi_score)
-                                <div class="flex items-center gap-2">
-                                    <div class="w-12 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                        <div class="h-1.5 rounded-full {{ $post->cqi_score >= 80 ? 'bg-emerald-500' : 'bg-amber-500' }}" style="width: {{ $post->cqi_score }}%"></div>
-                                    </div>
-                                    <span class="font-bold text-slate-800">{{ round($post->cqi_score) }}%</span>
-                                </div>
+                            <a href="{{ route('admin.content.images', $post->id) }}" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition ring-1 ring-inset ring-emerald-600/20">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                </svg>
+                                Images
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-slate-500">
+                            @if($post->published_at)
+                                <span class="text-slate-700 font-medium">{{ \Carbon\Carbon::parse($post->published_at)->format('d M Y H:i') }}</span>
                             @else
-                                <span class="text-slate-400">--</span>
+                                <span class="text-amber-600 font-medium italic">Belum diset</span>
                             @endif
                         </td>
                         <td class="px-6 py-4">
@@ -156,11 +143,6 @@
                                         </svg>
                                     </button>
                                 </form>
-                                <a href="{{ route('admin.content.images', $post->id) }}" class="p-1 text-emerald-400 hover:text-emerald-600 transition inline-block" title="Pilih Gambar (Phase 4)">
-                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                                    </svg>
-                                </a>
                                 @endif
                                 <form action="{{ route('admin.content.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this post?');" class="inline-block">
                                     @csrf
