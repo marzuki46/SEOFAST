@@ -414,14 +414,15 @@ class ContentController extends Controller
             $job->update(['status' => 'phase_1', 'started_at' => now()]);
             $addLog('info', "Mulai Phase 1: Generating draft untuk [{$keyword}]...");
 
-            // ── PHASE 1: Draft Generation ─────────────────────────────────────
+            // ── PHASE 1: LSI/Entity Draft ─────────────────────────────────────
             $draft = $job->phase_1_draft;
             if (!$draft) {
-                $aiService1  = new \App\Services\AIService($tenant, 'default');
-                $sysP1  = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
-                    "You are an Expert SEO Writer writing in {lang}. First, identify semantic entities and LSI keywords for the topic '{keyword}'. Then, write a comprehensive article draft (min 1,200 words) using those entities. **Make the LSI keywords bold** in the text. Return ONLY the article draft in Markdown format, do not output the list of LSI keywords separately.");
+                $addLog('info', "Mulai Phase 1: Generating LSI/Entity draft untuk [{$keyword}]...");
+                $aiService1 = new \App\Services\AIService($tenant, 'default');
+                $sysP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
+                    "You are an Expert SEO Writer writing in {lang}. First, identify semantic entities and LSI keywords for the topic '{keyword}'. Then, write a concise but highly informative article draft (around 600-800 words). **Make the LSI keywords bold** in the text. Return ONLY the article draft in Markdown format, do not output the list of LSI keywords separately.");
                 $userP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_user',
-                    "Write a comprehensive, SEO-optimised article in {lang} about: **{keyword}**.\n\nRequirements:\n- Generate and use LSI/Entity keywords\n- Make all LSI keywords **bold**\n- Minimum 1,200 words\n- Use H2 and H3 headings\n- Incorporate seed keyword '{seed_keyword}' naturally\n- Do NOT output the LSI list, just use them in the article");
+                    "Write an SEO-optimised article draft in {lang} about: **{keyword}**.\n\nRequirements:\n- Generate and use LSI/Entity keywords\n- Make all LSI keywords **bold**\n- Around 600-800 words\n- Use H2 and H3 headings\n- Incorporate seed keyword '{seed_keyword}' naturally\n- Do NOT output the LSI list, just use them in the article");
 
                 $sysP1  = strtr($sysP1,  ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
                 $userP1 = strtr($userP1, ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
@@ -502,7 +503,7 @@ class ContentController extends Controller
                 $criticalQs = implode("\n- ", is_array($critique) ? $critique : ['Berikan pembahasan lebih mendalam.']);
                 
                 $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
-                    "You are a Master SEO Content Expander writing in {lang}. Rewrite and combine the original draft with comprehensive answers to ALL the 'Critical Questions' to form one cohesive, deeply researched article. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.");
+                    "You are a Master SEO Content Expander writing in {lang}. Rewrite and combine the original draft with answers to the 'Critical Questions' to form one cohesive article. Keep it concise, engaging, and under 1,200 words if possible. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.");
                 $sysP3 = strtr($sysP3, ['{lang}' => $lang, '{keyword}' => $keyword]);
                 
                 $userP3 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nCritical Questions to Answer & Combine:\n- {$criticalQs}\n\nRewrite and combine into a full article now (Markdown only):";
@@ -544,7 +545,7 @@ class ContentController extends Controller
                 }
 
                 $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
-                    "You are a Chief Content Editor writing in {lang}. Do a final drastic expansion of the article for maximum depth. Inject all mandatory internal links naturally. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body.");
+                    "You are a Chief Content Editor writing in {lang}. Inject all mandatory internal links naturally into the provided text. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the length similar to the input.");
                 $sysP4 = strtr($sysP4, ['{lang}' => $lang, '{keyword}' => $keyword]);
                 $userP4 = "Keyword: **{$keyword}**\n\nArticle:\n{$expanded}{$linkInstructions}{$imageInstruction}";
 
