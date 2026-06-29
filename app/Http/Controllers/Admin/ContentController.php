@@ -340,36 +340,36 @@ class ContentController extends Controller
     {
         @set_time_limit(300);
 
-        $request->validate([
-            'content_id'    => 'required|exists:contents,id',
-            'job_id'        => 'required|exists:ai_generation_jobs,id',
-            'target_status' => 'nullable|string|in:draft,published',
-        ]);
-
-        $content      = Content::withoutGlobalScopes()->find($request->content_id);
-        $job          = AiGenerationJob::withoutGlobalScopes()->find($request->job_id);
-        $targetStatus = $request->input('target_status', 'draft');
-        $logs         = [];
-
-        $addLog = function(string $level, string $message) use (&$logs) {
-            $logs[] = ['level' => $level, 'message' => $message];
-            \Illuminate\Support\Facades\Log::info("AI [{$level}] {$message}");
-        };
-
-        if (!$content || !$job) {
-            return response()->json(['success' => false, 'error' => 'Content or Job not found.', 'logs' => []]);
-        }
-
-        $keyword     = $content->target_keyword;
-        $seedKeyword = $content->siloBlueprint?->seed_keyword ?? $keyword;
-        $lang        = $content->siloBlueprint?->target_language ?? 'id';
-        $country     = $content->siloBlueprint?->target_country ?? 'ID';
-        $tenant      = $content->tenant;
-
-        $job->update(['status' => 'phase_1', 'started_at' => now()]);
-        $addLog('info', "Mulai Phase 1: Generating draft untuk [{$keyword}]...");
-
         try {
+            $request->validate([
+                'content_id'    => 'required|exists:contents,id',
+                'job_id'        => 'required|exists:ai_generation_jobs,id',
+                'target_status' => 'nullable|string|in:draft,published',
+            ]);
+
+            $content      = Content::withoutGlobalScopes()->find($request->content_id);
+            $job          = AiGenerationJob::withoutGlobalScopes()->find($request->job_id);
+            $targetStatus = $request->input('target_status', 'draft');
+            $logs         = [];
+
+            $addLog = function(string $level, string $message) use (&$logs) {
+                $logs[] = ['level' => $level, 'message' => $message];
+                \Illuminate\Support\Facades\Log::info("AI [{$level}] {$message}");
+            };
+
+            if (!$content || !$job) {
+                return response()->json(['success' => false, 'error' => 'Content or Job not found.', 'logs' => []]);
+            }
+
+            $keyword     = $content->target_keyword;
+            $seedKeyword = $content->siloBlueprint?->seed_keyword ?? $keyword;
+            $lang        = $content->siloBlueprint?->target_language ?? 'id';
+            $country     = $content->siloBlueprint?->target_country ?? 'ID';
+            $tenant      = $content->tenant;
+
+            $job->update(['status' => 'phase_1', 'started_at' => now()]);
+            $addLog('info', "Mulai Phase 1: Generating draft untuk [{$keyword}]...");
+
             // ── PHASE 1: Draft Generation ─────────────────────────────────────
             $aiService1  = new \App\Services\AIService($tenant, 'default');
             $sysP1  = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
@@ -552,11 +552,21 @@ class ContentController extends Controller
                 'logs'     => $logs,
             ]);
 
-        } catch (\Exception $e) {
-            $job->update(['status' => 'failed', 'error_log' => ['reason' => $e->getMessage()]]);
-            $content->update(['status' => 'failed_cqi']);
-            $addLog('error', "FATAL ERROR untuk [{$keyword}]: " . $e->getMessage());
-            return response()->json(['success' => false, 'keyword' => $keyword, 'error' => $e->getMessage(), 'logs' => $logs]);
+        } catch (\Throwable $e) {
+            if (isset($job) && $job) {
+                $job->update(['status' => 'failed', 'error_log' => ['reason' => $e->getMessage()]]);
+            }
+            if (isset($content) && $content) {
+                $content->update(['status' => 'failed_cqi']);
+            }
+            
+            $errorMsg = "FATAL ERROR: " . $e->getMessage() . " on line " . $e->getLine();
+            if (isset($addLog)) {
+                $addLog('error', $errorMsg);
+                return response()->json(['success' => false, 'keyword' => $keyword ?? 'Unknown', 'error' => $errorMsg, 'logs' => $logs]);
+            }
+            
+            return response()->json(['success' => false, 'error' => $errorMsg, 'logs' => []]);
         }
     }
 
