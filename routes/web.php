@@ -162,6 +162,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/work-queue', [\App\Http\Controllers\Admin\ContentController::class, 'workQueue'])->name('work_queue');
             Route::match(['get', 'post'], '/start-ai-batch', [\App\Http\Controllers\Admin\ContentController::class, 'bulkGenerateAi'])->name('bulk_generate');
             Route::post('/generate-single', [\App\Http\Controllers\Admin\ContentController::class, 'generateSingle'])->name('generate_single');
+            Route::post('/check-ai-connection', [\App\Http\Controllers\Admin\ContentController::class, 'checkConnection'])->name('check_connection');
             Route::get('/create', [\App\Http\Controllers\Admin\ContentController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\Admin\ContentController::class, 'store'])->name('store');
             

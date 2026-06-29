@@ -141,7 +141,7 @@
     @if($activeJobs->count() > 0)
         let isWorking   = sessionStorage.getItem('ai_worker_running') === 'true';
         let logLineCount = 0;
-        const MAX_LINES  = 30;
+        const MAX_LINES  = 50;
 
         const btn          = document.getElementById('startAiWorker');
         const btnText      = document.getElementById('startAiWorkerText');
@@ -158,6 +158,7 @@
             error:   { cls: 'text-rose-400',    icon: '✘' },
             warn:    { cls: 'text-amber-400',   icon: '⚠' },
             running: { cls: 'text-indigo-400',  icon: '↻' },
+            check:   { cls: 'text-violet-400',  icon: '⚡' },
         };
 
         function esc(s) {
@@ -165,7 +166,7 @@
         }
 
         window.clearLogs = function () {
-            termLog.innerHTML = '<div class="text-slate-600">>> Logs cleared.</div>';
+            termLog.innerHTML = '<div class="text-slate-600">&gt;&gt; Logs cleared.</div>';
             logLineCount = 0;
             termCounter.textContent = '0 lines';
         };
@@ -214,6 +215,46 @@
             } catch (_) {}
         }
 
+        /**
+         * Cek koneksi ke AI provider sebelum batch dimulai.
+         * Return true jika koneksi OK, false jika gagal.
+         */
+        async function checkAiConnection() {
+            appendLog('check', 'Mengecek koneksi ke AI provider...');
+            try {
+                const res = await fetch('{{ route("admin.content.check_connection") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN':     '{{ csrf_token() }}',
+                        'Content-Type':     'application/json',
+                        'Accept':           'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (!res.ok) {
+                    appendLog('error', `Koneksi check HTTP gagal: ${res.status} ${res.statusText}`);
+                    return false;
+                }
+
+                const data = await res.json();
+
+                if (data.ok) {
+                    appendLog('success', `✅ Koneksi AI OK — Provider: [${data.provider}] | Model: [${data.model}]`);
+                    appendLog('info', 'Semua phase (1-4) akan menggunakan provider yang sama untuk konsistensi.');
+                    return true;
+                } else {
+                    appendLog('error', `❌ Koneksi AI GAGAL — Provider: [${data.provider}] | Error: ${data.error}`);
+                    appendLog('warn', 'Periksa API Key di Settings → AI Configuration sebelum mencoba lagi.');
+                    return false;
+                }
+            } catch (err) {
+                appendLog('error', 'Koneksi check exception: ' + err.message);
+                return false;
+            }
+        }
+
         if (btn) {
             btn.addEventListener('click', async function () {
                 if (isWorking) {
@@ -224,10 +265,25 @@
                     setTimeout(() => window.location.reload(), 700);
                     return;
                 }
+
+                // Tampilkan terminal dulu sebelum cek koneksi
+                termContainer.classList.remove('hidden');
                 isWorking = true;
                 sessionStorage.setItem('ai_worker_running', 'true');
                 setWorkingUI(true);
                 appendLog('info', 'Memulai AI Worker...');
+
+                // ── Cek koneksi dulu sebelum mulai ──────────────────
+                const connectionOk = await checkAiConnection();
+                if (!connectionOk) {
+                    isWorking = false;
+                    sessionStorage.setItem('ai_worker_running', 'false');
+                    setWorkingUI(false);
+                    appendLog('error', '⛔ Worker dihentikan karena koneksi AI gagal.');
+                    return;
+                }
+
+                appendLog('info', `Mulai memproses ${jobQueue.length} job secara berurutan...`);
                 await processNextJob();
             });
         }
@@ -312,3 +368,4 @@
     @endif
 </script>
 @endsection
+

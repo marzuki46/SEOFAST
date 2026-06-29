@@ -371,7 +371,7 @@ class ContentController extends Controller
 
         try {
             // ── PHASE 1: Draft Generation ─────────────────────────────────────
-            $aiService1  = new \App\Services\AIService($tenant, '1');
+            $aiService1  = new \App\Services\AIService($tenant, 'default');
             $sysP1  = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
                 "You are an expert SEO Content Writer fluent in {lang}. Write a comprehensive, well-structured article about '{keyword}' targeting readers in {country}. Use proper Markdown formatting with H2 and H3 headings. Apply E-E-A-T principles: include expert insights, real examples, and actionable advice. The article must be at least 1,200 words.");
             $userP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_user',
@@ -394,7 +394,7 @@ class ContentController extends Controller
 
             // ── PHASE 2: CQI Critique ─────────────────────────────────────────
             $addLog('info', "Phase 2: CQI Quality Check untuk [{$keyword}]...");
-            $aiService2 = new \App\Services\AIService($tenant, '2');
+            $aiService2 = new \App\Services\AIService($tenant, 'default');
             $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
                 "You are a strict Senior SEO Content Auditor. Evaluate the article draft and respond ONLY with valid JSON:\n{\"cqi_score\": <0-100>, \"strengths\": [], \"gaps\": [], \"improvements\": []}");
             $critique = $aiService2->generateJson($sysP2, "Keyword: {$keyword}\n\nDraft:\n{$draft}");
@@ -416,7 +416,7 @@ class ContentController extends Controller
 
             // ── PHASE 3: Expansion ────────────────────────────────────────────
             $addLog('info', "Phase 3: Expanding & enriching content...");
-            $aiService3 = new \App\Services\AIService($tenant, '3');
+            $aiService3 = new \App\Services\AIService($tenant, 'default');
             $improvements = implode("\n- ", $critique['improvements'] ?? ['Improve depth and E-E-A-T']);
             $gaps         = implode("\n- ", $critique['gaps'] ?? []);
             $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
@@ -437,7 +437,7 @@ class ContentController extends Controller
 
             // ── PHASE 4: Master Edit + Links + Publish ────────────────────────
             $addLog('info', "Phase 4: Master edit, internal links & SEO meta...");
-            $aiService4 = new \App\Services\AIService($tenant, '4');
+            $aiService4 = new \App\Services\AIService($tenant, 'default');
 
             $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
                 ->with('targetContent')->get();
@@ -537,6 +537,25 @@ class ContentController extends Controller
 
 
 
+
+    /**
+     * Check connectivity to the configured AI provider.
+     * Called by the frontend before starting the AI Worker to verify the API
+     * key/endpoint is reachable. Returns provider info and ok/error status.
+     */
+    public function checkConnection()
+    {
+        $tenant    = \App\Models\Tenant::first();
+        $aiService = new \App\Services\AIService($tenant, 'default');
+        $result    = $aiService->testConnection();
+
+        return response()->json([
+            'ok'       => $result['ok'],
+            'provider' => $result['provider'],
+            'model'    => $result['model'],
+            'error'    => $result['error'],
+        ]);
+    }
 
     /**
      * Trigger queue worker manually via AJAX.

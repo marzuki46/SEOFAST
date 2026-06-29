@@ -200,6 +200,58 @@ class AIService
     }
 
     /**
+     * Test connectivity to the configured AI provider.
+     * Sends a minimal prompt to verify the API key and endpoint are working.
+     *
+     * @return array{ok: bool, provider: string, model: string, error: string|null}
+     */
+    public function testConnection(): array
+    {
+        $provider = $this->config['provider'];
+        $model    = $this->config['model'];
+
+        if (empty($this->config['apiKey']) && !in_array($provider, ['custom', '9router'])) {
+            return [
+                'ok'       => false,
+                'provider' => $provider,
+                'model'    => $model,
+                'error'    => 'API Key tidak ditemukan untuk provider: ' . $provider,
+            ];
+        }
+
+        try {
+            $result = $this->generate(
+                'You are a connectivity test assistant. Reply concisely.',
+                'Say exactly: OK',
+                ['max_tokens' => 10, 'temperature' => 0]
+            );
+
+            if ($result !== null) {
+                return [
+                    'ok'       => true,
+                    'provider' => $this->config['provider'], // may have changed via fallback
+                    'model'    => $this->config['model'],
+                    'error'    => null,
+                ];
+            }
+
+            return [
+                'ok'       => false,
+                'provider' => $provider,
+                'model'    => $model,
+                'error'    => 'AI merespons null. Periksa API key dan kuota.',
+            ];
+        } catch (\Exception $e) {
+            return [
+                'ok'       => false,
+                'provider' => $provider,
+                'model'    => $model,
+                'error'    => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
      * Generate structured JSON output from AI.
      */
     public function generateJson(string $systemPrompt, string $userPrompt, array $options = []): ?array
