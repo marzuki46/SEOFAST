@@ -636,8 +636,16 @@ class AIService
             );
         }
 
+        $content = $body['choices'][0]['message']['content'] ?? '';
+
+        if (trim($content) === '') {
+            throw new \RuntimeException(
+                'Custom API returned empty content (JSON). RAW:' . substr($rawBody, 0, 500)
+            );
+        }
+
         return [
-            'content'      => $body['choices'][0]['message']['content'] ?? '',
+            'content'      => $content,
             'usage'        => $body['usage'] ?? [],
             'model'        => $body['model'] ?? ($options['model'] ?? $this->config['model']),
             '_format'      => 'json',
