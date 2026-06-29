@@ -135,23 +135,41 @@ class AIService
         );
 
         $primaryProvider = $this->config['provider'];
-        $providersToTry = [$primaryProvider];
+        $providersToTry = [];
+        
+        // Cek jika custom model dipisah koma (fallback models in custom)
+        if ($primaryProvider === 'custom') {
+            $customModels = array_filter(array_map('trim', explode(',', $this->config['model'] ?? '')));
+            if (count($customModels) > 1) {
+                foreach ($customModels as $m) {
+                    $providersToTry[] = "custom:{$m}";
+                }
+            } else {
+                $providersToTry[] = 'custom';
+            }
+        } else {
+            $providersToTry[] = $primaryProvider;
+        }
         
         // Setup smart fallbacks in order of preference
         $fallbacks = ['gemini', 'openai', 'claude', 'deepseek', '9router', 'custom'];
         foreach ($fallbacks as $fb) {
-            if ($fb !== $primaryProvider) {
+            if ($fb !== $primaryProvider && !in_array($fb, $providersToTry)) {
                 $providersToTry[] = $fb;
             }
         }
 
         $lastError = null;
 
-        foreach ($providersToTry as $currentProvider) {
+        foreach ($providersToTry as $currentProviderRaw) {
+            $parts = explode(':', $currentProviderRaw, 2);
+            $currentProvider = $parts[0];
+            $specificModel = $parts[1] ?? null;
+
             $attemptStart = microtime(true);
             $diag = [
                 'provider'        => $currentProvider,
-                'model'           => $this->config['model'],
+                'model'           => $specificModel ?: $this->config['model'],
                 'status'          => 'pending',
                 'http_status'     => null,
                 'elapsed_ms'      => null,
@@ -162,10 +180,10 @@ class AIService
             ];
 
             try {
-                // If falling back, reconfigure the provider and API key
-                if ($currentProvider !== $primaryProvider) {
+                // If falling back or using specific model, reconfigure the provider and API key
+                if ($currentProvider !== $primaryProvider || $specificModel) {
                     $this->config['provider'] = $currentProvider;
-                    $this->config['model'] = match ($currentProvider) {
+                    $this->config['model'] = $specificModel ?: match ($currentProvider) {
                         'openai'   => $this->getSetting('openai_model', 'gpt-4o'),
                         'gemini'   => $this->getSetting('gemini_model', 'gemini-1.5-pro'),
                         'claude'   => $this->getSetting('claude_model', 'claude-3-5-sonnet'),
@@ -174,6 +192,11 @@ class AIService
                         'custom'   => $this->getSetting('custom_model', 'custom-model'),
                         default    => 'gpt-4o',
                     };
+                    // Handle specific model fallback inside custom provider itself (if any)
+                    if ($currentProvider === 'custom' && strpos($this->config['model'], ',') !== false) {
+                        $this->config['model'] = trim(explode(',', $this->config['model'])[0]);
+                    }
+
                     $this->config['apiKey'] = match ($currentProvider) {
                         'openai'   => $this->getSetting('openai_api_key'),
                         'gemini'   => $this->getSetting('gemini_api_key'),
