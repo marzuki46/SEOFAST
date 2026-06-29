@@ -62,7 +62,7 @@ class ContentController extends Controller
     {
         $activeJobs = AiGenerationJob::withoutGlobalScopes()
             ->where(function ($q) {
-                $q->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'])
+                $q->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6', 'phase_7'])
                   ->orWhere(function ($q2) {
                       $q2->whereIn('status', ['failed', 'failed_cqi', 'completed'])
                          ->where('updated_at', '>=', now()->subHours(12));
@@ -439,11 +439,34 @@ class ContentController extends Controller
             $job->update(['status' => 'phase_1', 'started_at' => now()]);
             $addLog('info', "Mulai Phase 1: Generating draft untuk [{$keyword}]...");
 
-            // ── PHASE 1: LSI/Entity Draft & Links ─────────────────────────────
+                        // ── PHASE 1: LSI/Entity Keywords ─────────────────────────────
+            $lsi = $job->phase_1_lsi;
+            if (!$lsi) {
+                $addLog('info', "Mulai Phase 1: Generating entitas & LSI keywords untuk [{$keyword}]...");
+                $aiService1 = new \App\Services\AIService($tenant, 'default');
+                
+                $sysP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
+                    "You are an Expert SEO Strategist. Generate a list of semantic entities and LSI keywords relevant to '{keyword}'. Return the list as a simple comma-separated string.");
+                $userP1 = "Topic: {$keyword}\nLanguage: {$lang}\nCountry: {$country}";
+                
+                $lsi = $aiService1->generate($sysP1, $userP1);
+                
+                if (!$lsi || mb_strlen(trim($lsi)) < 10) {
+                    throw new \Exception("Phase 1 gagal menghasilkan LSI keywords.");
+                }
+                
+                $job->update(['status' => 'phase_2', 'phase_1_lsi' => $lsi]);
+                $addLog('success', "Phase 1 SELESAI | LSI: " . mb_strlen($lsi) . " karakter");
+                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
+            } else {
+                $addLog('info', "Memulihkan LSI Phase 1 dari sesi sebelumnya...");
+            }
+
+            // ── PHASE 2: Generate Content & Inject Links ─────────────────────────────
             $draft = $job->phase_1_draft;
             if (!$draft) {
-                $addLog('info', "Mulai Phase 1: Generating draft lengkap untuk [{$keyword}]...");
-                $aiService1 = new \App\Services\AIService($tenant, 'default');
+                $addLog('info', "Mulai Phase 2: Generating konten awal untuk [{$keyword}]...");
+                $aiService2 = new \App\Services\AIService($tenant, 'default');
 
                 $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
                     ->with('targetContent')->get();
@@ -456,84 +479,119 @@ class ContentController extends Controller
                     }
                 }
 
-                $sysP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
-                    "You are an Expert SEO Writer writing in {lang}. First, identify semantic entities and LSI keywords for the topic '{keyword}'. Then, write a comprehensive article draft (minimum 1,200 words) using those entities. **Make the LSI keywords bold** in the text. You must also naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Return ONLY the article draft in Markdown.");
-                $userP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_user',
-                    "Write an SEO-optimised comprehensive article in {lang} about: **{keyword}**.\n\nRequirements:\n- Minimum 1,200 words\n- Generate and use LSI/Entity keywords\n- Make all LSI keywords **bold**\n- Use H2 and H3 headings\n- Incorporate seed keyword '{seed_keyword}' naturally\n{$linkInstructions}\nDo NOT output the LSI list separately, just weave everything seamlessly.");
+                $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
+                    "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 800 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Return ONLY the article draft in Markdown.");
+                $userP2 = "Keyword: **{$keyword}**\nSeed: {$seedKeyword}\nLSI Keywords: {$lsi}\n\nRequirements:\n- Minimum 800 words\n- Use H2 and H3 headings\n{$linkInstructions}\nDo NOT output the LSI list separately, just weave everything seamlessly.";
 
-                $sysP1  = strtr($sysP1,  ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
-                $userP1 = strtr($userP1, ['{keyword}' => $keyword, '{seed_keyword}' => $seedKeyword, '{lang}' => $lang, '{country}' => $country]);
-
-                $draft = $aiService1->generate($sysP1, $userP1);
-
-                // ── Push diagnostics to terminal log ──────────────────────────────
-                foreach ($aiService1->getLastDiagnostics() as $diag) {
-                    $icon   = match($diag['status']) { 'success' => '✔', 'failed' => '✘', 'skipped' => '⊘', default => '?' };
-                    $timing = $diag['elapsed_ms'] !== null ? " [{$diag['elapsed_ms']}ms]" : '';
-                    $fmt    = $diag['response_format'] !== 'unknown' ? " | fmt:{$diag['response_format']}" : '';
-                    $len    = $diag['content_length'] !== null ? " | {$diag['content_length']} chars" : '';
-                    $http   = $diag['http_status'] !== null ? " | HTTP {$diag['http_status']}" : '';
-
-                    $statusLine = "  {$icon} [{$diag['provider']}] {$diag['model']}{$timing}{$http}{$fmt}{$len}";
-                    if (!empty($diag['error'])) {
-                        $statusLine .= " → " . $diag['error'];
-                    }
-                    $addLog($diag['status'] === 'success' ? 'success' : ($diag['status'] === 'skipped' ? 'warn' : 'error'), $statusLine);
-
-                    if (!empty($diag['raw_snippet'])) {
-                        $addLog('warn', "  RAW: " . substr($diag['raw_snippet'], 0, 200));
-                    }
-                }
+                $draft = $aiService2->generate($sysP2, $userP2);
 
                 if (!$draft || mb_strlen(trim($draft)) < 300) {
-                    $draftLen = $draft ? mb_strlen(trim($draft)) : 0;
-                    $reason   = $draft === null
-                        ? 'AI return null — semua provider gagal (lihat diagnostik di atas)'
-                        : "Draft terlalu pendek: {$draftLen} karakter (minimum 300)";
-
-                    $job->update(['status' => 'failed', 'error_log' => ['reason' => "Phase 1: {$reason}"]]);
-                    $content->update(['status' => 'failed_cqi']);
-                    $addLog('error', "Phase 1 GAGAL: {$reason}");
-                    return ['success' => false, 'error' => "Phase 1 GAGAL: {$reason}", 'logs' => $logs, 'keyword' => $keyword];
+                    throw new \Exception("Phase 2 gagal menghasilkan draf konten yang valid.");
                 }
 
-                $job->update(['status' => 'phase_2', 'phase_1_draft' => $draft]);
-                $addLog('success', "Phase 1 SELESAI | Draft: " . mb_strlen($draft) . " karakter");
-                
-                // Return early to allow JS to make a new request for the next phase
+                $job->update(['status' => 'phase_3', 'phase_1_draft' => $draft]);
+                $addLog('success', "Phase 2 SELESAI | Draft: " . mb_strlen($draft) . " karakter");
                 return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
             } else {
-                $addLog('info', "Memulihkan Phase 1 Draft dari sesi sebelumnya...");
+                $addLog('info', "Memulihkan Draft Phase 2 dari sesi sebelumnya...");
             }
 
-            // ── PHASE 2: Critical Questions (No CQI) ──────────────────────────
-            // ── PHASE 2: Final Edit + HTML ───────────────────────────
-            $finalBody = $job->phase_2_critique; // Re-use this column for HTML output
+            // ── PHASE 3: Critical Questions ──────────────────────────
+            $critique = $job->phase_2_critique;
+            if (!$critique || !is_array($critique)) {
+                $addLog('info', "Phase 3: Generating Pertanyaan Kritis untuk [{$keyword}]...");
+                $aiService3 = new \App\Services\AIService($tenant, 'default');
+                $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
+                    "You are a strict Senior SEO Content Auditor. Read the draft and generate a list of 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]");
+                $critique = $aiService3->generateJson($sysP3, "Keyword: {$keyword}\n\nDraft:\n{$draft}");
+
+                if (!$critique || !is_array($critique) || (isset($critique['cqi_score']))) {
+                    $critique = ['Apa saja strategi lanjutan yang belum dibahas?', 'Bagaimana cara menghindari kesalahan umum?'];
+                    $addLog('warn', "Phase 3: JSON array gagal di-parse, menggunakan default pertanyaan.");
+                }
+
+                $job->update(['status' => 'phase_4', 'phase_2_critique' => $critique]);
+                $addLog('info', "Phase 3 SELESAI | Dihasilkan " . count($critique) . " Pertanyaan Kritis");
+                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
+            } else {
+                $addLog('info', "Memulihkan Pertanyaan Kritis Phase 3 dari sesi sebelumnya...");
+            }
+
+            // ── PHASE 4: Answer Questions ──────────────────────────────────
+            $answers = $job->phase_4_answers;
+            if (!$answers) {
+                $addLog('info', "Phase 4: Menjawab pertanyaan kritis...");
+                $aiService4 = new \App\Services\AIService($tenant, 'default');
+                $criticalQs = implode("\n- ", is_array($critique) ? $critique : ['Berikan pembahasan lebih mendalam.']);
+                
+                $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
+                    "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions'. Return ONLY the answers in Markdown formatting.");
+                $sysP4 = strtr($sysP4, ['{lang}' => $lang]);
+                $userP4 = "Topic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}";
+
+                $answers = $aiService4->generate($sysP4, $userP4);
+
+                if (!$answers || mb_strlen(trim($answers)) < 100 || str_contains($answers, '{"error"')) {
+                    throw new \Exception("Phase 4 gagal menghasilkan jawaban yang valid.");
+                }
+
+                $job->update(['status' => 'phase_5', 'phase_4_answers' => $answers]);
+                $addLog('success', "Phase 4 SELESAI | Answers: " . mb_strlen($answers) . " karakter");
+                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
+            } else {
+                $addLog('info', "Memulihkan Answers Phase 4 dari sesi sebelumnya...");
+            }
+            
+            // ── PHASE 5: Combine into Extended Content ──────────────────────────────────
+            $combined = $job->phase_5_combined;
+            if (!$combined) {
+                $addLog('info', "Phase 5: Menggabungkan menjadi Extended Content...");
+                $aiService5 = new \App\Services\AIService($tenant, 'default');
+                
+                $sysP5 = \App\Models\SystemSetting::get('ai_prompt_phase5_sys',
+                    "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.");
+                $sysP5 = strtr($sysP5, ['{lang}' => $lang]);
+                $userP5 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}";
+
+                $combined = $aiService5->generate($sysP5, $userP5);
+
+                if (!$combined || mb_strlen(trim($combined)) < 300 || str_contains($combined, '{"error"')) {
+                    throw new \Exception("Phase 5 gagal menghasilkan konten kombinasi yang valid.");
+                }
+
+                $job->update(['status' => 'phase_6', 'phase_5_combined' => $combined]);
+                $addLog('success', "Phase 5 SELESAI | Combined: " . mb_strlen($combined) . " karakter");
+                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
+            } else {
+                $addLog('info', "Memulihkan Extended Content Phase 5 dari sesi sebelumnya...");
+            }
+
+            // ── PHASE 6: HTML Conversion ───────────────────────────
+            $finalBody = $job->phase_6_html;
             if (!$finalBody) {
-                $addLog('info', "Phase 2: Konversi ke HTML & optimasi akhir...");
-                $aiService2 = new \App\Services\AIService($tenant, 'default');
+                $addLog('info', "Phase 6: Konversi ke HTML & optimasi akhir...");
+                $aiService6 = new \App\Services\AIService($tenant, 'default');
 
-                $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
+                $sysP6 = \App\Models\SystemSetting::get('ai_prompt_phase6_sys',
                     "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the comprehensive length.");
-                $sysP2 = strtr($sysP2, ['{lang}' => $lang, '{keyword}' => $keyword]);
-                $userP2 = "Keyword: **{$keyword}**\n\nArticle:\n{$draft}";
+                $sysP6 = strtr($sysP6, ['{lang}' => $lang]);
+                $userP6 = "Keyword: **{$keyword}**\n\nArticle:\n{$combined}";
 
-                $finalBody = $aiService2->generate($sysP2, $userP2);
+                $finalBody = $aiService6->generate($sysP6, $userP6);
                 $finalBody = preg_replace('/^```html|```$/i', '', trim($finalBody)); // Remove markdown HTML blocks if any
 
                 if (!$finalBody || mb_strlen(trim($finalBody)) < 300 || str_contains($finalBody, '{"error"')) {
-                    throw new \Exception("Phase 2 gagal mengkonversi ke HTML dengan valid.");
-                } else {
-                    $addLog('success', "Phase 2 SELESAI | HTML: " . mb_strlen($finalBody) . " karakter");
+                    throw new \Exception("Phase 6 gagal mengkonversi ke HTML dengan valid.");
                 }
 
-                $job->update(['status' => 'phase_3', 'phase_2_critique' => $finalBody]);
+                $job->update(['status' => 'phase_7', 'phase_6_html' => $finalBody]);
+                $addLog('success', "Phase 6 SELESAI | HTML: " . mb_strlen($finalBody) . " karakter");
                 return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
             } else {
-                $addLog('info', "Memulihkan HTML Phase 2 dari sesi sebelumnya...");
+                $addLog('info', "Memulihkan HTML Phase 6 dari sesi sebelumnya...");
             }
 
-            // ── Save to DB & Phase 3 (SEO Meta) ───────────────────────────────
+            // ── Save to DB & Phase 7 (SEO Meta) ───────────────────────────────
             $blogPrefix  = \App\Models\SystemSetting::get('permalink_blog', 'blog');
             $contentHash = hash('sha256', $finalBody);
             
@@ -561,17 +619,17 @@ class ContentController extends Controller
             ]);
             $content->save();
 
-            // ── Phase 3: SEO Meta (non-blocking) ─────────────────────────────
+            // ── Phase 7: SEO Meta (non-blocking) ─────────────────────────────
             try {
-                $aiService3 = new \App\Services\AIService($tenant, 'default');
-                $addLog('info', "Phase 3: Generating SEO Meta...");
+                $aiService7 = new \App\Services\AIService($tenant, 'default');
+                $addLog('info', "Phase 7: Generating SEO Meta...");
                 $metaTitlePrompt = str_replace('{keyword}', $keyword, \App\Models\SystemSetting::get('ai_prompt_meta_title',
                     'Write a highly click-worthy SEO title for "{keyword}". Max 60 chars. Return ONLY the title.'));
                 $metaDescPrompt  = str_replace('{keyword}', $keyword, \App\Models\SystemSetting::get('ai_prompt_meta_description',
                     'Write an engaging SEO meta description for "{keyword}". 150-160 chars with CTA. Return ONLY the description.'));
 
-                $metaTitle = trim($aiService3->generate('You are an expert SEO specialist.', $metaTitlePrompt), " \t\n\r\"'");
-                $metaDesc  = trim($aiService3->generate('You are an expert SEO specialist.', $metaDescPrompt), " \t\n\r\"'");
+                $metaTitle = trim($aiService7->generate('You are an expert SEO specialist.', $metaTitlePrompt), " \t\n\r\"'");
+                $metaDesc  = trim($aiService7->generate('You are an expert SEO specialist.', $metaDescPrompt), " \t\n\r\"'");
 
                 $content->updateSeoMeta([
                     'title'          => $metaTitle ?: $content->title,
@@ -582,12 +640,13 @@ class ContentController extends Controller
                     'og_description' => $metaDesc,
                     'og_image'       => $content->featured_image_url ?: \App\Models\SystemSetting::get('seo_og_image'),
                 ]);
-                $addLog('success', "Phase 3 SELESAI | SEO Meta dibuat: \"{$metaTitle}\"");
+                $addLog('success', "Phase 7 SELESAI | SEO Meta dibuat: \"{$metaTitle}\"");
             } catch (\Exception $e) {
-                $addLog('warn', "Phase 3 SEO Meta gagal (non-fatal): " . $e->getMessage());
+                $addLog('warn', "Phase 7 SEO Meta gagal (non-fatal): " . $e->getMessage());
             }
 
             $addLog('success', "✅ [{$keyword}] GENERATION SELESAI → status: {$targetStatus} | {$contentHash}");
+
 
             return [
                 'success' => true,
@@ -659,7 +718,7 @@ class ContentController extends Controller
             @set_time_limit(120);
         }
 
-        $activeStatuses = ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4'];
+        $activeStatuses = ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6', 'phase_7'];
 
         try {
             $hasJobsInQueue = \Illuminate\Support\Facades\DB::table('jobs')->exists();
