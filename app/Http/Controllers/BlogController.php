@@ -111,8 +111,45 @@ class BlogController extends Controller
 
         // Fetch parent categories or silo blueprint info
         $category = $post->siloBlueprint;
+        
+        $isPreview = false;
 
-        return view('blog.show', compact('post', 'relatedPosts', 'categories', 'category'));
+        return view('blog.show', compact('post', 'relatedPosts', 'categories', 'category', 'isPreview'));
+    }
+
+    /**
+     * Preview a single blog post (bypasses auth and publication status, but adds noindex).
+     */
+    public function preview(string $slug): View
+    {
+        $post = Content::where(function($q) use ($slug) {
+                $q->where('slug', $slug)
+                  ->orWhere('slug', 'LIKE', '%"id":"' . $slug . '"%')
+                  ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%');
+            })->first();
+
+        if (!$post) {
+            abort(404);
+        }
+
+        $relatedPosts = Content::where('silo_blueprint_id', $post->silo_blueprint_id)
+            ->where('id', '!=', $post->id)
+            ->where('status', 'published')
+            ->where('published_at', '<=', now())
+            ->whereNotNull('body_raw')
+            ->orderBy('published_at', 'desc')
+            ->take(3)
+            ->get();
+
+        $categories = SiloBlueprint::withCount(['contents' => function ($query) {
+            $query->where('status', 'published');
+        }])->having('contents_count', '>', 0)->get();
+
+        $category = $post->siloBlueprint;
+        
+        $isPreview = true;
+
+        return view('blog.show', compact('post', 'relatedPosts', 'categories', 'category', 'isPreview'));
     }
 
     /**

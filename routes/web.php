@@ -33,6 +33,7 @@ use App\Models\SystemSetting;
 $blogRoutes = function() {
     Route::get('/', [BlogController::class, 'index'])->name('index');
     Route::get('/category/{slug}', [BlogController::class, 'category'])->name('category');
+    Route::get('/preview/{slug}', [BlogController::class, 'preview'])->name('preview');
     Route::get('/{slug}', [BlogController::class, 'show'])->name('show');
 };
 

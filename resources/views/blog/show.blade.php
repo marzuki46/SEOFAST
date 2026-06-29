@@ -9,7 +9,11 @@
 @section('title', $resolvedTitle)
 @section('meta_description', $postMeta['description'] ?? '')
 @section('canonical_url', $postMeta['canonical'])
-@section('robots_meta', $postMeta['robots'])
+@if(isset($isPreview) && $isPreview)
+    @section('robots_meta', 'noindex, nofollow')
+@else
+    @section('robots_meta', $postMeta['robots'])
+@endif
 @section('og_image', $postMeta['og_image'])
 @section('og_title', $postMeta['og_title'] ?? $resolvedTitle)
 @section('og_description', $postMeta['og_desc'] ?? ($postMeta['description'] ?? ''))
