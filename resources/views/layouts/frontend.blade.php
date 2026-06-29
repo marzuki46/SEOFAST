@@ -158,7 +158,7 @@
     <div class="glow-orb w-[500px] h-[500px] bg-brand-blue bottom-20 right-10"></div>
     
     <!-- Navbar -->
-    <header class="sticky top-0 z-50 glass-nav">
+    <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-50 glass-nav">
         <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center gap-12">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 group">
@@ -201,7 +201,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center gap-4">
                 @if(\App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '1')
                     <div class="relative" x-data="{ langOpen: false }" @click.away="langOpen = false">
                         <button @click="langOpen = !langOpen" aria-label="Toggle Language" aria-expanded="false" :aria-expanded="langOpen.toString()" class="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors bg-white/50 px-2 py-1.5 rounded-lg border border-slate-200 shadow-sm">
@@ -252,7 +252,64 @@
                     </a>
                 @endif
             </div>
+
+            <!-- Mobile menu button -->
+            <div class="md:hidden flex items-center gap-4">
+                <button @click="mobileMenuOpen = !mobileMenuOpen" aria-label="Toggle mobile menu" class="text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg bg-slate-100/50">
+                    <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    <svg x-show="mobileMenuOpen" style="display:none;" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
         </nav>
+
+        <!-- Mobile Menu Panel -->
+        <div x-show="mobileMenuOpen" x-transition.opacity style="display:none;" class="md:hidden absolute top-20 left-0 w-full bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-xl">
+            <div class="px-4 pt-4 pb-6 space-y-1 max-h-[calc(100vh-5rem)] overflow-y-auto">
+                @if($primaryMenu && $primaryMenu->items->isNotEmpty())
+                    @foreach($primaryMenu->items as $item)
+                        @if($item->children->count() > 0)
+                            <div x-data="{ childOpen: false }" class="py-1">
+                                <button @click="childOpen = !childOpen" class="flex items-center justify-between w-full px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-brand-indigo rounded-lg transition-colors">
+                                    {{ $item->title }}
+                                    <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': childOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                                <div x-show="childOpen" x-collapse class="mt-1 pl-4 space-y-1">
+                                    @foreach($item->children as $child)
+                                        <a href="{{ url($child->url) }}" class="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-brand-indigo rounded-lg transition-colors">{{ $child->title }}</a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ url($item->url) }}" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-brand-indigo rounded-lg transition-colors">{{ $item->title }}</a>
+                        @endif
+                    @endforeach
+                @else
+                    <a href="{{ route('home') }}" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-brand-indigo rounded-lg transition-colors">Home</a>
+                    <a href="{{ route('blog.index') }}" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-brand-indigo rounded-lg transition-colors">Blog</a>
+                @endif
+                
+                <div class="pt-6 mt-6 border-t border-slate-200/60 flex flex-col gap-3">
+                    @auth('web')
+                        <a href="{{ route('dashboard') }}" class="w-full text-center text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-5 py-3 rounded-xl transition-all">
+                            Admin Panel
+                        </a>
+                    @endauth
+                    @auth('buyer')
+                        <a href="{{ route('buyer.dashboard') }}" class="w-full text-center text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-5 py-3 rounded-xl transition-all">
+                            Dashboard
+                        </a>
+                    @endauth
+                    @if(!auth('web')->check() && !auth('buyer')->check())
+                        <a href="{{ route('buyer.login') }}" class="w-full text-center text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-5 py-3 rounded-xl transition-all">
+                            Sign In
+                        </a>
+                        <a href="{{ route('buyer.register') }}" class="w-full text-center text-sm font-semibold text-white bg-gradient-to-r from-brand-indigo to-brand-purple hover:opacity-90 px-5 py-3 rounded-xl shadow-md">
+                            Get Started
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
     </header>
 
     <!-- Main Content Area -->
