@@ -341,7 +341,32 @@ class ContentController extends Controller
         @set_time_limit(300);
         @ini_set('memory_limit', '512M');
 
-        try {
+        // Gunakan StreamedResponse untuk mencegah Cloudflare 524 Timeout.
+        // Cloudflare akan memutus koneksi jika tidak ada data yang dikirim selama 100 detik.
+        // Dengan StreamedResponse, kita mengirim HTTP Header dan satu byte spasi terlebih dahulu.
+        return response()->stream(function () use ($request) {
+            // Kirim spasi untuk memulai response body dan mencegah timeout
+            echo " ";
+            if (ob_get_level() > 0) ob_flush();
+            flush();
+
+            // Eksekusi proses berat
+            $result = $this->_doGenerateSingle($request);
+
+            // Kirim JSON aslinya (spasi di awal akan diabaikan oleh JSON.parse di frontend)
+            echo json_encode($result);
+            if (ob_get_level() > 0) ob_flush();
+            flush();
+        }, 200, [
+            'Content-Type'      => 'application/json',
+            'X-Accel-Buffering' => 'no', // Disable Nginx buffering
+            'Cache-Control'     => 'no-cache',
+            'Connection'        => 'keep-alive',
+        ]);
+    }
+
+    private function _doGenerateSingle(Request $request)
+    {
             $request->validate([
                 'content_id'    => 'required|exists:contents,id',
                 'job_id'        => 'required|exists:ai_generation_jobs,id',
@@ -359,7 +384,7 @@ class ContentController extends Controller
             };
 
             if (!$content || !$job) {
-                return response()->json(['success' => false, 'error' => 'Content or Job not found.', 'logs' => []]);
+                return ['success' => false, 'error' => 'Content or Job not found.', 'logs' => []];
             }
 
             $keyword     = $content->target_keyword;
@@ -411,7 +436,7 @@ class ContentController extends Controller
                 $job->update(['status' => 'failed', 'error_log' => ['reason' => "Phase 1: {$reason}"]]);
                 $content->update(['status' => 'failed_cqi']);
                 $addLog('error', "Phase 1 GAGAL: {$reason}");
-                return response()->json(['success' => false, 'error' => "Phase 1 GAGAL: {$reason}", 'logs' => $logs, 'keyword' => $keyword]);
+                return ['success' => false, 'error' => "Phase 1 GAGAL: {$reason}", 'logs' => $logs, 'keyword' => $keyword];
             }
 
 
@@ -544,14 +569,14 @@ class ContentController extends Controller
 
             $addLog('success', "✅ [{$keyword}] SELESAI → status: {$targetStatus} | CQI: {$cqiScore}/100 | {$contentHash}");
 
-            return response()->json([
-                'success'  => true,
-                'keyword'  => $keyword,
+            return [
+                'success' => true,
+                'keyword' => $keyword,
                 'title'    => $content->title,
                 'cqi'      => $cqiScore,
                 'status'   => $targetStatus,
                 'logs'     => $logs,
-            ]);
+            ];
 
         } catch (\Throwable $e) {
             if (isset($job) && $job) {
@@ -564,10 +589,10 @@ class ContentController extends Controller
             $errorMsg = "FATAL ERROR: " . $e->getMessage() . " on line " . $e->getLine();
             if (isset($addLog)) {
                 $addLog('error', $errorMsg);
-                return response()->json(['success' => false, 'keyword' => $keyword ?? 'Unknown', 'error' => $errorMsg, 'logs' => $logs]);
+                return ['success' => false, 'keyword' => $keyword ?? 'Unknown', 'error' => $errorMsg, 'logs' => $logs];
             }
             
-            return response()->json(['success' => false, 'error' => $errorMsg, 'logs' => []]);
+            return ['success' => false, 'error' => $errorMsg, 'logs' => []];
         }
     }
 
