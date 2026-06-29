@@ -13,11 +13,8 @@
         </div>
         <div class="flex items-center gap-3">
             @if($activeJobs->count() > 0)
-            <button type="button" id="startAiWorker" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition shadow-lg shadow-emerald-500/20">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
-                </svg>
-                <span id="startAiWorkerText">Start AI Worker ({{ $activeJobs->whereIn('status', ['pending', 'processing'])->count() }} jobs)</span>
+            <button id="startAiWorker" class="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+                <span id="startAiWorkerText"><span class="flex items-center gap-2"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Start AI Worker ({{ $activeJobs->whereIn('status', ['pending', 'processing'])->count() }} jobs)</span></span>
             </button>
             @endif
             <a href="{{ route('admin.content.prapost') }}" class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition">
@@ -193,12 +190,21 @@
         function setWorkingUI(active) {
             if (!btn) return;
             if (active) {
-                btn.className = btn.className.replace('from-emerald-500 to-emerald-600','from-amber-500 to-amber-600');
-                btnText.textContent = '⏳ AI Worker Running... (jangan tutup halaman ini)';
+                btn.className = btn.className.replace('from-emerald-500 to-emerald-600', 'from-rose-500 to-rose-600');
+                btn.className = btn.className.replace('hover:from-emerald-600 hover:to-emerald-700', 'hover:from-rose-600 hover:to-rose-700');
+                btn.className = btn.className.replace('shadow-emerald-500/20', 'shadow-rose-500/20');
+                btnText.innerHTML = '<span class="flex items-center gap-2"><svg class="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Pause / Stop Worker</span>';
                 termTitle.textContent = 'Live AI Pipeline Log — Running';
             } else {
-                btn.className = btn.className.replace('from-amber-500 to-amber-600','from-emerald-500 to-emerald-600');
-                btnText.textContent = 'Start AI Worker ({{ $activeJobs->whereIn('status', ['pending', 'processing'])->count() }} jobs)';
+                btn.className = btn.className.replace('from-rose-500 to-rose-600', 'from-emerald-500 to-emerald-600');
+                btn.className = btn.className.replace('hover:from-rose-600 hover:to-rose-700', 'hover:from-emerald-600 hover:to-emerald-700');
+                btn.className = btn.className.replace('shadow-rose-500/20', 'shadow-emerald-500/20');
+                
+                // Fallback for previous amber classes just in case
+                btn.className = btn.className.replace('from-amber-500 to-amber-600', 'from-emerald-500 to-emerald-600');
+                
+                let pendingCount = (typeof jobQueue !== 'undefined') ? jobQueue.length : {{ $activeJobs->whereIn('status', ['pending', 'processing'])->count() }};
+                btnText.innerHTML = `<span class="flex items-center gap-2"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Start AI Worker (${pendingCount} jobs)</span>`;
                 termTitle.textContent = 'AI Pipeline Log — Idle';
                 termDot.classList.replace('bg-emerald-400','bg-slate-500');
                 termDot.classList.remove('animate-pulse');
@@ -285,8 +291,7 @@
                     isWorking = false;
                     sessionStorage.setItem('ai_worker_running', 'false');
                     setWorkingUI(false);
-                    appendLog('warn', 'Worker dihentikan secara manual.');
-                    setTimeout(() => window.location.reload(), 700);
+                    appendLog('warn', '⏸️ Worker di-pause. Proses yang sedang berjalan saat ini akan diselesaikan, lalu berhenti.');
                     return;
                 }
 
