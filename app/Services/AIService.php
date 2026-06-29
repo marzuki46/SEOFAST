@@ -618,6 +618,7 @@ class AIService
             $fullContent = '';
             $lastUsage   = [];
             $lastModel   = $options['model'] ?? $this->config['model'];
+            $hasReasoningStarted = false;
 
             foreach (explode("\n", $rawBody) as $line) {
                 $line = trim($line);
@@ -630,7 +631,21 @@ class AIService
 
                 // Accumulate delta content (streaming format)
                 $delta = $chunk['choices'][0]['delta']['content'] ?? null;
-                if ($delta !== null) {
+                $reasoning = $chunk['choices'][0]['delta']['reasoning_content'] ?? null;
+                
+                if ($reasoning !== null && $reasoning !== '') {
+                    if (!$hasReasoningStarted) {
+                        $fullContent .= "<think>\n";
+                        $hasReasoningStarted = true;
+                    }
+                    $fullContent .= $reasoning;
+                }
+
+                if ($delta !== null && $delta !== '') {
+                    if ($hasReasoningStarted) {
+                        $fullContent .= "\n</think>\n\n";
+                        $hasReasoningStarted = false;
+                    }
                     $fullContent .= $delta;
                 }
 
@@ -642,6 +657,10 @@ class AIService
 
                 if (!empty($chunk['usage'])) $lastUsage = $chunk['usage'];
                 if (!empty($chunk['model'])) $lastModel = $chunk['model'];
+            }
+            
+            if ($hasReasoningStarted) {
+                $fullContent .= "\n</think>\n\n";
             }
 
             if (!empty($fullContent)) {
