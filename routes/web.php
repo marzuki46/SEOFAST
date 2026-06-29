@@ -103,22 +103,29 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['auth.admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/fix-drafts', function() {
-            $jobs = App\Models\AiGenerationJob::withoutGlobalScopes()->where('status', 'completed')->get();
+            $contents = App\Models\Content::withoutGlobalScopes()->where('status', 'draft')->get();
             $count = 0;
-            foreach($jobs as $job) {
-                if ($job->phase_4_final && !str_contains($job->phase_4_final, '<p>')) {
+            foreach($contents as $content) {
+                $content->update(['status' => 'blueprint', 'body_raw' => null]);
+                
+                $job = App\Models\AiGenerationJob::withoutGlobalScopes()->where('content_id', $content->id)->first();
+                if ($job) {
                     $job->update([
-                        'phase_3_expanded' => null, 
-                        'phase_4_final' => null, 
-                        'status' => 'failed'
+                        'status' => 'pending',
+                        'phase_1_draft' => null,
+                        'phase_1_lsi' => null,
+                        'phase_2_critique' => null,
+                        'phase_3_expanded' => null,
+                        'phase_4_answers' => null,
+                        'phase_4_final' => null,
+                        'phase_5_combined' => null,
+                        'phase_6_html' => null,
+                        'error_log' => null
                     ]);
-                    if ($job->content) {
-                        $job->content->update(['status' => 'blueprint']);
-                    }
-                    $count++;
                 }
+                $count++;
             }
-            return "Selesai mereset {$count} draft yang corrupt kembali ke Keywords.";
+            return "Selesai mereset TOTAL {$count} artikel dari Draft kembali ke Keywords beserta seluruh log AI-nya. Silakan mulai ulang dari Phase 1.";
         });
 
         // Users Management
