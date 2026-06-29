@@ -352,23 +352,95 @@
                                         <label class="block text-base font-semibold text-slate-800 mb-1.5">9Router API Key</label>
                                         <input type="password" name="9router_api_key" value="{{ $settings['ai']['9router_api_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="sk-or-...">
                                     </div>
-                                    <div class="md:col-span-2 border-t border-slate-100 pt-4 mt-2">
-                                        <h4 class="text-sm font-bold text-slate-700 mb-3">Custom Endpoint Configuration (Local LLM / LM Studio / Ollama)</h4>
+                                    <div class="md:col-span-2 border-t border-slate-100 pt-4 mt-2" x-data="customModelSync()">
+                                        <h4 class="text-sm font-bold text-slate-700 mb-3">Custom Endpoint Configuration (Local LLM / Proxy)</h4>
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                             <div>
                                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Custom API Base URL</label>
-                                                <input type="text" name="custom_api_base" value="{{ $settings['ai']['custom_api_base'] ?? 'http://localhost:20128/v1' }}" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="http://localhost:20128/v1">
+                                                <input type="text" x-model="apiBase" name="custom_api_base" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="http://localhost:20128/v1">
                                             </div>
                                             <div>
                                                 <label class="block text-xs font-semibold text-slate-600 mb-1">Custom API Key (Optional)</label>
-                                                <input type="password" name="custom_api_key" value="{{ $settings['ai']['custom_api_key'] ?? '' }}" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="kosongkan jika tidak ada">
+                                                <input type="password" x-model="apiKey" name="custom_api_key" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="kosongkan jika tidak ada">
                                             </div>
-                                            <div>
-                                                <label class="block text-xs font-semibold text-slate-600 mb-1">Custom Model Name</label>
-                                                <input type="text" name="custom_model" value="{{ $settings['ai']['custom_model'] ?? 'custom-model' }}" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="contoh: llama-3-8b">
+                                            <div class="relative">
+                                                <label class="block text-xs font-semibold text-slate-600 mb-1 flex justify-between">
+                                                    Custom Model Name
+                                                    <button type="button" @click="syncModels" :disabled="isSyncing" class="text-[10px] text-brand-indigo hover:underline flex items-center gap-1">
+                                                        <span x-show="isSyncing" class="animate-spin inline-block w-3 h-3 border-2 border-current border-t-transparent text-brand-indigo rounded-full"></span>
+                                                        <span x-text="isSyncing ? 'Syncing...' : 'Sync Models'"></span>
+                                                    </button>
+                                                </label>
+                                                
+                                                <input type="text" x-model="modelName" name="custom_model" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="Pilih atau ketik model...">
+                                                
+                                                <!-- Dropdown hasil sync -->
+                                                <div x-show="models.length > 0" @click.away="models = []" class="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl" style="display: none;">
+                                                    <div class="p-2 bg-slate-50 border-b border-slate-200 text-xs text-slate-500 flex justify-between items-center">
+                                                        <span>Pilih Model Aktif:</span>
+                                                        <button type="button" @click="models = []" class="hover:text-red-500">Tutup</button>
+                                                    </div>
+                                                    <template x-for="m in models" :key="m.id">
+                                                        <div @click="selectModel(m.id)" class="px-3 py-2 text-sm text-slate-700 hover:bg-brand-indigo hover:text-white cursor-pointer border-b border-slate-100 last:border-0 transition-colors">
+                                                            <div class="font-medium" x-text="m.id"></div>
+                                                            <div class="text-[10px] opacity-75" x-show="m.owned_by" x-text="'By: ' + m.owned_by"></div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                                <p x-show="syncError" x-text="syncError" class="text-xs text-red-500 mt-1"></p>
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <!-- AlpineJS Script for Model Sync -->
+                                    <script>
+                                        document.addEventListener('alpine:init', () => {
+                                            Alpine.data('customModelSync', () => ({
+                                                apiBase: '{{ $settings['ai']['custom_api_base'] ?? 'http://localhost:20128/v1' }}',
+                                                apiKey: '{{ $settings['ai']['custom_api_key'] ?? '' }}',
+                                                modelName: '{{ $settings['ai']['custom_model'] ?? 'custom-model' }}',
+                                                isSyncing: false,
+                                                models: [],
+                                                syncError: '',
+                                                
+                                                async syncModels() {
+                                                    this.isSyncing = true;
+                                                    this.syncError = '';
+                                                    this.models = [];
+                                                    
+                                                    try {
+                                                        const response = await fetch('{{ route('admin.settings.ai.sync_models') }}', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Content-Type': 'application/json',
+                                                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                            },
+                                                            body: JSON.stringify({
+                                                                base: this.apiBase,
+                                                                key: this.apiKey
+                                                            })
+                                                        });
+                                                        
+                                                        const result = await response.json();
+                                                        if (result.success && result.models) {
+                                                            this.models = result.models;
+                                                        } else {
+                                                            this.syncError = result.error || 'Gagal mengambil model.';
+                                                        }
+                                                    } catch (e) {
+                                                        this.syncError = 'Koneksi ke server gagal.';
+                                                    } finally {
+                                                        this.isSyncing = false;
+                                                    }
+                                                },
+                                                
+                                                selectModel(id) {
+                                                    this.modelName = id;
+                                                    this.models = [];
+                                                }
+                                            }));
+                                        });
+                                    </script>
                                 </div>
                             </div>
                         @elseif($key === 'payment')

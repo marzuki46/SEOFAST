@@ -230,6 +230,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\SystemSettingController::class, 'index'])->name('index');
             Route::post('/', [\App\Http\Controllers\Admin\SystemSettingController::class, 'update'])->name('update');
             Route::post('/clear-cache', [\App\Http\Controllers\Admin\SystemSettingController::class, 'clearCache'])->name('clear_cache');
+            Route::post('/ai/sync-models', [\App\Http\Controllers\Admin\SystemSettingController::class, 'syncModels'])->name('ai.sync_models');
         });
 
         // Enterprise SEO Settings

@@ -69,4 +69,29 @@ class SystemSettingController extends Controller
 
         return back()->with('success', 'Semua cache sistem berhasil dibersihkan.');
     }
+
+    public function syncModels(Request $request)
+    {
+        $base = $request->input('base', 'https://api.openai.com/v1');
+        $key = $request->input('key', '');
+        
+        try {
+            $response = \Illuminate\Support\Facades\Http::withToken($key)
+                ->timeout(15)
+                ->get(rtrim($base, '/') . '/models');
+            
+            if ($response->ok()) {
+                $data = $response->json();
+                $models = $data['data'] ?? $data;
+                // Some providers return objects in 'data', others just array of strings
+                return response()->json([
+                    'success' => true,
+                    'models' => $models
+                ]);
+            }
+            return response()->json(['success' => false, 'error' => 'API Error: ' . $response->body()]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
 }
