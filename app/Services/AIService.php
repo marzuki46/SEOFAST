@@ -13,11 +13,24 @@ class AIService
     private array $config;
     private string $role;
 
+    /**
+     * Stores diagnostic information from the last generate() call.
+     * Each entry: ['provider', 'model', 'status', 'http_status', 'elapsed_ms',
+     *              'response_format', 'content_length', 'raw_snippet', 'error']
+     */
+    private array $lastDiagnostics = [];
+
     public function __construct(?Tenant $tenant, string $role = 'default')
     {
         $this->tenant = $tenant;
         $this->role = $role;
         $this->config = $this->loadConfig();
+    }
+
+    /** Return diagnostics from the last generate() call. */
+    public function getLastDiagnostics(): array
+    {
+        return $this->lastDiagnostics;
     }
 
     /**
@@ -102,6 +115,7 @@ class AIService
     public function generate(string $systemPrompt, string $userPrompt, array $options = []): ?string
     {
         $startTime = microtime(true);
+        $this->lastDiagnostics = []; // reset for this call
 
         // Log debug info
         $debugData = [
@@ -134,6 +148,19 @@ class AIService
         $lastError = null;
 
         foreach ($providersToTry as $currentProvider) {
+            $attemptStart = microtime(true);
+            $diag = [
+                'provider'        => $currentProvider,
+                'model'           => $this->config['model'],
+                'status'          => 'pending',
+                'http_status'     => null,
+                'elapsed_ms'      => null,
+                'response_format' => 'unknown',
+                'content_length'  => null,
+                'raw_snippet'     => null,
+                'error'           => null,
+            ];
+
             try {
                 // If falling back, reconfigure the provider and API key
                 if ($currentProvider !== $primaryProvider) {
@@ -157,38 +184,65 @@ class AIService
                         default    => null,
                     } ?: config('ai.openai_api_key');
                     
-                    // Skip provider if API key is clearly missing (unless custom/9router which might bypass)
+                    $diag['model'] = $this->config['model'];
+
+                    // Skip provider if API key is clearly missing
                     if (empty($this->config['apiKey']) && !in_array($currentProvider, ['custom', '9router'])) {
+                        $diag['status'] = 'skipped';
+                        $diag['error']  = 'API key missing';
+                        $this->lastDiagnostics[] = $diag;
                         continue;
                     }
                 }
 
                 $response = match ($this->config['provider']) {
-                    'openai' => $this->callOpenAI($systemPrompt, $userPrompt, $options),
-                    'gemini' => $this->callGemini($systemPrompt, $userPrompt, $options),
-                    'claude' => $this->callClaude($systemPrompt, $userPrompt, $options),
+                    'openai'   => $this->callOpenAI($systemPrompt, $userPrompt, $options),
+                    'gemini'   => $this->callGemini($systemPrompt, $userPrompt, $options),
+                    'claude'   => $this->callClaude($systemPrompt, $userPrompt, $options),
                     'deepseek' => $this->callDeepSeek($systemPrompt, $userPrompt, $options),
-                    '9router' => $this->call9Router($systemPrompt, $userPrompt, $options),
-                    'custom' => $this->callCustom($systemPrompt, $userPrompt, $options),
-                    default => throw new \InvalidArgumentException("Unknown provider: {$this->config['provider']}"),
+                    '9router'  => $this->call9Router($systemPrompt, $userPrompt, $options),
+                    'custom'   => $this->callCustom($systemPrompt, $userPrompt, $options),
+                    default    => throw new \InvalidArgumentException("Unknown provider: {$this->config['provider']}"),
                 };
+
+                $elapsed = round((microtime(true) - $attemptStart) * 1000);
+                $content = $response['content'] ?? '';
+
+                $diag['status']         = 'success';
+                $diag['elapsed_ms']     = $elapsed;
+                $diag['content_length'] = mb_strlen($content);
+                $diag['http_status']    = $response['_http_status'] ?? 200;
+                $diag['response_format']= $response['_format'] ?? 'json';
+                $this->lastDiagnostics[] = $diag;
 
                 $this->logUsage($systemPrompt, $userPrompt, $response, $startTime);
 
-                return $response['content'] ?? null;
+                return $content ?: null;
 
             } catch (\Exception $e) {
+                $elapsed  = round((microtime(true) - $attemptStart) * 1000);
                 $lastError = $e->getMessage();
+
+                $diag['status']     = 'failed';
+                $diag['elapsed_ms'] = $elapsed;
+                $diag['error']      = $lastError;
+                // Capture raw snippet if stored in exception data
+                if ($e instanceof \RuntimeException && str_contains($lastError, 'RAW:')) {
+                    [$msg, $raw] = explode('RAW:', $lastError, 2);
+                    $diag['error']       = trim($msg);
+                    $diag['raw_snippet'] = trim(substr($raw, 0, 300));
+                }
+                $this->lastDiagnostics[] = $diag;
+
                 Log::warning("AI generation failed with {$currentProvider}, trying next fallback...", [
                     'tenant_id' => $this->tenant?->id ?? (\App\Models\Tenant::first()?->id ?? 1),
-                    'provider' => $currentProvider,
-                    'error' => $lastError,
+                    'provider'  => $currentProvider,
+                    'error'     => $lastError,
                 ]);
-                // Continue to the next provider in the fallback list
             }
         }
 
-        // If ALL providers failed
+        // All providers failed
         Log::error("ALL AI providers failed. Last error: {$lastError}");
         if (function_exists('session') && request()->hasSession()) {
             session()->flash('ai_error', "All AI providers failed. Last error: {$lastError}");
@@ -456,13 +510,18 @@ class AIService
         $body = $response->json();
 
         if (!$response->successful()) {
-            throw new \RuntimeException($body['error']['message'] ?? '9Router API error');
+            throw new \RuntimeException(
+                ($body['error']['message'] ?? '9Router API error') .
+                ' RAW:' . substr($response->body(), 0, 200)
+            );
         }
 
         return [
-            'content' => $body['choices'][0]['message']['content'],
-            'usage' => $body['usage'] ?? [],
-            'model' => $body['model'] ?? ($options['model'] ?? $this->config['model']),
+            'content'      => $body['choices'][0]['message']['content'],
+            'usage'        => $body['usage'] ?? [],
+            'model'        => $body['model'] ?? ($options['model'] ?? $this->config['model']),
+            '_format'      => 'json',
+            '_http_status' => $response->status(),
         ];
     }
 
@@ -532,32 +591,43 @@ class AIService
 
             if (!empty($fullContent)) {
                 return [
-                    'content' => $fullContent,
-                    'usage'   => $lastUsage,
-                    'model'   => $lastModel,
+                    'content'      => $fullContent,
+                    'usage'        => $lastUsage,
+                    'model'        => $lastModel,
+                    '_format'      => 'sse',
+                    '_http_status' => $response->status(),
                 ];
             }
+
+            // SSE detected but no content parsed — throw with raw snippet
+            throw new \RuntimeException(
+                'Custom API returned SSE but no content could be parsed. RAW:' . substr($rawBody, 0, 300)
+            );
         }
 
         // ── Standard JSON response ────────────────────────────────────────────
-        // Strip any trailing "data: [DONE]" just in case
         $rawBody = preg_replace('/data:\s*\[DONE\]\s*$/i', '', trim($rawBody));
         $body = json_decode($rawBody, true);
 
         if (!$response->successful()) {
             throw new \RuntimeException(
-                (is_array($body) ? ($body['error']['message'] ?? '') : '') ?: 'Custom API error (HTTP ' . $response->status() . ')'
+                ((is_array($body) ? ($body['error']['message'] ?? '') : '') ?: 'Custom API error (HTTP ' . $response->status() . ')') .
+                ' RAW:' . substr($rawBody, 0, 200)
             );
         }
 
         if (!is_array($body)) {
-            throw new \RuntimeException('Custom API returned non-JSON response. Raw: ' . substr($rawBody, 0, 200));
+            throw new \RuntimeException(
+                'Custom API returned non-JSON response. RAW:' . substr($rawBody, 0, 300)
+            );
         }
 
         return [
-            'content' => $body['choices'][0]['message']['content'] ?? '',
-            'usage'   => $body['usage'] ?? [],
-            'model'   => $body['model'] ?? ($options['model'] ?? $this->config['model']),
+            'content'      => $body['choices'][0]['message']['content'] ?? '',
+            'usage'        => $body['usage'] ?? [],
+            'model'        => $body['model'] ?? ($options['model'] ?? $this->config['model']),
+            '_format'      => 'json',
+            '_http_status' => $response->status(),
         ];
     }
 

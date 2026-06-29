@@ -382,12 +382,37 @@ class ContentController extends Controller
 
             $draft = $aiService1->generate($sysP1, $userP1);
 
+            // ── Push diagnostics to terminal log ──────────────────────────────
+            foreach ($aiService1->getLastDiagnostics() as $diag) {
+                $icon   = match($diag['status']) { 'success' => '✔', 'failed' => '✘', 'skipped' => '⊘', default => '?' };
+                $timing = $diag['elapsed_ms'] !== null ? " [{$diag['elapsed_ms']}ms]" : '';
+                $fmt    = $diag['response_format'] !== 'unknown' ? " | fmt:{$diag['response_format']}" : '';
+                $len    = $diag['content_length'] !== null ? " | {$diag['content_length']} chars" : '';
+                $http   = $diag['http_status'] !== null ? " | HTTP {$diag['http_status']}" : '';
+
+                $statusLine = "  {$icon} [{$diag['provider']}] {$diag['model']}{$timing}{$http}{$fmt}{$len}";
+                if (!empty($diag['error'])) {
+                    $statusLine .= " → " . $diag['error'];
+                }
+                $addLog($diag['status'] === 'success' ? 'success' : ($diag['status'] === 'skipped' ? 'warn' : 'error'), $statusLine);
+
+                if (!empty($diag['raw_snippet'])) {
+                    $addLog('warn', "  RAW: " . substr($diag['raw_snippet'], 0, 200));
+                }
+            }
+
             if (!$draft || mb_strlen(trim($draft)) < 300) {
-                $job->update(['status' => 'failed', 'error_log' => ['reason' => 'Phase 1: AI returned empty or too-short draft. Check API key/quota.']]);
+                $draftLen = $draft ? mb_strlen(trim($draft)) : 0;
+                $reason   = $draft === null
+                    ? 'AI return null — semua provider gagal (lihat diagnostik di atas)'
+                    : "Draft terlalu pendek: {$draftLen} karakter (minimum 300)";
+
+                $job->update(['status' => 'failed', 'error_log' => ['reason' => "Phase 1: {$reason}"]]);
                 $content->update(['status' => 'failed_cqi']);
-                $addLog('error', "Phase 1 GAGAL: AI tidak menghasilkan draft. Periksa API key.");
+                $addLog('error', "Phase 1 GAGAL: {$reason}");
                 return response()->json(['success' => false, 'logs' => $logs, 'keyword' => $keyword]);
             }
+
 
             $job->update(['status' => 'phase_2', 'phase_1_draft' => $draft]);
             $addLog('success', "Phase 1 SELESAI | Draft: " . mb_strlen($draft) . " karakter");
