@@ -590,15 +590,24 @@ class ContentController extends Controller
                 $sysP6 = \App\Models\SystemSetting::get('ai_prompt_phase6_sys',
                     "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the comprehensive length.");
                 $sysP6 = strtr($sysP6, ['{lang}' => $lang]);
+                
+                // CRITICAL: Force the AI to wrap output to prevent conversational filler from leaking
+                $sysP6 .= "\n\nCRITICAL REQUIREMENT: You MUST wrap your ENTIRE final HTML output exactly inside <article_body> and </article_body> tags. Do not include any explanations outside these tags.";
+                
                 $userP6 = "Keyword: **{$keyword}**\n\nArticle:\n{$combined}";
 
                 $finalBody = $aiService6->generate($sysP6, $userP6);
                 if ($finalBody) {
                     $finalBody = preg_replace('/^```html|```$/mi', '', trim($finalBody)); // Remove markdown HTML blocks if any
-                    // Aggressive cleanup: Extract only the content from the first HTML tag to the last closing tag
-                    // This removes conversational filler like "Here is the output:" or "Drafting the content:"
-                    if (preg_match('/<[a-z][\s\S]*>/i', $finalBody, $matches)) {
-                        $finalBody = $matches[0];
+                    
+                    // Extract strictly from <article_body> if present
+                    if (preg_match('/<article_body>([\s\S]*?)<\/article_body>/i', $finalBody, $matches)) {
+                        $finalBody = trim($matches[1]);
+                    } else {
+                        // Fallback extraction if AI ignored the wrap instruction
+                        if (preg_match('/<(?:h[1-3]|p|div|section)[\s\S]*>/i', $finalBody, $matches)) {
+                            $finalBody = $matches[0];
+                        }
                     }
                 }
 
