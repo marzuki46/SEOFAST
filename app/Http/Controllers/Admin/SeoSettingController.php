@@ -16,6 +16,8 @@ class SeoSettingController extends Controller
         // Settings are grouped by tabs in the UI
         $settings = [
             'seo_global' => SystemSetting::group('seo_global'),
+            'seo_multilingual' => SystemSetting::group('seo_multilingual'),
+            'seo_ai_pipeline' => SystemSetting::group('seo_ai_pipeline'),
             'seo_ai_prompt' => SystemSetting::group('seo_ai_prompt'),
             'seo_schema' => SystemSetting::group('seo_schema'),
             'seo_indexing' => SystemSetting::group('seo_indexing'),

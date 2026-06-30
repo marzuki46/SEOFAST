@@ -17,6 +17,7 @@
             $tabs = [
                 'global' => 'Global SEO',
                 'multilingual' => 'Multilingual (Bilingual)',
+                'ai_pipeline' => 'AI Pipeline Configuration',
                 'ai_prompt' => 'AI Prompt Settings',
                 'schema' => 'Schema Markup',
                 'indexing' => 'Indexing & Crawler',
@@ -181,20 +182,123 @@
                                 </div>
                             </div>
                             
-                        @elseif($key === 'ai_prompt')
-                            <div class="grid grid-cols-1 gap-6">
-                                <div class="border-b border-slate-200 pb-6">
-                                    <h4 class="text-lg font-bold mb-4">Phase 7: SEO Meta</h4>
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Title Prompt Template</label>
-                                        <textarea name="ai_prompt_meta_title" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Write a highly click-worthy SEO title...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_title'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_title', 'Write a highly click-worthy SEO title for "{keyword}". Max 60 chars. Return ONLY the title.') }}</textarea>
-                                        <p class="text-xs text-slate-500 mt-1">Variables allowed: <code class="bg-slate-100 px-1 rounded">{keyword}</code>, <code class="bg-slate-100 px-1 rounded">{content_title}</code></p>
+                        @elseif($key === 'ai_pipeline')
+                            <div class="space-y-6 w-full">
+                                <h3 class="text-lg font-bold border-b pb-2">AI Pipeline Configuration</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Default AI Provider</label>
+                                        <select name="ai_provider" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['seo_ai_pipeline']['ai_provider'] ?? \App\Models\SystemSetting::get('ai_provider')) == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint (OpenAI Compatible)' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
-                                    <div class="mt-4">
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Description Prompt Template</label>
-                                        <textarea name="ai_prompt_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Write an engaging SEO meta description...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_description'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_description', 'Write an engaging SEO meta description for "{keyword}". 150-160 chars with CTA. Return ONLY the description.') }}</textarea>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 1: Entities & LSI Keywords</label>
+                                        <select name="ai_provider_1" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['seo_ai_pipeline']['ai_provider_1'] ?? \App\Models\SystemSetting::get('ai_provider_1')) == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 2: Content Draft</label>
+                                        <select name="ai_provider_2" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['seo_ai_pipeline']['ai_provider_2'] ?? \App\Models\SystemSetting::get('ai_provider_2')) == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 3: Critical Questions</label>
+                                        <select name="ai_provider_3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['seo_ai_pipeline']['ai_provider_3'] ?? \App\Models\SystemSetting::get('ai_provider_3')) == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 4: Answer Questions</label>
+                                        <select name="ai_provider_4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['seo_ai_pipeline']['ai_provider_4'] ?? \App\Models\SystemSetting::get('ai_provider_4')) == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 5: Combine & Extend Content</label>
+                                        <select name="ai_provider_5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['seo_ai_pipeline']['ai_provider_5'] ?? \App\Models\SystemSetting::get('ai_provider_5')) == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 6: HTML Conversion</label>
+                                        <select name="ai_provider_6" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['seo_ai_pipeline']['ai_provider_6'] ?? \App\Models\SystemSetting::get('ai_provider_6')) == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 7: SEO Meta</label>
+                                        <select name="ai_provider_7" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['seo_ai_pipeline']['ai_provider_7'] ?? \App\Models\SystemSetting::get('ai_provider_7')) == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Image Prompt Generator</label>
+                                        <select name="ai_provider_image_prompt" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['seo_ai_pipeline']['ai_provider_image_prompt'] ?? \App\Models\SystemSetting::get('ai_provider_image_prompt')) == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
+                                <h3 class="text-lg font-bold border-b pb-2 mt-8">API Keys & Custom Endpoints</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">OpenAI API Key</label>
+                                        <input type="password" name="openai_api_key" value="{{ $settings['seo_ai_pipeline']['openai_api_key'] ?? \App\Models\SystemSetting::get('openai_api_key') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="sk-...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Google Gemini API Key</label>
+                                        <input type="password" name="gemini_api_key" value="{{ $settings['seo_ai_pipeline']['gemini_api_key'] ?? \App\Models\SystemSetting::get('gemini_api_key') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="AIza...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Anthropic Claude API Key</label>
+                                        <input type="password" name="claude_api_key" value="{{ $settings['seo_ai_pipeline']['claude_api_key'] ?? \App\Models\SystemSetting::get('claude_api_key') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="sk-ant-...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">9Router API Key</label>
+                                        <input type="password" name="9router_api_key" value="{{ $settings['seo_ai_pipeline']['9router_api_key'] ?? \App\Models\SystemSetting::get('9router_api_key') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="sk-or-...">
+                                    </div>
+                                    <div class="md:col-span-2 border-t border-slate-100 pt-4 mt-2">
+                                        <h4 class="text-sm font-bold text-slate-700 mb-3">Custom Endpoint Configuration (Local LLM / Proxy)</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-600 mb-1">Custom API Base URL</label>
+                                                <input type="text" name="custom_api_base" value="{{ $settings['seo_ai_pipeline']['custom_api_base'] ?? \App\Models\SystemSetting::get('custom_api_base', 'http://localhost:20128/v1') }}" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="http://localhost:20128/v1">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-600 mb-1">Custom API Key (Optional)</label>
+                                                <input type="password" name="custom_api_key" value="{{ $settings['seo_ai_pipeline']['custom_api_key'] ?? \App\Models\SystemSetting::get('custom_api_key') }}" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="kosongkan jika tidak ada">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-600 mb-1">Custom Model Name</label>
+                                                <input type="text" name="custom_model" value="{{ $settings['seo_ai_pipeline']['custom_model'] ?? \App\Models\SystemSetting::get('custom_model', 'custom-model') }}" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="contoh: gpt-5.4-mini, minimax-m2.7">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        @elseif($key === 'ai_prompt')
+                            <div class="grid grid-cols-1 gap-6">
 
                                 <div class="border-b border-slate-200 pb-6">
                                     <h4 class="text-lg font-bold mb-4">Phase 1: Entities & LSI Keywords</h4>
@@ -226,10 +330,23 @@
                                     <textarea name="ai_prompt_phase5_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase5_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase5_sys', "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.") }}</textarea>
                                 </div>
 
-                                <div class="pt-2">
+                                <div class="border-b border-slate-200 pb-6">
                                     <h4 class="text-lg font-bold mb-4">Phase 6: HTML Conversion</h4>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
                                     <textarea name="ai_prompt_phase6_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase6_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase6_sys', "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the comprehensive length.") }}</textarea>
+                                </div>
+
+                                <div class="pt-2">
+                                    <h4 class="text-lg font-bold mb-4">Phase 7: SEO Meta</h4>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Title Prompt Template</label>
+                                        <textarea name="ai_prompt_meta_title" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Write a highly click-worthy SEO title...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_title'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_title', 'Write a highly click-worthy SEO title for "{keyword}". Max 60 chars. Return ONLY the title.') }}</textarea>
+                                        <p class="text-xs text-slate-500 mt-1">Variables allowed: <code class="bg-slate-100 px-1 rounded">{keyword}</code>, <code class="bg-slate-100 px-1 rounded">{content_title}</code></p>
+                                    </div>
+                                    <div class="mt-4">
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Description Prompt Template</label>
+                                        <textarea name="ai_prompt_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Write an engaging SEO meta description...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_description'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_description', 'Write an engaging SEO meta description for "{keyword}". 150-160 chars with CTA. Return ONLY the description.') }}</textarea>
+                                    </div>
                                 </div>
                             </div>
                         @elseif($key === 'schema')
