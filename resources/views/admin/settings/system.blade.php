@@ -82,13 +82,43 @@
                                     </div>
                                     <p class="text-xs text-slate-500 mt-1">Contoh hasil: domain.com/produk/nama-produk</p>
                                 </div>
-                                <div>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Base URL Artikel / Blog</label>
-                                    <div class="flex rounded-xl shadow-sm">
-                                        <span class="inline-flex items-center rounded-l-xl border border-r-0 border-slate-300 bg-slate-50 px-3 text-slate-500 text-base">{{ config('app.url') }}/</span>
-                                        <input type="text" name="permalink_blog" value="{{ $settings['permalinks']['permalink_blog'] ?? 'blog' }}" class="block w-full min-w-0 flex-1 rounded-none rounded-r-xl border-slate-300 focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="blog">
+                                <div x-data="{ permalinkType: '{{ ($settings['permalinks']['permalink_blog'] ?? 'blog') === '' ? 'post_name' : (($settings['permalinks']['permalink_blog'] ?? 'blog') === 'blog' ? 'default' : 'custom') }}' }">
+                                    <label class="block text-base font-semibold text-slate-800 mb-2">Pola Permalink Artikel / Blog</label>
+                                    
+                                    <div class="space-y-3 mb-4">
+                                        <label class="flex items-center p-3 border rounded-xl cursor-pointer transition-colors" :class="permalinkType === 'default' ? 'border-brand-indigo bg-indigo-50/30' : 'border-slate-200 hover:bg-slate-50'">
+                                            <input type="radio" x-model="permalinkType" value="default" class="w-4 h-4 text-brand-indigo bg-gray-100 border-gray-300 focus:ring-brand-indigo">
+                                            <div class="ml-3">
+                                                <span class="block text-sm font-medium text-slate-900">Default (Bawaan)</span>
+                                                <span class="block text-xs text-slate-500 font-mono mt-0.5">{{ config('app.url') }}/blog/judul-artikel</span>
+                                            </div>
+                                        </label>
+
+                                        <label class="flex items-center p-3 border rounded-xl cursor-pointer transition-colors" :class="permalinkType === 'post_name' ? 'border-brand-indigo bg-indigo-50/30' : 'border-slate-200 hover:bg-slate-50'">
+                                            <input type="radio" x-model="permalinkType" value="post_name" class="w-4 h-4 text-brand-indigo bg-gray-100 border-gray-300 focus:ring-brand-indigo">
+                                            <div class="ml-3">
+                                                <span class="block text-sm font-medium text-slate-900">Post Name (Gaya WordPress)</span>
+                                                <span class="block text-xs text-slate-500 font-mono mt-0.5">{{ config('app.url') }}/judul-artikel</span>
+                                            </div>
+                                        </label>
+
+                                        <label class="flex items-center p-3 border rounded-xl cursor-pointer transition-colors" :class="permalinkType === 'custom' ? 'border-brand-indigo bg-indigo-50/30' : 'border-slate-200 hover:bg-slate-50'">
+                                            <input type="radio" x-model="permalinkType" value="custom" class="w-4 h-4 text-brand-indigo bg-gray-100 border-gray-300 focus:ring-brand-indigo">
+                                            <div class="ml-3">
+                                                <span class="block text-sm font-medium text-slate-900">Custom Prefix</span>
+                                                <span class="block text-xs text-slate-500 mt-0.5">Tentukan awalan URL sendiri</span>
+                                            </div>
+                                        </label>
                                     </div>
-                                    <p class="text-xs text-slate-500 mt-1">Bisa dikosongkan jika ingin artikel langsung di root: domain.com/judul-artikel</p>
+
+                                    <!-- Actual Input Sent to Server -->
+                                    <div x-show="permalinkType === 'custom'" class="flex rounded-xl shadow-sm" style="display: none;" x-transition>
+                                        <span class="inline-flex items-center rounded-l-xl border border-r-0 border-slate-300 bg-slate-50 px-3 text-slate-500 text-base">{{ config('app.url') }}/</span>
+                                        <input type="text" name="permalink_blog_custom" value="{{ $settings['permalinks']['permalink_blog'] ?? 'blog' }}" class="block w-full min-w-0 flex-1 rounded-none rounded-r-xl border-slate-300 focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="berita">
+                                    </div>
+                                    
+                                    <!-- Hidden input to handle the final logic -->
+                                    <input type="hidden" name="permalink_blog" :value="permalinkType === 'default' ? 'blog' : (permalinkType === 'post_name' ? '' : document.querySelector('input[name=permalink_blog_custom]').value)">
                                 </div>
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Base URL Project / Portofolio</label>
