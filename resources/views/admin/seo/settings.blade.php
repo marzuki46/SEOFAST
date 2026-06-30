@@ -258,6 +258,22 @@
                                             @endforeach
                                         </select>
                                     </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Internal Linking Strategy</label>
+                                        <select name="internal_link_strategy" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <option value="deterministic" {{ ($settings['seo_ai_pipeline']['internal_link_strategy'] ?? \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic')) == 'deterministic' ? 'selected' : '' }}>Deterministic (Blueprint Rules Only)</option>
+                                            <option value="semantic" {{ ($settings['seo_ai_pipeline']['internal_link_strategy'] ?? \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic')) == 'semantic' ? 'selected' : '' }}>Semantic (AI Embeddings Only)</option>
+                                            <option value="both" {{ ($settings['seo_ai_pipeline']['internal_link_strategy'] ?? \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic')) == 'both' ? 'selected' : '' }}>Both (Blueprint + AI Embeddings)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Semantic Link Threshold</label>
+                                        <input type="number" step="0.01" min="0.5" max="0.99" name="semantic_link_threshold" value="{{ $settings['seo_ai_pipeline']['semantic_link_threshold'] ?? \App\Models\SystemSetting::get('semantic_link_threshold', '0.82') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Max Semantic Links</label>
+                                        <input type="number" min="1" max="10" name="semantic_max_links" value="{{ $settings['seo_ai_pipeline']['semantic_max_links'] ?? \App\Models\SystemSetting::get('semantic_max_links', '3') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
                                 </div>
                                 <h3 class="text-lg font-bold border-b pb-2 mt-8">API Keys & Custom Endpoints</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
