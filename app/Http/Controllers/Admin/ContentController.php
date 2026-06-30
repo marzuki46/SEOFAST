@@ -625,7 +625,14 @@ class ContentController extends Controller
                 if (!$finalBody || mb_strlen(trim($finalBody)) < 300 || str_contains($finalBody, '{"error"')) {
                     $diags = $aiService6->getLastDiagnostics();
                     $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
-                    throw new \Exception("Phase 6 gagal mengkonversi ke HTML dengan valid. Reason: " . $reason);
+                    
+                    // Fallback to PHP Markdown parser if AI fails (prevents complete pipeline failure)
+                    $addLog('warning', "Phase 6 AI Gagal (" . $reason . "). Menggunakan Fallback Markdown Parser PHP...");
+                    $finalBody = \Illuminate\Support\Str::markdown($combined);
+                    
+                    if (!$finalBody || mb_strlen(trim($finalBody)) < 100) {
+                        throw new \Exception("Phase 6 gagal mengkonversi ke HTML dengan valid. Reason: " . $reason);
+                    }
                 }
 
                 $job->update(['status' => 'phase_7', 'phase_6_html' => $finalBody]);

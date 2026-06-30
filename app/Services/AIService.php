@@ -105,7 +105,7 @@ class AIService
             'apiKey'      => $apiKey,
             'apiBase'     => $apiBase,
             'temperature' => 0.7,
-            'max_tokens'  => 4096,
+            'max_tokens'  => 8192,
         ];
     }
 
