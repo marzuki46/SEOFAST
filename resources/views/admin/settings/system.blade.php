@@ -267,15 +267,7 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 1: Keyword/Silo</label>
-                                        <select name="ai_provider_keyword" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
-                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
-                                                <option value="{{ $provider }}" {{ ($settings['ai']['ai_provider_keyword'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 1: Header & Subheading</label>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 1: Entities & LSI Keywords</label>
                                         <select name="ai_provider_1" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                             @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
                                                 <option value="{{ $provider }}" {{ ($settings['ai']['ai_provider_1'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
@@ -283,7 +275,7 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 2: Full Body Content</label>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 2: Content Draft</label>
                                         <select name="ai_provider_2" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                             @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
                                                 <option value="{{ $provider }}" {{ ($settings['ai']['ai_provider_2'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
@@ -291,7 +283,7 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 3: Markdown to HTML</label>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 3: Critical Questions</label>
                                         <select name="ai_provider_3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                             @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
                                                 <option value="{{ $provider }}" {{ ($settings['ai']['ai_provider_3'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
@@ -299,10 +291,34 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 4: Schema & Meta SEO</label>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 4: Answer Questions</label>
                                         <select name="ai_provider_4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                             @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
                                                 <option value="{{ $provider }}" {{ ($settings['ai']['ai_provider_4'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 5: Combine & Extend Content</label>
+                                        <select name="ai_provider_5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['ai']['ai_provider_5'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 6: HTML Conversion</label>
+                                        <select name="ai_provider_6" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['ai']['ai_provider_6'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 7: SEO Meta</label>
+                                        <select name="ai_provider_7" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            @foreach(['openai', 'gemini', 'claude', 'custom'] as $provider)
+                                                <option value="{{ $provider }}" {{ ($settings['ai']['ai_provider_7'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                             @endforeach
                                         </select>
                                     </div>
