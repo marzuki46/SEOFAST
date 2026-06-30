@@ -454,6 +454,7 @@ class ContentController extends Controller
                 
                 $sysP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
                     "You are an Expert SEO Strategist. Generate a list of semantic entities and LSI keywords relevant to '{keyword}'. Return the list as a simple comma-separated string.");
+                $sysP1 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir balasan. Berikan hasil akhirnya saja langsung.";
                 $userP1 = "Topic: {$keyword}\nLanguage: {$lang}\nCountry: {$country}";
                 
                 $lsi = $aiService1->generate($sysP1, $userP1);
@@ -490,6 +491,7 @@ class ContentController extends Controller
 
                 $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
                     "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 800 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Return ONLY the article draft in Markdown.");
+                $sysP2 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir konten. Berikan hasil akhirnya saja langsung.";
                 $userP2 = "Keyword: **{$keyword}**\nSeed: {$seedKeyword}\nLSI Keywords: {$lsi}\n\nRequirements:\n- Minimum 800 words\n- Use H2 and H3 headings\n{$linkInstructions}\nDo NOT output the LSI list separately, just weave everything seamlessly.";
 
                 $draft = $aiService2->generate($sysP2, $userP2);
@@ -514,6 +516,7 @@ class ContentController extends Controller
                 $aiService3 = new \App\Services\AIService($tenant, 'default');
                 $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
                     "You are a strict Senior SEO Content Auditor. Read the draft and generate a list of 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]");
+                $sysP3 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir balasan. Berikan hasil akhirnya saja langsung dalam format JSON.";
                 $critique = $aiService3->generateJson($sysP3, "Keyword: {$keyword}\n\nDraft:\n{$draft}");
 
                 if (!$critique || !is_array($critique) || (isset($critique['cqi_score']))) {
@@ -538,6 +541,7 @@ class ContentController extends Controller
                 $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
                     "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions'. Return ONLY the answers in Markdown formatting.");
                 $sysP4 = strtr($sysP4, ['{lang}' => $lang]);
+                $sysP4 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir balasan. Berikan hasil akhirnya saja langsung.";
                 $userP4 = "Topic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}";
 
                 $answers = $aiService4->generate($sysP4, $userP4);
@@ -564,6 +568,7 @@ class ContentController extends Controller
                 $sysP5 = \App\Models\SystemSetting::get('ai_prompt_phase5_sys',
                     "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.");
                 $sysP5 = strtr($sysP5, ['{lang}' => $lang]);
+                $sysP5 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir konten. Berikan hasil akhirnya saja langsung.";
                 $userP5 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}";
 
                 $combined = $aiService5->generate($sysP5, $userP5);
@@ -659,8 +664,10 @@ class ContentController extends Controller
                 $addLog('info', "Phase 7: Generating SEO Meta...");
                 $metaTitlePrompt = str_replace('{keyword}', $keyword, \App\Models\SystemSetting::get('ai_prompt_meta_title',
                     'Write a highly click-worthy SEO title for "{keyword}". Max 60 chars. Return ONLY the title.'));
+                $metaTitlePrompt .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir balasan. Berikan hasil akhirnya saja langsung.";
                 $metaDescPrompt  = str_replace('{keyword}', $keyword, \App\Models\SystemSetting::get('ai_prompt_meta_description',
                     'Write an engaging SEO meta description for "{keyword}". 150-160 chars with CTA. Return ONLY the description.'));
+                $metaDescPrompt .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir balasan. Berikan hasil akhirnya saja langsung.";
 
                 $metaTitle = trim($aiService7->generate('You are an expert SEO specialist.', $metaTitlePrompt), " \t\n\r\"'");
                 $metaDesc  = trim($aiService7->generate('You are an expert SEO specialist.', $metaDescPrompt), " \t\n\r\"'");

@@ -35,10 +35,12 @@
     </div>
     @endif
 
+    <!-- AJAX status banner -->
+    <div id="ajax-status" class="hidden rounded-xl p-4 border text-sm font-semibold mb-4"></div>
+
     <!-- Content Table Card -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <form action="{{ route('admin.content.bulk_generate') }}" method="POST">
-            @csrf
+        <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -59,7 +61,7 @@
                     @forelse($contents as $post)
                     <tr class="hover:bg-slate-50/50 transition">
                         <td class="px-6 py-4 text-center">
-                            <input type="checkbox" name="content_ids[]" value="{{ $post->id }}" class="content-checkbox rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                            <input type="checkbox" value="{{ $post->id }}" class="content-checkbox rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-col">
@@ -176,11 +178,11 @@
                     <option value="published">Langsung Publish</option>
                 </select>
             </div>
-            <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
+            <button id="btn-generate" type="button" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                 </svg>
-                Generate Konten (Selected)
+                Kembalikan ke Antrean AI (Evaluasi Ulang)
             </button>
         </div>
         @endif
@@ -190,13 +192,65 @@
         </div>
         @endif
         
-        </form>
     </div>
 </div>
 
 <script>
     document.getElementById('selectAll').addEventListener('change', function(e) {
         document.querySelectorAll('.content-checkbox').forEach(cb => cb.checked = e.target.checked);
+    });
+
+    document.getElementById('btn-generate')?.addEventListener('click', function () {
+        const ids = Array.from(document.querySelectorAll('.content-checkbox:checked')).map(cb => cb.value);
+        if (ids.length === 0) {
+            alert('Pilih minimal satu konten terlebih dahulu.');
+            return;
+        }
+
+        const targetStatus = document.getElementById('target_status').value;
+        const csrfToken = document.getElementById('csrf-token').value;
+        const statusBanner = document.getElementById('ajax-status');
+        const btn = this;
+
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>&nbsp;Memproses...';
+
+        const formData = new FormData();
+        formData.append('_token', csrfToken);
+        formData.append('target_status', targetStatus);
+        ids.forEach(id => formData.append('content_ids[]', id));
+
+        const endpoint = '{{ route("admin.content.bulk_generate") }}';
+
+        fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json, text/html, */*',
+            },
+            body: formData,
+            redirect: 'follow',
+        })
+        .then(response => {
+            if (response.ok || response.redirected) {
+                statusBanner.className = 'rounded-xl p-4 border text-sm font-semibold bg-emerald-50 border-emerald-200 text-emerald-800 mb-4';
+                statusBanner.textContent = ids.length + ' konten berhasil diantri! Mengarahkan ke AI Monitor (Evaluasi)...';
+                statusBanner.classList.remove('hidden');
+                setTimeout(() => { window.location.href = '{{ route("admin.content.create") }}'; }, 1500);
+            } else {
+                return response.text().then(text => {
+                    throw new Error('HTTP ' + response.status + ' — ' + text.substring(0, 300));
+                });
+            }
+        })
+        .catch(err => {
+            statusBanner.className = 'rounded-xl p-4 border text-sm font-semibold bg-rose-50 border-rose-200 text-rose-800 mb-4';
+            statusBanner.textContent = 'Error: ' + err.message;
+            statusBanner.classList.remove('hidden');
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>&nbsp;Kembalikan ke Antrean AI (Evaluasi Ulang)';
+        });
     });
 </script>
 @endsection
