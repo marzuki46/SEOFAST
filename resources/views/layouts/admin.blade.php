@@ -159,7 +159,7 @@
                     </div>
 
                     <!-- GROUP: Configuration & Tools -->
-                    <div x-data="{ open: {{ request()->routeIs('admin.settings.*', 'admin.users.*', 'admin.gsc.*') ? 'true' : 'false' }} }" class="pt-2">
+                    <div x-data="{ open: {{ request()->routeIs('admin.settings.*', 'admin.seo.settings.*', 'admin.users.*', 'admin.gsc.*') ? 'true' : 'false' }} }" class="pt-2">
                         <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-300 transition-colors">
                             <span>System Admin</span>
                             <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>

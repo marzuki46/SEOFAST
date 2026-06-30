@@ -28,7 +28,6 @@
                 'permalinks' => 'Permalinks / URL',
                 'footer' => 'Footer Settings',
                 'auth' => 'Auth & OAuth',
-                'seo' => 'SEO Settings',
                 'email' => 'Email SMTP',
                 'storage' => 'Storage/S3',
                 'ai' => 'AI Pipeline & Keys',
@@ -167,39 +166,6 @@
                                     <input type="password" name="google_oauth_client_secret" value="{{ $settings['auth']['google_oauth_client_secret'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                 </div>
                             </div>
-                        @elseif($key === 'seo')
-                            <div class="grid grid-cols-1 gap-6">
-                                <div>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Default Meta Title</label>
-                                    <input type="text" name="seo_meta_title" value="{{ $settings['seo']['seo_meta_title'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="SEOFAST - Super CMS">
-                                </div>
-                                <div>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Default Meta Description</label>
-                                    <textarea name="seo_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Platform CMS terbaik untuk otomatisasi konten...">{{ $settings['seo']['seo_meta_description'] ?? '' }}</textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Default Open Graph (OG) Image URL</label>
-                                    <input type="url" name="seo_og_image" value="{{ $settings['seo']['seo_og_image'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="https://domain.com/assets/og-default.jpg">
-                                    <p class="text-xs text-slate-500 mt-1">Gambar default jika postingan tidak memiliki thumbnail saat dibagikan ke media sosial.</p>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Google Analytics ID</label>
-                                        <input type="text" name="google_analytics_id" value="{{ $settings['seo']['google_analytics_id'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="G-XXXXXXXXXX">
-                                    </div>
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Google Tag Manager ID</label>
-                                        <input type="text" name="gtm_id" value="{{ $settings['seo']['gtm_id'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="GTM-XXXXXXX">
-                                    </div>
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Google Site Verification</label>
-                                        <input type="text" name="google_site_verification" value="{{ $settings['seo']['google_site_verification'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Token verifikasi...">
-                                    </div>
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Facebook Pixel ID</label>
-                                        <input type="text" name="fb_pixel_id" value="{{ $settings['seo']['fb_pixel_id'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="XXXXXXXXXXXXXX">
-                                    </div>
-                                </div>
                             </div>
                         @elseif($key === 'email')
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -329,25 +295,6 @@
                                                 <option value="{{ $provider }}" {{ ($settings['ai']['ai_provider_image_prompt'] ?? '') == $provider ? 'selected' : '' }}>{{ $provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider) }}</option>
                                             @endforeach
                                         </select>
-                                    </div>
-                                </div>
-                                
-                                <h3 class="text-lg font-bold border-b pb-2 mt-8">AI Prompt Settings (SEO & Meta)</h3>
-                                <div class="grid grid-cols-1 gap-6">
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Title Prompt Template</label>
-                                        <textarea name="ai_prompt_meta_title" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Generate a highly click-worthy SEO Title...">{{ $settings['ai']['ai_prompt_meta_title'] ?? 'Generate a highly click-worthy SEO Title for the keyword "{keyword}". Maximum 60 characters. Return ONLY the title text, nothing else.' }}</textarea>
-                                        <p class="text-xs text-slate-500 mt-1">Variables allowed: <code class="bg-slate-100 px-1 rounded">{keyword}</code>, <code class="bg-slate-100 px-1 rounded">{content_title}</code></p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Description Prompt Template</label>
-                                        <textarea name="ai_prompt_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Generate an engaging SEO Meta Description...">{{ $settings['ai']['ai_prompt_meta_description'] ?? 'Generate an engaging SEO Meta Description for the keyword "{keyword}". Must be between 150-160 characters. Include a call to action. Return ONLY the description text.' }}</textarea>
-                                        <p class="text-xs text-slate-500 mt-1">Variables allowed: <code class="bg-slate-100 px-1 rounded">{keyword}</code>, <code class="bg-slate-100 px-1 rounded">{content_title}</code></p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Article Content Prompt Template</label>
-                                        <textarea name="ai_prompt_article_body" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Write a comprehensive SEO article...">{{ $settings['ai']['ai_prompt_article_body'] ?? 'Write a comprehensive, SEO-optimized article about "{keyword}". Use markdown formatting, H2 and H3 tags, lists, and bold text. Ensure the tone is professional yet engaging.' }}</textarea>
-                                        <p class="text-xs text-slate-500 mt-1">Variables allowed: <code class="bg-slate-100 px-1 rounded">{keyword}</code>, <code class="bg-slate-100 px-1 rounded">{outline}</code></p>
                                     </div>
                                 </div>
                                 <h3 class="text-lg font-bold border-b pb-2 mt-8">API Keys & Custom Endpoints</h3>
