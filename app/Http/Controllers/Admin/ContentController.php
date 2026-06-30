@@ -478,14 +478,19 @@ class ContentController extends Controller
                 $addLog('info', "Mulai Phase 2: Generating konten awal untuk [{$keyword}]...");
                 $aiService2 = new \App\Services\AIService($tenant, 'default');
 
-                $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
-                    ->with('targetContent')->get();
+                $strategy = \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic');
                 $linkInstructions = '';
-                if ($deterministicLinks->isNotEmpty()) {
-                    $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (Embed organically in text using Markdown):\n";
-                    foreach ($deterministicLinks as $link) {
-                        $url = url('/blog/' . ($link->targetContent?->slug ?? '#'));
-                        $linkInstructions .= "- [{$link->anchor_text}]({$url})\n";
+                
+                if (in_array($strategy, ['deterministic', 'both'])) {
+                    $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
+                        ->with('targetContent')->get();
+                    
+                    if ($deterministicLinks->isNotEmpty()) {
+                        $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (Embed organically in text using Markdown):\n";
+                        foreach ($deterministicLinks as $link) {
+                            $url = url('/blog/' . ($link->targetContent?->slug ?? '#'));
+                            $linkInstructions .= "- [{$link->anchor_text}]({$url})\n";
+                        }
                     }
                 }
 
