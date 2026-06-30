@@ -593,7 +593,14 @@ class ContentController extends Controller
                 $userP6 = "Keyword: **{$keyword}**\n\nArticle:\n{$combined}";
 
                 $finalBody = $aiService6->generate($sysP6, $userP6);
-                $finalBody = preg_replace('/^```html|```$/i', '', trim($finalBody)); // Remove markdown HTML blocks if any
+                if ($finalBody) {
+                    $finalBody = preg_replace('/^```html|```$/mi', '', trim($finalBody)); // Remove markdown HTML blocks if any
+                    // Aggressive cleanup: Extract only the content from the first HTML tag to the last closing tag
+                    // This removes conversational filler like "Here is the output:" or "Drafting the content:"
+                    if (preg_match('/<[a-z][\s\S]*>/i', $finalBody, $matches)) {
+                        $finalBody = $matches[0];
+                    }
+                }
 
                 if (!$finalBody || mb_strlen(trim($finalBody)) < 300 || str_contains($finalBody, '{"error"')) {
                     $diags = $aiService6->getLastDiagnostics();
