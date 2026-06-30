@@ -593,6 +593,7 @@ class ContentController extends Controller
                 
                 // CRITICAL: Force the AI to wrap output to prevent conversational filler from leaking
                 $sysP6 .= "\n\nCRITICAL REQUIREMENT: You MUST wrap your ENTIRE final HTML output exactly inside <article_body> and </article_body> tags. Do not include any explanations outside these tags.";
+                $sysP6 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir artikel yang dibuat. Berikan hasil akhirnya saja langsung.";
                 
                 $userP6 = "Keyword: **{$keyword}**\n\nArticle:\n{$combined}";
 
