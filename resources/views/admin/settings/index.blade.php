@@ -110,6 +110,28 @@
                                 @endforeach
                             </select>
                         </div>
+                        
+                        <div>
+                            <label class="block text-base font-semibold text-slate-800 mb-1.5">Internal Linking Strategy</label>
+                            <select name="internal_link_strategy" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                <option value="deterministic" {{ ($settings['internal_link_strategy'] ?? 'deterministic') == 'deterministic' ? 'selected' : '' }}>Deterministic (Blueprint Rules Only)</option>
+                                <option value="semantic" {{ ($settings['internal_link_strategy'] ?? 'deterministic') == 'semantic' ? 'selected' : '' }}>Semantic (AI Embeddings Only)</option>
+                                <option value="both" {{ ($settings['internal_link_strategy'] ?? 'deterministic') == 'both' ? 'selected' : '' }}>Both (Blueprint + AI Embeddings)</option>
+                            </select>
+                            <p class="text-xs text-slate-500 mt-1">Metode pencarian relasi antar artikel: Blueprint (Pasti) atau AI Embeddings (Pencocokan Semantik Natural).</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-base font-semibold text-slate-800 mb-1.5">Semantic Link Threshold</label>
+                            <input type="number" step="0.01" min="0.5" max="0.99" name="semantic_link_threshold" value="{{ $settings['semantic_link_threshold'] ?? '0.82' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                            <p class="text-xs text-slate-500 mt-1">Skor kemiripan minimum (Cosine Similarity). 0.82 adalah nilai ideal. Makin tinggi makin ketat.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-base font-semibold text-slate-800 mb-1.5">Max Semantic Links</label>
+                            <input type="number" min="1" max="10" name="semantic_max_links" value="{{ $settings['semantic_max_links'] ?? '3' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                            <p class="text-xs text-slate-500 mt-1">Batas maksimal jumlah internal link semantik per artikel.</p>
+                        </div>
                     </div>
                 </div>
             </div>

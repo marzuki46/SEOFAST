@@ -405,8 +405,25 @@
                 
                 if (!data.success) {
                     appendLog('error', data.error || data.message || `Server Error ${res.status}`);
+                    
+                    // RETRY LOGIC
+                    currentJob.retries = (currentJob.retries || 0) + 1;
+                    if (currentJob.retries <= 10) {
+                        appendLog('warn', `🔄 Mencoba ulang dalam 3 detik... (Percobaan ke-${currentJob.retries}/10)`);
+                        currentJob.resumed = true;
+                        jobQueue.unshift(currentJob);
+                        setTimeout(processNextJob, 3000);
+                        return;
+                    } else {
+                        appendLog('error', '❌ Terlalu banyak kegagalan beruntun. Worker dihentikan sementara.');
+                        isWorking = false;
+                        sessionStorage.setItem('ai_worker_running', 'false');
+                        setWorkingUI(false);
+                        return;
+                    }
                 } else if (data.status === 'continue') {
                     // Masukkan kembali ke antrean paling depan untuk lanjut ke phase berikutnya
+                    currentJob.retries = 0; // reset retries on success
                     currentJob.resumed = true;
                     jobQueue.unshift(currentJob);
                 } else if (data.status === 'wait') {

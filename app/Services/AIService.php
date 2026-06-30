@@ -390,6 +390,42 @@ class AIService
     }
 
     /**
+     * Generate embeddings for a given text.
+     */
+    public function generateEmbeddings(string $text, string $model = 'text-embedding-3-small'): ?array
+    {
+        $apiBase = $this->config['apiBase'];
+        if (!$apiBase) {
+            $apiBase = match ($this->config['provider']) {
+                'openai' => 'https://api.openai.com/v1',
+                default  => 'https://api.9router.com/v1',
+            };
+        }
+        
+        $url = rtrim($apiBase, '/') . '/embeddings';
+
+        try {
+            $response = $this->getHttpClient()->withToken($this->config['apiKey'])
+                ->timeout(60)
+                ->post($url, [
+                    'model' => $model,
+                    'input' => $text,
+                ]);
+
+            if (!$response->successful()) {
+                Log::error("Embeddings generation failed", ['error' => $response->body()]);
+                return null;
+            }
+
+            $body = $response->json();
+            return $body['data'][0]['embedding'] ?? null;
+        } catch (\Exception $e) {
+            Log::error("Embeddings exception: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Get pre-configured HTTP client with keep-alive progress callback.
      */
     private function getHttpClient()

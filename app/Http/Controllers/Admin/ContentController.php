@@ -686,6 +686,42 @@ class ContentController extends Controller
                 $addLog('warn', "Phase 7 SEO Meta gagal (non-fatal): " . $e->getMessage());
             }
 
+            // ── Phase 8: Vectorization / Embeddings (non-blocking) ────────────────
+            try {
+                $strategy = \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic');
+                if (in_array($strategy, ['semantic', 'both'])) {
+                    $addLog('info', "Phase 8: Generating Embeddings (Vectors)...");
+                    $aiService8 = new \App\Services\AIService($tenant, 'default');
+                    
+                    // Simple chunking logic (strip tags, split by ~1000 chars)
+                    $plainText = strip_tags($finalBody);
+                    $plainText = preg_replace('/\s+/', ' ', $plainText);
+                    $chunks = mb_str_split($plainText, 1000);
+
+                    // Clear old embeddings if any
+                    \App\Models\ContentEmbedding::where('content_id', $content->id)->delete();
+
+                    $vectorCount = 0;
+                    foreach ($chunks as $chunk) {
+                        $chunk = trim($chunk);
+                        if (mb_strlen($chunk) < 50) continue; // skip very small chunks
+
+                        $vector = $aiService8->generateEmbeddings($chunk);
+                        if ($vector && is_array($vector)) {
+                            \App\Models\ContentEmbedding::create([
+                                'content_id'  => $content->id,
+                                'chunk_text'  => $chunk,
+                                'vector_data' => $vector,
+                            ]);
+                            $vectorCount++;
+                        }
+                    }
+                    $addLog('success', "Phase 8 SELESAI | {$vectorCount} Vectors disimpan untuk pencocokan semantik.");
+                }
+            } catch (\Exception $e) {
+                $addLog('warn', "Phase 8 Embeddings gagal (non-fatal): " . $e->getMessage());
+            }
+
             $addLog('success', "✅ [{$keyword}] GENERATION SELESAI → status: {$targetStatus} | {$contentHash}");
 
 
