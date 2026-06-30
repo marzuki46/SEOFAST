@@ -68,7 +68,8 @@ class BlogController extends Controller
         $query = Content::where(function($q) use ($slug) {
                 $q->where('slug', $slug)
                   ->orWhere('slug', 'LIKE', '%"id":"' . $slug . '"%')
-                  ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%');
+                  ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%')
+                  ->orWhere('slug', 'LIKE', '%' . $slug . '%'); // Fallback for double-encoded JSON slugs
             });
             
         if (auth()->check()) {
@@ -125,7 +126,8 @@ class BlogController extends Controller
         $post = Content::where(function($q) use ($slug) {
                 $q->where('slug', $slug)
                   ->orWhere('slug', 'LIKE', '%"id":"' . $slug . '"%')
-                  ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%');
+                  ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%')
+                  ->orWhere('slug', 'LIKE', '%' . $slug . '%'); // Fallback for double-encoded JSON slugs
             })->first();
 
         if (!$post) {

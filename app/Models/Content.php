@@ -166,8 +166,16 @@ class Content extends Model
 
     protected function setJsonField(string $key, $value): void
     {
+        // Prevent double encoding if the value is already a JSON string from a previous process
+        if (is_string($value) && (str_starts_with(trim($value), '{') || str_starts_with(trim($value), '"{'))) {
+            $decoded = json_decode(trim($value, '"'), true);
+            if (is_array($decoded) && isset($decoded['id'])) {
+                $value = $decoded['id'];
+            }
+        }
+        
         // Wrap the plain string in JSON to satisfy MySQL JSON constraints
-        $this->attributes[$key] = json_encode(['id' => $value, 'en' => $value]);
+        $this->attributes[$key] = json_encode(['id' => $value, 'en' => $value], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_IGNORE);
     }
 
     public function getSlugAttribute() { return $this->getJsonField('slug'); }
@@ -222,8 +230,8 @@ class Content extends Model
         $markdown = $this->body_raw;
         if (!$markdown) return '';
 
-        // Escape HTML tags to prevent XSS
-        $html = htmlspecialchars($markdown, ENT_NOQUOTES, 'UTF-8');
+        // Pass HTML output as is (Phase 6 now generates HTML instead of Markdown)
+        $html = $markdown;
 
         // Replace headings: H3
         $html = preg_replace_callback('/^\s*###\s+(.+)$/m', function($matches) {

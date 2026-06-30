@@ -231,6 +231,9 @@ class AIService
                 $elapsed = round((microtime(true) - $attemptStart) * 1000);
                 $content = $response['content'] ?? '';
 
+                // Strip <think> blocks globally for all providers
+                $content = preg_replace('/<think>[\s\S]*?(?:<\/think>|$)\s*/i', '', $content);
+
                 $diag['status']         = 'success';
                 $diag['elapsed_ms']     = $elapsed;
                 $diag['content_length'] = mb_strlen($content);
@@ -353,9 +356,6 @@ class AIService
         if (!$result) {
             return null;
         }
-
-        // Remove <think> blocks if present (Deepseek and similar models)
-        $result = preg_replace('/<think>[\s\S]*?<\/think>\s*/i', '', $result);
 
         // Try to extract JSON from markdown code blocks if present
         if (preg_match('/```(?:json)?\s*([\s\S]*?)```/', $result, $matches)) {
