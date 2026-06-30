@@ -183,36 +183,53 @@
                             
                         @elseif($key === 'ai_prompt')
                             <div class="grid grid-cols-1 gap-6">
-                                <div>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Title Prompt Template</label>
-                                    <textarea name="ai_prompt_meta_title" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Generate a highly click-worthy SEO Title...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_title'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_title', 'Generate a highly click-worthy SEO Title for the keyword "{keyword}". Maximum 60 characters. Return ONLY the title text, nothing else.') }}</textarea>
-                                    <p class="text-xs text-slate-500 mt-1">Variables allowed: <code class="bg-slate-100 px-1 rounded">{keyword}</code>, <code class="bg-slate-100 px-1 rounded">{content_title}</code></p>
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 7: SEO Meta</h4>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Title Prompt Template</label>
+                                        <textarea name="ai_prompt_meta_title" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Write a highly click-worthy SEO title...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_title'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_title', 'Write a highly click-worthy SEO title for "{keyword}". Max 60 chars. Return ONLY the title.') }}</textarea>
+                                        <p class="text-xs text-slate-500 mt-1">Variables allowed: <code class="bg-slate-100 px-1 rounded">{keyword}</code>, <code class="bg-slate-100 px-1 rounded">{content_title}</code></p>
+                                    </div>
+                                    <div class="mt-4">
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Description Prompt Template</label>
+                                        <textarea name="ai_prompt_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Write an engaging SEO meta description...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_description'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_description', 'Write an engaging SEO meta description for "{keyword}". 150-160 chars with CTA. Return ONLY the description.') }}</textarea>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Description Prompt Template</label>
-                                    <textarea name="ai_prompt_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Generate an engaging SEO Meta Description...">{{ $settings['seo_ai_prompt']['ai_prompt_meta_description'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_description', 'Generate an engaging SEO Meta Description for the keyword "{keyword}". Must be between 150-160 characters. Include a call to action. Return ONLY the description text.') }}</textarea>
-                                </div>
-                                <div class="border-t border-slate-200 pt-6">
-                                    <h4 class="text-lg font-bold mb-4">Phase 1: Draft Generation</h4>
+
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 1: Entities & LSI Keywords</h4>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
-                                    <textarea name="ai_prompt_phase1_sys" rows="3" class="mt-1 mb-4 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase1_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase1_sys', "You are a professional SEO Content Writer. Write an initial draft for an article about the target keyword: '{keyword}' using seed keyword hints '{seed_keyword}' in language '{lang}' for country '{country}'. Format in clean Markdown with appropriate headers (H2, H3).") }}</textarea>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">User Prompt</label>
-                                    <textarea name="ai_prompt_phase1_user" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase1_user'] ?? \App\Models\SystemSetting::get('ai_prompt_phase1_user', "Write a comprehensive 800-word draft about: {keyword}. Include an introduction, key concepts, and actionable tips.{image_context}") }}</textarea>
+                                    <textarea name="ai_prompt_phase1_sys" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase1_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase1_sys', "You are an Expert SEO Strategist. Generate a list of semantic entities and LSI keywords relevant to '{keyword}'. Return the list as a simple comma-separated string.") }}</textarea>
                                 </div>
-                                <div class="border-t border-slate-200 pt-6">
-                                    <h4 class="text-lg font-bold mb-4">Phase 2: Editor Critique</h4>
+                                
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 2: Content Draft</h4>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
-                                    <textarea name="ai_prompt_phase2_sys" rows="3" class="mt-1 mb-4 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase2_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase2_sys', "You are a senior SEO Editor. Critique the following content draft to identify structural gaps, missing topical depth, or readability improvements. You MUST return your findings ONLY in JSON format containing: {'cqi_score': integer (0-100), 'gaps': array, 'improvements': array}.") }}</textarea>
+                                    <textarea name="ai_prompt_phase2_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase2_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase2_sys', "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 800 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Return ONLY the article draft in Markdown.") }}</textarea>
                                 </div>
-                                <div class="border-t border-slate-200 pt-6">
-                                    <h4 class="text-lg font-bold mb-4">Phase 3: Content Expansion</h4>
+                                
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 3: Critical Questions</h4>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
-                                    <textarea name="ai_prompt_phase3_sys" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase3_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase3_sys', "You are an SEO Content Expander. Expand the draft by incorporating the following critique and improvements. Make the content richer, add bullet points, and structure the sections cleanly in Markdown.") }}</textarea>
+                                    <textarea name="ai_prompt_phase3_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase3_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase3_sys', "You are a strict Senior SEO Content Auditor. Read the draft and generate a list of 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]") }}</textarea>
                                 </div>
-                                <div class="border-t border-slate-200 pt-6">
-                                    <h4 class="text-lg font-bold mb-4">Phase 4: HTML Conversion</h4>
+                                
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 4: Answer Questions</h4>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
-                                    <textarea name="ai_prompt_phase4_sys" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase4_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase4_sys', "You are a Master HTML and Web Layout Editor. Convert the following markdown text into clean, structured, semantic HTML (containing <h2>, <h3>, <p>, <ul>, <li> tags). Do not return markdown, html wrapper body, or head tags. Just the raw inner content HTML.") }}</textarea>
+                                    <textarea name="ai_prompt_phase4_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase4_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase4_sys', "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions'. Return ONLY the answers in Markdown formatting.") }}</textarea>
+                                </div>
+
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 5: Combine & Extend Content</h4>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
+                                    <textarea name="ai_prompt_phase5_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase5_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase5_sys', "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.") }}</textarea>
+                                </div>
+
+                                <div class="pt-2">
+                                    <h4 class="text-lg font-bold mb-4">Phase 6: HTML Conversion</h4>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
+                                    <textarea name="ai_prompt_phase6_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase6_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase6_sys', "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the comprehensive length.") }}</textarea>
                                 </div>
                             </div>
                         @elseif($key === 'schema')
