@@ -126,6 +126,11 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{silo}/content/{content}/generate-clusters', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'generateClusters'])->name('generate_clusters');
             Route::post('/{silo}/content/{content}/generate-subclusters', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'generateSubClusters'])->name('generate_subclusters');
             Route::post('/{silo}/map-internal-links', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'mapInternalLinks'])->name('map_internal_links');
+            
+            // Content management within Silo
+            Route::post('/{silo}/content/{content}/approve', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'approveContent'])->name('approve_content');
+            Route::delete('/{silo}/content/{content}', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'deleteContent'])->name('delete_content');
+            Route::post('/{silo}/content/{content}/process', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'processCluster'])->name('process_cluster');
         });
 
         // Internal Link Mapping

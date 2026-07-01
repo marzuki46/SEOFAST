@@ -16,55 +16,81 @@ class InternalLinkingService
         $pillar = $silo->contents()->where('hierarchy_level', 'pillar')->first();
         if (!$pillar) return;
 
-        $aiService = new \App\Services\AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
-        $systemPrompt = "You are an expert SEO internal linking architect. Generate natural, contextually relevant, and conversational anchor texts for internal links. DO NOT use the exact target keyword as the anchor text. Vary the phrasing (e.g., use synonyms, call-to-actions, or descriptive phrases). Return a JSON array of strings corresponding to the given link pairs in the EXACT SAME ORDER. Example output: [\"baca panduan lengkap SEO\", \"pelajari teknik optimasi on-page\", \"strategi link building terbaru\"]. RETURN ONLY RAW VALID JSON ARRAY OF STRINGS.";
-
-        // 1. Process cluster by cluster to avoid massive AI payloads
         $clusters = $silo->contents()->where('hierarchy_level', 'cluster')->get();
+        $subClusters = $silo->contents()->where('hierarchy_level', 'sub_cluster')->get();
+
+        $plannedLinks = [];
+        $linksPerSource = [];
+
+        $addLink = function($source, $target) use (&$plannedLinks, &$linksPerSource) {
+            if (!$source || !$target) return;
+            $sid = $source->id;
+            if (!isset($linksPerSource[$sid])) {
+                $linksPerSource[$sid] = 0;
+            }
+            if ($linksPerSource[$sid] < 5) {
+                $plannedLinks[] = ['source' => $source, 'target' => $target];
+                $linksPerSource[$sid]++;
+            }
+        };
+
+        // 1. PILLAR -> Semua Cluster di bawahnya
         foreach ($clusters as $cluster) {
-            $plannedLinks = [];
+            $addLink($pillar, $cluster);
+        }
+
+        // 2. CLUSTER -> Pillar (Wajib) & Sub-Cluster miliknya
+        foreach ($clusters as $clusterA) {
+            $addLink($clusterA, $pillar);
             
-            // Pillar <-> Cluster
-            $plannedLinks[] = ['source' => $pillar, 'target' => $cluster];
-            $plannedLinks[] = ['source' => $cluster, 'target' => $pillar];
-
-            // Sub-clusters within this cluster chamber
-            $subClusters = $silo->contents()
-                ->where('hierarchy_level', 'sub_cluster')
-                ->where('parent_id', $cluster->id)
-                ->get();
-
-            foreach ($subClusters as $sub) {
-                $plannedLinks[] = ['source' => $sub, 'target' => $cluster];
-                $plannedLinks[] = ['source' => $cluster, 'target' => $sub];
-                $plannedLinks[] = ['source' => $sub, 'target' => $pillar];
+            $itsSubs = $subClusters->where('parent_id', $clusterA->id);
+            foreach ($itsSubs as $sub) {
+                $addLink($clusterA, $sub);
             }
+        }
 
-            // Peer-to-Peer within the same chamber
-            foreach ($subClusters as $subA) {
-                foreach ($subClusters as $subB) {
-                    if ($subA->id !== $subB->id) {
-                        $plannedLinks[] = ['source' => $subA, 'target' => $subB];
-                    }
-                }
+        // 3. SUB-CLUSTER -> Cluster Induk, Pillar, & Sesama Sub-cluster (1 Induk)
+        foreach ($subClusters as $subA) {
+            $parentCluster = $clusters->where('id', $subA->parent_id)->first();
+            if ($parentCluster) {
+                $addLink($subA, $parentCluster);
             }
+            
+            $addLink($subA, $pillar);
+            
+            $siblings = $subClusters->where('parent_id', $subA->parent_id)->where('id', '!=', $subA->id);
+            foreach ($siblings as $sibling) {
+                $addLink($subA, $sibling);
+            }
+        }
 
-            // Ask AI to generate anchor texts
-            $userPrompt = "Generate anchor texts for the following links:\n";
-            foreach ($plannedLinks as $idx => $link) {
-                $userPrompt .= ($idx + 1) . ". From: '{$link['source']->target_keyword}' TO: '{$link['target']->target_keyword}'\n";
+        $aiService = new \App\Services\AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
+        $systemPrompt = "Anda adalah Pakar SEO Internal Linking. Tugas Anda adalah mencari anchor text yang paling natural untuk menautkan link dari Source Article ke Target Article.
+ATURAN MUTLAK KATEGORI ANCHOR:
+Buatlah anchor text yang bervariasi dengan mematuhi distribusi ini secara acak namun cerdas:
+1. Exact Match Anchor (Jarang digunakan): Gunakan judul target persis, atau sangat mirip (hanya boleh muncul 1 dari 5).
+2. Partial Match Anchor (Paling Direkomendasikan): Ekstrak topik inti dan gunakan frasa turunan/sinonim. (contoh jika target 'Cara beternak sapi', anchor bisa: 'panduan beternak sapi', 'tips merawat sapi', 'cara memelihara sapi potong').
+3. Long Tail Anchor: Kalimat/frasa agak panjang (contoh: 'cara membuat sapi sehat dan cepat gemuk', 'cara memilih bibit sapi yang bagus').
+4. UBAH SEDIKIT STRUKTUR KALIMAT jika perlu agar anchor text menyatu dengan konteks sumbernya secara natural 100%. DILARANG spam keyword yang sama persis berkali-kali.
+Return a JSON array of strings corresponding to the links in the EXACT SAME ORDER. NO MARKDOWN, NO EXTRA TEXT. ONLY A RAW JSON ARRAY OF STRINGS.";
+
+        // Chunk links into batches of 10 to avoid AI payload getting too big
+        $chunks = array_chunk($plannedLinks, 10);
+        foreach ($chunks as $chunkLinks) {
+            $userPrompt = "Generate SEO-optimized anchor texts for these internal links:\n";
+            foreach ($chunkLinks as $idx => $link) {
+                $userPrompt .= ($idx + 1) . ". Source Article: '{$link['source']->target_keyword}' ---> Target Article: '{$link['target']->target_keyword}'\n";
             }
 
             $aiAnchors = $aiService->generateJson($systemPrompt, $userPrompt);
-            $useAi = (is_array($aiAnchors) && count($aiAnchors) === count($plannedLinks));
+            $useAi = (is_array($aiAnchors) && count($aiAnchors) === count($chunkLinks));
 
-            foreach ($plannedLinks as $idx => $link) {
-                $anchorText = $useAi ? $aiAnchors[$idx] : $link['target']->target_keyword . ' (' . uniqid() . ')';
+            foreach ($chunkLinks as $idx => $link) {
+                $anchorText = $useAi ? $aiAnchors[$idx] : $link['target']->target_keyword;
                 $anchorText = trim(strip_tags($anchorText), "\"' ");
 
-                // We only want ONE deterministic link between source and target for silo structures
-                // If it exists, update its anchor text with the new AI generated one
-                $existingLink = DeterministicLink::where('source_content_id', $link['source']->id)
+                $existingLink = DeterministicLink::withoutGlobalScopes()
+                    ->where('source_content_id', $link['source']->id)
                     ->where('target_content_id', $link['target']->id)
                     ->first();
 

@@ -21,7 +21,7 @@ class ContentController extends Controller
             ->where('status', 'published')
             ->with(['siloBlueprint', 'latestUrlInspection'])
             ->latest()
-            ->paginate(20);
+            ->paginate(50);
 
         return view('admin.content.index', compact('contents'));
     }
@@ -36,7 +36,7 @@ class ContentController extends Controller
             ->whereIn('status', ['blueprint', 'failed_cqi'])
             ->with(['siloBlueprint'])
             ->latest()
-            ->paginate(20);
+            ->paginate(50);
 
         return view('admin.content.prapost', compact('contents'));
     }
@@ -50,7 +50,7 @@ class ContentController extends Controller
             ->whereIn('status', ['draft', 'needs_reoptimize'])
             ->with(['siloBlueprint'])
             ->latest()
-            ->paginate(20);
+            ->paginate(50);
 
         return view('admin.content.drafts', compact('contents'));
     }
@@ -666,6 +666,23 @@ class ContentController extends Controller
 
             // ── Save to DB & Phase 7 (SEO Meta) ───────────────────────────────
             $blogPrefix  = \App\Models\SystemSetting::get('permalink_blog', 'blog');
+            
+            // CAPITALIZE EVERY WORD IN HEADINGS (h1-h6)
+            $finalBody = preg_replace_callback('/(<h[1-6][^>]*>)(.*?)(<\/h[1-6]>)/i', function($matches) {
+                // $matches[1] is open tag, $matches[2] is the text inside, $matches[3] is close tag
+                // Use mb_convert_case for UTF-8 support
+                $capitalizedText = mb_convert_case($matches[2], MB_CASE_TITLE, "UTF-8");
+                // However, mb_convert_case might lowercase existing acronyms like SEO -> Seo.
+                // An alternative is ucwords(strtolower(...)) but same issue. 
+                // Let's use ucwords() on just the first character of each word, preserving acronyms.
+                // A better approach to preserve acronyms:
+                $capitalizedText = preg_replace_callback('/\b([a-z])/u', function($m) {
+                    return mb_strtoupper($m[1], 'UTF-8');
+                }, $matches[2]);
+                
+                return $matches[1] . $capitalizedText . $matches[3];
+            }, $finalBody);
+            
             $contentHash = hash('sha256', $finalBody);
             
             $cqiScore = null;
@@ -684,8 +701,14 @@ class ContentController extends Controller
                     ]);
             }
 
+            // CAPITALIZE TITLE
+            $newTitle = preg_replace_callback('/\b([a-z])/u', function($m) {
+                return mb_strtoupper($m[1], 'UTF-8');
+            }, $content->title ?? '');
+
             $content->body_raw = $finalBody;
             $content->update([
+                'title'        => $newTitle,
                 'content_hash' => $contentHash,
                 'status'       => $targetStatus,
                 'published_at' => $content->published_at ?? now(),
@@ -706,12 +729,16 @@ class ContentController extends Controller
                 $metaTitle = trim($aiService7->generate('You are an expert SEO specialist.', $metaTitlePrompt), " \t\n\r\"'");
                 $metaDesc  = trim($aiService7->generate('You are an expert SEO specialist.', $metaDescPrompt), " \t\n\r\"'");
 
+                $metaTitle = preg_replace_callback('/\b([a-z])/u', function($m) {
+                    return mb_strtoupper($m[1], 'UTF-8');
+                }, $metaTitle);
+
                 $content->updateSeoMeta([
-                    'title'          => $metaTitle ?: $content->title,
+                    'title'          => $metaTitle ?: $newTitle,
                     'description'    => $metaDesc,
                     'canonical'      => url('/' . $blogPrefix . '/' . $content->slug),
                     'robots'         => 'index, follow',
-                    'og_title'       => $metaTitle ?: $content->title,
+                    'og_title'       => $metaTitle ?: $newTitle,
                     'og_description' => $metaDesc,
                     'og_image'       => $content->featured_image_url ?: \App\Models\SystemSetting::get('seo_og_image'),
                 ]);

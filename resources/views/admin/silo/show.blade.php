@@ -124,13 +124,24 @@
                     </div>
                     
                     <div class="flex items-center gap-3">
-                        @if($pillar->status === 'blueprint')
-                            <form action="{{ route('admin.content.generate', $pillar->id) }}" method="POST">
+                        @if($pillar->status === 'idea')
+                            <form action="{{ route('admin.silo.approve_content', [$silo->id, $pillar->id]) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="px-5 py-2.5 bg-brand-violet hover:bg-brand-violet/90 text-white font-bold text-sm rounded-xl shadow-sm transition">
-                                    Tulis Artikel AI
+                                <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-sm transition">
+                                    ✓ Approve Pillar
                                 </button>
                             </form>
+                            <form action="{{ route('admin.silo.delete_content', [$silo->id, $pillar->id]) }}" method="POST" class="inline" onsubmit="return confirm('Hapus Pillar ini?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="px-3 py-2.5 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-sm rounded-xl transition">
+                                    Hapus
+                                </button>
+                            </form>
+                        @elseif($pillar->status === 'blueprint')
+                            <a href="{{ route('admin.content.show', $pillar->id) }}" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm rounded-xl transition">
+                                Lihat Halaman
+                            </a>
                         @else
                             <a href="{{ route('admin.content.show', $pillar->id) }}" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm rounded-xl transition">
                                 Lihat Halaman
@@ -144,20 +155,18 @@
                     $clusters = $contents->where('hierarchy_level', 'cluster')->where('parent_id', $pillar->id);
                 @endphp
                 
-                @if($clusters->isEmpty())
-                    <div class="mt-6 border-t border-slate-100 pt-6 text-center">
-                        <p class="text-sm text-slate-500 mb-3">Pillar page siap. Langkah berikutnya: Buat beberapa cluster topik pendukung.</p>
-                        <form action="{{ route('admin.silo.generate_clusters', ['silo' => $silo->id, 'content' => $pillar->id]) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition shadow-sm">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Generate Keyword Cluster (Tingkat 2)
-                            </button>
-                        </form>
-                    </div>
-                @endif
+                <div class="mt-6 border-t border-slate-100 pt-6 text-center">
+                    <p class="text-sm text-slate-500 mb-3">Tambahkan cluster topik pendukung (Tanpa Duplikat).</p>
+                    <form action="{{ route('admin.silo.generate_clusters', ['silo' => $silo->id, 'content' => $pillar->id]) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Generate Cluster Baru dengan AI
+                        </button>
+                    </form>
+                </div>
             @endif
         </div>
 
@@ -191,11 +200,18 @@
                                         </div>
                                         
                                         <div class="flex items-center gap-2">
-                                            @if($cluster->status === 'blueprint')
-                                                <form action="{{ route('admin.content.generate', $cluster->id) }}" method="POST">
+                                            @if($cluster->status === 'idea')
+                                                <form action="{{ route('admin.silo.approve_content', [$silo->id, $cluster->id]) }}" method="POST">
                                                     @csrf
-                                                    <button type="submit" class="px-3 py-1.5 bg-brand-violet hover:bg-brand-violet/90 text-white font-bold text-xs rounded-lg shadow-sm transition">
-                                                        Tulis
+                                                    <button type="submit" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] rounded shadow-sm transition">
+                                                        Approve
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('admin.silo.delete_content', [$silo->id, $cluster->id]) }}" method="POST" onsubmit="return confirm('Hapus Cluster ini?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded transition">
+                                                        X
                                                     </button>
                                                 </form>
                                             @else
@@ -212,17 +228,16 @@
                                     <div class="space-y-2 mt-4 pl-1">
                                         <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sub-Cluster Keywords (Tingkat 3)</h5>
                                         
-                                        @if($subClusters->isEmpty())
-                                            <div class="py-4 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 mt-2">
-                                                <p class="text-xs text-slate-400 mb-2">Belum ada sub-cluster keyword.</p>
-                                                <form action="{{ route('admin.silo.generate_subclusters', ['silo' => $silo->id, 'content' => $cluster->id]) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-lg transition">
-                                                        + Generate Sub-clusters
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        @else
+                                        <div class="py-2 mt-2">
+                                            <form action="{{ route('admin.silo.generate_subclusters', ['silo' => $silo->id, 'content' => $cluster->id]) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-lg transition w-full justify-center">
+                                                    + Tambah Sub-cluster (AI)
+                                                </button>
+                                            </form>
+                                        </div>
+                                        
+                                        @if($subClusters->isNotEmpty())
                                             <div class="space-y-1.5 mt-2 max-h-60 overflow-y-auto pr-1">
                                                 @foreach($subClusters as $sub)
                                                     <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition text-xs">
@@ -234,11 +249,18 @@
                                                             </div>
                                                         </div>
                                                         <div class="flex items-center gap-1.5 flex-shrink-0">
-                                                            @if($sub->status === 'blueprint')
-                                                                <form action="{{ route('admin.content.generate', $sub->id) }}" method="POST">
+                                                            @if($sub->status === 'idea')
+                                                                <form action="{{ route('admin.silo.approve_content', [$silo->id, $sub->id]) }}" method="POST">
                                                                     @csrf
-                                                                    <button type="submit" class="px-2 py-1 bg-brand-violet hover:bg-brand-violet/90 text-white font-extrabold rounded-md shadow-xs transition">
-                                                                        AI Write
+                                                                    <button type="submit" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[9px] rounded-md shadow-xs transition">
+                                                                        Approve
+                                                                    </button>
+                                                                </form>
+                                                                <form action="{{ route('admin.silo.delete_content', [$silo->id, $sub->id]) }}" method="POST" onsubmit="return confirm('Hapus?');">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit" class="px-1.5 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[9px] rounded transition">
+                                                                        X
                                                                     </button>
                                                                 </form>
                                                             @else
@@ -249,6 +271,18 @@
                                                 @endforeach
                                             </div>
                                         @endif
+                                        
+                                        <!-- PROSES CLUSTER INI BUTTON -->
+                                        <div class="mt-4 pt-4 border-t border-slate-100">
+                                            <form action="{{ route('admin.silo.process_cluster', [$silo->id, $cluster->id]) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-violet hover:bg-brand-violet/90 text-white font-bold text-sm rounded-xl transition shadow-md">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                                    Proses Cluster Ini
+                                                </button>
+                                            </form>
+                                            <p class="text-center text-[10px] text-slate-400 mt-2">Memasukkan Pillar + Cluster ini + semua Sub-clusternya ke antrean produksi.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -79,24 +79,22 @@ class SiloBlueprintController extends Controller
         $pillarKeyword = trim($aiService->generate($systemPrompt, $userPrompt) ?? $silo->seed_keyword);
         $pillarKeyword = trim(strip_tags($pillarKeyword), "\"' ");
 
-        $pillarSlug = \Illuminate\Support\Str::slug($pillarKeyword);
-
         Content::create([
             'tenant_id'         => $silo->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
             'silo_blueprint_id' => $silo->id,
             'parent_id'         => null,
             'target_keyword'    => $pillarKeyword,
-            'slug'              => ['id' => $pillarSlug],
+            'slug'              => null, // Slug generated on approve
             'hierarchy_level'   => 'pillar',
             'search_volume'     => 1000,
             'kgr_score'         => 0.85,
-            'status'            => 'blueprint'
+            'status'            => 'idea'
         ]);
 
         // Update total
         $silo->update(['total_contents' => $silo->contents()->count()]);
 
-        return redirect()->back()->with('success', 'Pillar Page keyword generated successfully!');
+        return redirect()->back()->with('success', 'Pillar Page keyword generated! Please approve it to continue.');
     }
 
     /**
@@ -108,13 +106,11 @@ class SiloBlueprintController extends Controller
             return redirect()->back()->with('error', 'Invalid content level. Clusters can only be generated from a Pillar Page.');
         }
 
-        // Check if clusters already generated
-        if ($silo->contents()->where('hierarchy_level', 'cluster')->where('parent_id', $content->id)->exists()) {
-            return redirect()->back()->with('error', 'Clusters already generated for this Pillar.');
-        }
+        $existingClusters = $silo->contents()->where('hierarchy_level', 'cluster')->where('parent_id', $content->id)->pluck('target_keyword')->toArray();
+        $existingText = count($existingClusters) > 0 ? "Daftar cluster yang sudah ada: [" . implode(', ', $existingClusters) . "]. Tolong buatkan ide cluster BARU yang tidak tumpang tindih dengan daftar tersebut." : "";
 
         $aiService = new AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
-        $systemPrompt = "You are an expert SEO architect. Given a Pillar Page target keyword, generate exactly 3 to 5 highly relevant cluster topics (supporting sub-topics) that fit a SILO architecture. Return the results as a raw JSON array of strings, e.g. [\"Topic 1\", \"Topic 2\", \"Topic 3\"]. Return ONLY valid JSON.";
+        $systemPrompt = "You are an expert SEO architect. Given a Pillar Page target keyword, generate exactly 3 to 5 highly relevant cluster topics (supporting sub-topics) that fit a SILO architecture. {$existingText} Return the results as a raw JSON array of strings, e.g. [\"Topic 1\", \"Topic 2\", \"Topic 3\"]. Return ONLY valid JSON.";
         $userPrompt = "Pillar: " . $content->target_keyword . "\nLanguage: " . $silo->target_language . "\nCountry: " . $silo->target_country;
 
         $clusters = $aiService->generateJson($systemPrompt, $userPrompt);
@@ -130,24 +126,26 @@ class SiloBlueprintController extends Controller
         foreach ($clusters as $clusterText) {
             $clusterText = trim(strip_tags($clusterText), "\"' ");
             if (empty($clusterText)) continue;
+            
+            // double check to prevent duplicate insertion
+            if (in_array(strtolower($clusterText), array_map('strtolower', $existingClusters))) continue;
 
-            $clusterSlug = \Illuminate\Support\Str::slug($clusterText);
             Content::create([
                 'tenant_id'         => $silo->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
                 'silo_blueprint_id' => $silo->id,
                 'parent_id'         => $content->id,
                 'target_keyword'    => $clusterText,
-                'slug'              => ['id' => $clusterSlug],
+                'slug'              => null, // Slug generated on approve
                 'hierarchy_level'   => 'cluster',
                 'search_volume'     => 450,
                 'kgr_score'         => 0.35,
-                'status'            => 'blueprint'
+                'status'            => 'idea'
             ]);
         }
 
         $silo->update(['total_contents' => $silo->contents()->count()]);
 
-        return redirect()->back()->with('success', 'Cluster keywords generated successfully!');
+        return redirect()->back()->with('success', 'Cluster keywords generated successfully! Please approve them.');
     }
 
     /**
@@ -159,13 +157,12 @@ class SiloBlueprintController extends Controller
             return redirect()->back()->with('error', 'Invalid content level. Sub-clusters can only be generated from a Cluster.');
         }
 
-        // Check if sub-clusters already generated
-        if ($silo->contents()->where('hierarchy_level', 'sub_cluster')->where('parent_id', $content->id)->exists()) {
-            return redirect()->back()->with('error', 'Sub-clusters already generated for this Cluster.');
-        }
+        $existingSubs = $silo->contents()->where('hierarchy_level', 'sub_cluster')->where('parent_id', $content->id)->pluck('target_keyword')->toArray();
+        $existingText = count($existingSubs) > 0 ? "Daftar sub-cluster yang sudah ada: [" . implode(', ', $existingSubs) . "]. Tolong buatkan ide sub-cluster BARU yang tidak tumpang tindih dengan daftar tersebut." : "";
+
 
         $aiService = new AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
-        $systemPrompt = "You are an expert SEO architect. Given a Cluster Topic keyword, generate exactly 3 to 5 highly specific long-tail keywords or sub-cluster topics (low competition, high search intent) supporting it. Return the results as a raw JSON array of strings, e.g. [\"Subtopic 1\", \"Subtopic 2\", \"Subtopic 3\"]. Return ONLY valid JSON.";
+        $systemPrompt = "You are an expert SEO architect. Given a Cluster Topic keyword, generate exactly 3 to 5 highly specific long-tail keywords or sub-cluster topics (low competition, high search intent) supporting it. {$existingText} Return the results as a raw JSON array of strings, e.g. [\"Subtopic 1\", \"Subtopic 2\", \"Subtopic 3\"]. Return ONLY valid JSON.";
         $userPrompt = "Cluster: " . $content->target_keyword . "\nLanguage: " . $silo->target_language . "\nCountry: " . $silo->target_country;
 
         $subClusters = $aiService->generateJson($systemPrompt, $userPrompt);
@@ -181,24 +178,25 @@ class SiloBlueprintController extends Controller
         foreach ($subClusters as $subText) {
             $subText = trim(strip_tags($subText), "\"' ");
             if (empty($subText)) continue;
+            
+            if (in_array(strtolower($subText), array_map('strtolower', $existingSubs))) continue;
 
-            $subSlug = \Illuminate\Support\Str::slug($subText);
             Content::create([
                 'tenant_id'         => $silo->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
                 'silo_blueprint_id' => $silo->id,
                 'parent_id'         => $content->id,
                 'target_keyword'    => $subText,
-                'slug'              => ['id' => $subSlug],
+                'slug'              => null, // Slug generated on approve
                 'hierarchy_level'   => 'sub_cluster',
                 'search_volume'     => 120,
                 'kgr_score'         => 0.12,
-                'status'            => 'blueprint'
+                'status'            => 'idea'
             ]);
         }
 
         $silo->update(['total_contents' => $silo->contents()->count()]);
 
-        return redirect()->back()->with('success', 'Sub-cluster keywords generated successfully!');
+        return redirect()->back()->with('success', 'Sub-cluster keywords generated successfully! Please approve them.');
     }
 
     /**
@@ -210,6 +208,104 @@ class SiloBlueprintController extends Controller
         $linker->mapLinksForSilo($silo);
 
         return redirect()->back()->with('success', 'Silo Internal Links mapped successfully! Your contents will now automatically cross-link inside their chambers.');
+    }
+
+    public function approveContent(SiloBlueprint $silo, Content $content)
+    {
+        if ($content->silo_blueprint_id !== $silo->id || $content->status !== 'idea') {
+            return back()->with('error', 'Invalid content for approval.');
+        }
+        $slug = \Illuminate\Support\Str::slug($content->target_keyword);
+        
+        // Ensure unique slug
+        $baseSlug = $slug;
+        $counter = 1;
+        while (\App\Models\Content::withoutGlobalScopes()->where(function($q) use ($slug) {
+            $q->where('slug', $slug)->orWhere('slug', 'LIKE', '%"id":"'.$slug.'"%');
+        })->exists()) {
+            $slug = $baseSlug . '-' . $counter++;
+        }
+        
+        $content->update([
+            'slug' => ['id' => $slug],
+            'status' => 'blueprint'
+        ]);
+        
+        return back()->with('success', 'Keyword approved! URL has been generated.');
+    }
+    
+    public function deleteContent(SiloBlueprint $silo, Content $content)
+    {
+        if ($content->silo_blueprint_id !== $silo->id) {
+            return back()->with('error', 'Invalid content.');
+        }
+        $content->delete();
+        $silo->update(['total_contents' => $silo->contents()->count()]);
+        return back()->with('success', 'Keyword removed.');
+    }
+    
+    public function processCluster(SiloBlueprint $silo, Content $content)
+    {
+        if ($content->hierarchy_level !== 'cluster') {
+            return back()->with('error', 'Can only process from cluster level.');
+        }
+        
+        // Check if pillar is approved
+        $pillar = $silo->contents()->where('hierarchy_level', 'pillar')->first();
+        if (!$pillar || $pillar->status === 'idea') {
+            return back()->with('error', 'Harap proses/approve artikel Pillar terlebih dahulu!');
+        }
+        
+        $idsToProcess = [];
+        $processableStatuses = ['blueprint', 'draft', 'failed_cqi', 'failed'];
+        
+        if (in_array($pillar->status, $processableStatuses)) {
+            $idsToProcess[] = $pillar->id;
+        }
+        if (in_array($content->status, $processableStatuses)) {
+            $idsToProcess[] = $content->id;
+        }
+        
+        $subs = $silo->contents()->where('hierarchy_level', 'sub_cluster')->where('parent_id', $content->id)->get();
+        foreach($subs as $sub) {
+            if (in_array($sub->status, $processableStatuses)) {
+                $idsToProcess[] = $sub->id;
+            }
+        }
+        
+        if (empty($idsToProcess)) {
+            return back()->with('info', 'Semua konten di cluster ini sudah diproses atau masih berupa ide (belum diapprove).');
+        }
+        
+        $tenantId = \App\Models\Tenant::first()?->id ?? 1;
+        $queuedCount = 0;
+        foreach($idsToProcess as $cId) {
+            $c = \App\Models\Content::withoutGlobalScopes()->find($cId);
+            $alreadyActive = \App\Models\AiGenerationJob::withoutGlobalScopes()
+                ->where('content_id', $cId)
+                ->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6', 'phase_7'])
+                ->exists();
+            if ($alreadyActive) continue;
+            
+            $job = \App\Models\AiGenerationJob::withoutGlobalScopes()
+                ->where('content_id', $cId)
+                ->whereIn('status', ['failed', 'failed_cqi', 'completed'])
+                ->first();
+            if ($job) {
+                $job->update(['status' => 'pending', 'retry_count' => $job->retry_count + 1]);
+            } else {
+                \App\Models\AiGenerationJob::create([
+                    'tenant_id' => $tenantId, 'content_id' => $cId, 'job_type' => 'initial_generation', 'status' => 'pending', 'retry_count' => 0
+                ]);
+            }
+            $c->update(['status' => 'ai_processing']);
+            $queuedCount++;
+        }
+        
+        if ($queuedCount > 0) {
+            return redirect()->route('admin.content.create')->with('success', "Berhasil mendaftarkan {$queuedCount} artikel (Pillar + Cluster + Sub-cluster) ke Dapur Produksi!");
+        }
+        return back()->with('info', 'Semua konten terkait sudah berada di dalam antrean aktif.');
     }
 
     /**

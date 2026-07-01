@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Pagination\Paginator::useTailwind();
+
         \Illuminate\Support\Facades\RateLimiter::for('gsc-url-inspection', function (object $job) {
             // Max 60 inspections per minute per tenant
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(60)->by($job->tenantId);

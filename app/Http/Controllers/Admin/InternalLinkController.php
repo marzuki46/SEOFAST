@@ -56,7 +56,7 @@ class InternalLinkController extends Controller
         $pillar = $silo->contents()->where('hierarchy_level', 'pillar')->first();
         
         if (!$pillar) {
-            return redirect()->back()->with('error', 'Silo does not have a Pillar (Kategori Utama).');
+            return redirect()->back()->with('error', 'Silo does not have a Pillar.');
         }
 
         $clusters = $silo->contents()->where('hierarchy_level', 'cluster')->get();
@@ -66,66 +66,49 @@ class InternalLinkController extends Controller
         $linksPerSource = [];
 
         $addLink = function($source, $target) use (&$plannedLinks, &$linksPerSource) {
+            if (!$source || !$target) return;
             $sid = $source->id;
             if (!isset($linksPerSource[$sid])) {
                 $linksPerSource[$sid] = 0;
             }
-            if ($linksPerSource[$sid] < 3) {
+            if ($linksPerSource[$sid] < 5) {
                 $plannedLinks[] = ['source' => $source, 'target' => $target];
                 $linksPerSource[$sid]++;
             }
         };
 
-        // 1. Kategori Utama (Pillar) -> links to Sub Cluster 
-        $shuffledSubs = $subClusters->shuffle();
-        foreach ($shuffledSubs as $sub) {
-            $addLink($pillar, $sub);
+        // 1. PILLAR -> Semua Cluster di bawahnya
+        foreach ($clusters as $cluster) {
+            $addLink($pillar, $cluster);
         }
 
-        // 2. Child (Cluster) -> sesama child (other clusters), sub_cluster
+        // 2. CLUSTER -> Pillar (Wajib) & Sub-Cluster miliknya
         foreach ($clusters as $clusterA) {
-            $targets = collect();
+            // Wajib ke Pillar
+            $addLink($clusterA, $pillar);
             
-            // to other clusters
-            foreach ($clusters as $clusterB) {
-                if ($clusterA->id !== $clusterB->id) {
-                    $targets->push($clusterB);
-                }
-            }
-            
-            // to its sub_clusters
+            // Ke Sub-cluster miliknya
             $itsSubs = $subClusters->where('parent_id', $clusterA->id);
             foreach ($itsSubs as $sub) {
-                $targets->push($sub);
-            }
-            
-            $targets = $targets->shuffle();
-            foreach ($targets as $tgt) {
-                $addLink($clusterA, $tgt);
+                $addLink($clusterA, $sub);
             }
         }
 
-        // 3. Sub Cluster -> child (cluster_utama/parent), antar sub_cluster
+        // 3. SUB-CLUSTER -> Cluster Induk, Pillar, & Sesama Sub-cluster (1 Induk)
         foreach ($subClusters as $subA) {
-            $targets = collect();
-            
-            // to its parent cluster
+            // Ke parent cluster
             $parentCluster = $clusters->where('id', $subA->parent_id)->first();
             if ($parentCluster) {
-                $targets->push($parentCluster);
+                $addLink($subA, $parentCluster);
             }
             
-            // to other sub_clusters (siblings only)
-            $siblings = $subClusters->where('parent_id', $subA->parent_id);
-            foreach ($siblings as $subB) {
-                if ($subA->id !== $subB->id) {
-                    $targets->push($subB);
-                }
-            }
+            // Ke Pillar (Grandparent)
+            $addLink($subA, $pillar);
             
-            $targets = $targets->shuffle();
-            foreach ($targets as $tgt) {
-                $addLink($subA, $tgt);
+            // Ke sesama sub-cluster (siblings)
+            $siblings = $subClusters->where('parent_id', $subA->parent_id)->where('id', '!=', $subA->id);
+            foreach ($siblings as $sibling) {
+                $addLink($subA, $sibling);
             }
         }
 
@@ -186,14 +169,16 @@ class InternalLinkController extends Controller
         }
         
         $aiService = new \App\Services\AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
-        $systemPrompt = "You are an expert SEO internal linking architect. For each link pair provided, generate a UNIQUE, short (2-4 words) High-CTR anchor text.
-CRITICAL RULES:
-1. PENALTY: YOU WILL BE PENALIZED IF YOU USE THE EXACT TARGET KEYWORD AS THE ANCHOR TEXT. You MUST extract the core topic and rephrase it using synonyms, action verbs, or LSI variations. (e.g., if target is 'Panduan SEO Teknis', use 'cara audit website' or 'optimasi teknikal', NEVER 'panduan seo teknis').
-2. DIVERSITY: If multiple sources point to the same Target, YOU MUST provide completely DIFFERENT variations for each row.
-3. RELEVANCE: The anchor must naturally fit within the Source article's context while accurately pointing to the Target.
+        $systemPrompt = "Anda adalah Pakar SEO Internal Linking. Tugas Anda adalah mencari anchor text yang paling natural untuk menautkan link dari Source Article ke Target Article.
+ATURAN MUTLAK KATEGORI ANCHOR:
+Buatlah anchor text yang bervariasi dengan mematuhi distribusi ini secara acak namun cerdas:
+1. Exact Match Anchor (Jarang digunakan): Gunakan judul target persis, atau sangat mirip (hanya boleh muncul 1 dari 5).
+2. Partial Match Anchor (Paling Direkomendasikan): Ekstrak topik inti dan gunakan frasa turunan/sinonim. (contoh jika target 'Cara beternak sapi', anchor bisa: 'panduan beternak sapi', 'tips merawat sapi', 'cara memelihara sapi potong').
+3. Long Tail Anchor: Kalimat/frasa agak panjang (contoh: 'cara membuat sapi sehat dan cepat gemuk', 'cara memilih bibit sapi yang bagus').
+4. UBAH SEDIKIT STRUKTUR KALIMAT jika perlu agar anchor text menyatu dengan konteks sumbernya secara natural 100%. DILARANG spam keyword yang sama persis berkali-kali.
 Return a JSON array of strings corresponding to the links in the EXACT SAME ORDER. NO MARKDOWN, NO EXTRA TEXT. ONLY A RAW JSON ARRAY OF STRINGS.";
 
-        $userPrompt = "Generate High-CTR anchor texts for these internal links:\n";
+        $userPrompt = "Generate SEO-optimized anchor texts for these internal links:\n";
         foreach ($links as $idx => $link) {
             $userPrompt .= ($idx + 1) . ". Source Article: '{$link->source->target_keyword}' ---> Target Article: '{$link->target->target_keyword}'\n";
         }
