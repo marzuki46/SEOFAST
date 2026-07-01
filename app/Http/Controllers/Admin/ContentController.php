@@ -504,6 +504,27 @@ class ContentController extends Controller
                     }
                 }
 
+                if ($content->hierarchy_level === 'pillar') {
+                    $clusters = \App\Models\Content::where('parent_id', $content->id)
+                                    ->where('hierarchy_level', 'cluster')
+                                    ->whereNotIn('status', ['idea'])
+                                    ->get();
+                    if ($clusters->isNotEmpty()) {
+                        $linkInstructions .= "\n\nCRITICAL PILLAR REQUIREMENT: As a Pillar Page, you MUST extend the content by explicitly creating dedicated sections (H2/H3) for the following cluster topics. You MUST naturally insert their corresponding links within their respective sections:\n";
+                        foreach ($clusters as $cluster) {
+                            $dLink = \App\Models\DeterministicLink::where('source_content_id', $content->id)
+                                ->where('target_content_id', $cluster->id)
+                                ->first();
+                            $anchor = $dLink ? ($dLink->mandatory_anchor_text ?? $cluster->target_keyword) : $cluster->target_keyword;
+                            
+                            $slugStr = is_string($cluster->slug) ? $cluster->slug : ($cluster->slug['id'] ?? '#');
+                            $url = url('/blog/' . ltrim($slugStr, '/'));
+                            
+                            $linkInstructions .= "- Cluster Topic: {$cluster->target_keyword} => Link Markdown: [{$anchor}]({$url})\n";
+                        }
+                    }
+                }
+
                 $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
                     "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 800 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Return ONLY the article draft in Markdown.");
                 $sysP2 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir konten. Berikan hasil akhirnya saja langsung.";
