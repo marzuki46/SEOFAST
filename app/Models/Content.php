@@ -171,7 +171,7 @@ class Content extends Model
             return;
         }
 
-        // Prevent double encoding if the value is already a JSON string from a previous process
+        // If it's already a JSON string from a previous process, decode it first to get the raw text
         if (is_string($value) && (str_starts_with(trim($value), '{') || str_starts_with(trim($value), '"{'))) {
             $decoded = json_decode(trim($value, '"'), true);
             if (is_array($decoded) && isset($decoded['id'])) {
@@ -179,8 +179,8 @@ class Content extends Model
             }
         }
         
-        // Wrap the plain string in JSON to satisfy MySQL JSON constraints
-        $this->attributes[$key] = json_encode(['id' => $value, 'en' => $value], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_IGNORE);
+        // Disable multi-language JSON storage. Just save as plain text.
+        $this->attributes[$key] = $value;
     }
 
     public function getSlugAttribute() { return $this->getJsonField('slug'); }
