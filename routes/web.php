@@ -237,6 +237,7 @@ Route::middleware(['auth'])->group(function () {
         // Enterprise SEO Settings
         Route::prefix('seo/settings')->name('admin.seo.settings.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\SeoSettingController::class, 'index'])->name('index');
+            Route::post('/clean-garbage', [\App\Http\Controllers\Admin\SeoSettingController::class, 'cleanGarbage'])->name('clean_garbage');
             // We use SystemSettingController@update for the form submission
             Route::post('/', [\App\Http\Controllers\Admin\SystemSettingController::class, 'update'])->name('update');
         });

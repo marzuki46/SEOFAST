@@ -406,6 +406,16 @@ class ContentController extends Controller
                 return ['success' => false, 'error' => 'Content or Job not found.', 'logs' => []];
             }
 
+            $recoveryManager = new \App\Services\AiRecoveryManager($content->tenant ?? null);
+            if ($recoveryManager->isCircuitOpen()) {
+                return [
+                    'success' => true, 
+                    'status' => 'wait', 
+                    'keyword' => $content->target_keyword, 
+                    'logs' => [['level' => 'warn', 'message' => 'Circuit Breaker aktif (Rate Limit API). Sistem mendinginkan (pause) selama 90 detik sebelum melanjutkan...']]
+                ];
+            }
+
             if ($job->status === 'completed') {
                 return [
                     'success' => true,
@@ -572,7 +582,13 @@ class ContentController extends Controller
                 
                 $sysP5 = \App\Models\SystemSetting::get('ai_prompt_phase5_sys',
                     "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.");
-                $sysP5 = strtr($sysP5, ['{lang}' => $lang]);
+                $brandNames = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
+                $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
+                $sysP5 = strtr($sysP5, [
+                    '{lang}' => $lang,
+                    '{brand_names}' => $brandNames,
+                    '{brand_positioning}' => $brandPositioning,
+                ]);
                 $sysP5 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir konten. Berikan hasil akhirnya saja langsung.";
                 $userP5 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}";
 
@@ -599,7 +615,13 @@ class ContentController extends Controller
 
                 $sysP6 = \App\Models\SystemSetting::get('ai_prompt_phase6_sys',
                     "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the comprehensive length.");
-                $sysP6 = strtr($sysP6, ['{lang}' => $lang]);
+                $brandNames = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
+                $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
+                $sysP6 = strtr($sysP6, [
+                    '{lang}' => $lang,
+                    '{brand_names}' => $brandNames,
+                    '{brand_positioning}' => $brandPositioning,
+                ]);
                 
                 // CRITICAL: Force the AI to wrap output to prevent conversational filler from leaking
                 $sysP6 .= "\n\nCRITICAL REQUIREMENT: You MUST wrap your ENTIRE final HTML output exactly inside <article_body> and </article_body> tags. Do not include any explanations outside these tags.";
@@ -756,14 +778,39 @@ class ContentController extends Controller
             if (isset($lock)) {
                 $lock->release();
             }
-            if (isset($job) && $job) {
-                $job->update(['status' => 'failed', 'error_log' => ['reason' => $e->getMessage()]]);
-            }
-            if (isset($content) && $content) {
-                $content->update(['status' => 'failed_cqi']);
+
+            $errorMsg = "FATAL ERROR: " . $e->getMessage();
+            
+            if (isset($job) && $job && isset($content) && $content) {
+                $recoveryManager = new \App\Services\AiRecoveryManager($content->tenant);
+                $currentPhase = $job->status ?? 'unknown';
+                
+                $recoveryResult = $recoveryManager->handleFailure($job, $content, $e, $currentPhase, $logs);
+                
+                if (isset($recoveryResult['status']) && in_array($recoveryResult['status'], ['continue', 'wait'])) {
+                    if (isset($addLog)) {
+                        // Logs are already appended by reference, but we can flush them if needed
+                        $lastLog = end($logs);
+                        if ($lastLog) {
+                            $addLog($lastLog['level'], $lastLog['message']);
+                        }
+                    }
+                    return [
+                        'success' => true,
+                        'status' => $recoveryResult['status'],
+                        'keyword' => $keyword ?? 'Unknown',
+                        'logs' => $logs,
+                    ];
+                }
+            } else {
+                if (isset($job) && $job) {
+                    $job->update(['status' => 'failed', 'error_log' => ['reason' => $e->getMessage()]]);
+                }
+                if (isset($content) && $content) {
+                    $content->update(['status' => 'failed_cqi']);
+                }
             }
             
-            $errorMsg = "FATAL ERROR: " . $e->getMessage() . " on line " . $e->getLine();
             if (isset($addLog)) {
                 $addLog('error', $errorMsg);
                 return ['success' => false, 'keyword' => $keyword ?? 'Unknown', 'error' => $errorMsg, 'logs' => $logs];

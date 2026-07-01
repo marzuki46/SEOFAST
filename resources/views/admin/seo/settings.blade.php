@@ -317,6 +317,25 @@
                             <div class="grid grid-cols-1 gap-6">
 
                                 <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Brand Identity for AI Prompts</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+                                        <div>
+                                            <label class="block text-base font-semibold text-slate-800 mb-1.5">Brand Names (Aliases)</label>
+                                            <input type="text" name="ai_prompt_brand_names" value="{{ $settings['seo_ai_prompt']['ai_prompt_brand_names'] ?? \App\Models\SystemSetting::get('ai_prompt_brand_names') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="e.g. Tokopedia, Tokped, Toko Ijo">
+                                            <p class="text-xs text-slate-500 mt-1">Shortcode: <code class="bg-slate-100 px-1 rounded">{brand_names}</code></p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-base font-semibold text-slate-800 mb-1.5">Brand Positioning / Narrative</label>
+                                            <textarea name="ai_prompt_brand_positioning" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="e.g. Platform e-commerce terbaik di Indonesia... Beli sekarang di aplikasi kami.">{{ $settings['seo_ai_prompt']['ai_prompt_brand_positioning'] ?? \App\Models\SystemSetting::get('ai_prompt_brand_positioning') }}</textarea>
+                                            <p class="text-xs text-slate-500 mt-1">Shortcode: <code class="bg-slate-100 px-1 rounded">{brand_positioning}</code></p>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-slate-600 bg-blue-50 border border-blue-100 p-3 rounded-lg">
+                                        <strong>Tips:</strong> Sisipkan <code class="bg-white px-1 rounded">{brand_names}</code> dan <code class="bg-white px-1 rounded">{brand_positioning}</code> pada <strong>System Prompt Phase 5 atau Phase 6</strong> di bawah ini agar AI otomatis melakukan <em>soft selling</em> untuk bisnis Anda di akhir artikel.
+                                    </p>
+                                </div>
+
+                                <div class="border-b border-slate-200 pb-6">
                                     <h4 class="text-lg font-bold mb-4">Phase 1: Entities & LSI Keywords</h4>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
                                     <textarea name="ai_prompt_phase1_sys" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['seo_ai_prompt']['ai_prompt_phase1_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase1_sys', "You are an Expert SEO Strategist. Generate a list of semantic entities and LSI keywords relevant to '{keyword}'. Return the list as a simple comma-separated string.") }}</textarea>
@@ -417,6 +436,36 @@
                             </div>
                         @elseif($key === 'advanced')
                             <div class="grid grid-cols-1 gap-6">
+                                <!-- DATABASE OPTIMIZATION PANEL -->
+                                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-4">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
+                                                <svg class="w-5 h-5 text-brand-indigo" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                                                Database Optimization (Garbage Collection)
+                                            </h4>
+                                            <p class="text-sm text-slate-500 mb-3">
+                                                Membersihkan data sementara (draft, LSI, pertanyaan mentah) dari job AI yang sudah <strong>Selesai (Completed)</strong>. Data ini tidak diperlukan lagi dan hanya memenuhi database.
+                                            </p>
+                                            <div class="flex items-center gap-4 text-sm">
+                                                <div class="px-3 py-1.5 bg-white border border-slate-200 rounded-md font-medium text-slate-700">
+                                                    Ukuran Sampah: <span class="text-rose-600 font-bold">{{ $garbageSizeMB ?? 0 }} MB</span>
+                                                </div>
+                                                <div class="px-3 py-1.5 bg-white border border-slate-200 rounded-md font-medium text-slate-700">
+                                                    Job Selesai: <span class="text-indigo-600 font-bold">{{ $garbageCount ?? 0 }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button type="button" onclick="document.getElementById('formCleanGarbage').submit();" class="inline-flex items-center gap-2 bg-white border border-rose-200 hover:bg-rose-50 hover:border-rose-300 text-rose-600 px-4 py-2.5 rounded-lg text-sm font-bold shadow-sm transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                Bersihkan Sampah
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- END DATABASE OPTIMIZATION PANEL -->
+
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Custom Headers in &lt;head&gt;</label>
                                     <textarea name="seo_advanced_head_code" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2" placeholder="<script>...</script>">{{ $settings['seo_advanced']['seo_advanced_head_code'] ?? \App\Models\SystemSetting::get('seo_advanced_head_code') }}</textarea>
@@ -438,4 +487,8 @@
         @endforeach
     </div>
 </div>
+
+<form id="formCleanGarbage" action="{{ route('admin.seo.settings.clean_garbage') }}" method="POST" style="display: none;">
+    @csrf
+</form>
 @endsection

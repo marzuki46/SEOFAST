@@ -10,6 +10,19 @@
         <div>
             <h1 class="text-2xl font-bold text-slate-900">Drafts (AI Generated)</h1>
             <p class="text-sm text-slate-500 mt-1">Review dan edit konten yang telah digenerate oleh AI sebelum dipublish.</p>
+            @php
+                $processingCount = \App\Models\Content::withoutGlobalScopes()->where('status', 'ai_processing')->count();
+                $pendingCount = \App\Models\AiGenerationJob::withoutGlobalScopes()->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6', 'phase_7'])->count();
+            @endphp
+            <div class="mt-3 flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-semibold bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-600/10">
+                    <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                    {{ $pendingCount }} Antrean / Proses AI
+                </span>
+                <span class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-semibold bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/10">
+                    {{ \App\Models\Content::withoutGlobalScopes()->where('status', 'failed_cqi')->count() }} Gagal (Perlu Retry)
+                </span>
+            </div>
         </div>
         <a href="{{ route('admin.content.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
