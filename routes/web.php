@@ -253,6 +253,11 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
+Route::get('/force-migrate', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return 'Database migrated successfully! Artisan output: ' . \Illuminate\Support\Facades\Artisan::output();
+});
+
 // Buyer Portal Routes
 Route::prefix('buyer')->name('buyer.')->group(function () {
     // Public — belum login (Already moved to root /login & /register)
