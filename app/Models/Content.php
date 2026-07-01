@@ -166,6 +166,11 @@ class Content extends Model
 
     protected function setJsonField(string $key, $value): void
     {
+        if ($value === null) {
+            $this->attributes[$key] = null;
+            return;
+        }
+
         // Prevent double encoding if the value is already a JSON string from a previous process
         if (is_string($value) && (str_starts_with(trim($value), '{') || str_starts_with(trim($value), '"{'))) {
             $decoded = json_decode(trim($value, '"'), true);
