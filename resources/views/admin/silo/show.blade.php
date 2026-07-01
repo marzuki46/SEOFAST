@@ -146,6 +146,12 @@
                             <a href="{{ route('admin.content.show', $pillar->id) }}" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm rounded-xl transition">
                                 Lihat Halaman
                             </a>
+                            <form action="{{ route('admin.silo.regenerate_content', [$silo->id, $pillar->id]) }}" method="POST" class="inline" onsubmit="return confirm('Kembalikan status Pillar ini ke Blueprint agar bisa di-generate ulang (untuk mengupdate internal link)? Konten lama akan ditimpa saat digenerate.');">
+                                @csrf
+                                <button type="submit" class="px-3 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-700 font-bold text-sm rounded-xl transition shadow-sm">
+                                    ↻ Regenerate Pillar (Update Links)
+                                </button>
+                            </form>
                         @endif
                     </div>
                 </div>

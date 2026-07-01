@@ -130,6 +130,7 @@ Route::middleware(['auth'])->group(function () {
             // Content management within Silo
             Route::post('/{silo}/content/{content}/approve', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'approveContent'])->name('approve_content');
             Route::delete('/{silo}/content/{content}', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'deleteContent'])->name('delete_content');
+            Route::post('/{silo}/content/{content}/regenerate', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'regenerateContent'])->name('regenerate_content');
             Route::post('/{silo}/content/{content}/process', [\App\Http\Controllers\Admin\SiloBlueprintController::class, 'processCluster'])->name('process_cluster');
         });
 

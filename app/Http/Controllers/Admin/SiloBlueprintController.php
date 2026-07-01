@@ -84,7 +84,7 @@ class SiloBlueprintController extends Controller
             'silo_blueprint_id' => $silo->id,
             'parent_id'         => null,
             'target_keyword'    => $pillarKeyword,
-            'slug'              => 'idea-' . uniqid(), // Temp unique slug since column cannot be null
+            'slug'              => 'idea-' . \Illuminate\Support\Str::uuid(), // Temp unique slug since column cannot be null
             'hierarchy_level'   => 'pillar',
             'search_volume'     => 1000,
             'kgr_score'         => 0.85,
@@ -135,7 +135,7 @@ class SiloBlueprintController extends Controller
                 'silo_blueprint_id' => $silo->id,
                 'parent_id'         => $content->id,
                 'target_keyword'    => $clusterText,
-                'slug'              => 'idea-' . uniqid(), // Temp unique slug since column cannot be null
+                'slug'              => 'idea-' . \Illuminate\Support\Str::uuid(), // Temp unique slug since column cannot be null
                 'hierarchy_level'   => 'cluster',
                 'search_volume'     => 450,
                 'kgr_score'         => 0.35,
@@ -186,7 +186,7 @@ class SiloBlueprintController extends Controller
                 'silo_blueprint_id' => $silo->id,
                 'parent_id'         => $content->id,
                 'target_keyword'    => $subText,
-                'slug'              => 'idea-' . uniqid(), // Temp unique slug since column cannot be null
+                'slug'              => 'idea-' . \Illuminate\Support\Str::uuid(), // Temp unique slug since column cannot be null
                 'hierarchy_level'   => 'sub_cluster',
                 'search_volume'     => 120,
                 'kgr_score'         => 0.12,
@@ -243,7 +243,19 @@ class SiloBlueprintController extends Controller
         $silo->update(['total_contents' => $silo->contents()->count()]);
         return back()->with('success', 'Keyword removed.');
     }
-    
+
+    public function regenerateContent(SiloBlueprint $silo, Content $content)
+    {
+        if ($content->silo_blueprint_id !== $silo->id) {
+            return back()->with('error', 'Invalid content.');
+        }
+        $content->update([
+            'status' => 'blueprint',
+            'body_raw' => null,
+            'rendered_html_path' => null,
+        ]);
+        return back()->with('success', 'Status dikembalikan ke antrean (Blueprint). Silakan klik "Proses Cluster Ini" untuk mulai membuat ulang artikel beserta update link-nya.');
+    }
     public function processCluster(SiloBlueprint $silo, Content $content)
     {
         if ($content->hierarchy_level !== 'cluster') {
