@@ -84,7 +84,7 @@ class SiloBlueprintController extends Controller
             'silo_blueprint_id' => $silo->id,
             'parent_id'         => null,
             'target_keyword'    => $pillarKeyword,
-            'slug'              => null, // Slug generated on approve
+            'slug'              => 'idea-' . uniqid(), // Temp unique slug since column cannot be null
             'hierarchy_level'   => 'pillar',
             'search_volume'     => 1000,
             'kgr_score'         => 0.85,
@@ -135,7 +135,7 @@ class SiloBlueprintController extends Controller
                 'silo_blueprint_id' => $silo->id,
                 'parent_id'         => $content->id,
                 'target_keyword'    => $clusterText,
-                'slug'              => null, // Slug generated on approve
+                'slug'              => 'idea-' . uniqid(), // Temp unique slug since column cannot be null
                 'hierarchy_level'   => 'cluster',
                 'search_volume'     => 450,
                 'kgr_score'         => 0.35,
@@ -186,7 +186,7 @@ class SiloBlueprintController extends Controller
                 'silo_blueprint_id' => $silo->id,
                 'parent_id'         => $content->id,
                 'target_keyword'    => $subText,
-                'slug'              => null, // Slug generated on approve
+                'slug'              => 'idea-' . uniqid(), // Temp unique slug since column cannot be null
                 'hierarchy_level'   => 'sub_cluster',
                 'search_volume'     => 120,
                 'kgr_score'         => 0.12,
@@ -227,7 +227,7 @@ class SiloBlueprintController extends Controller
         }
         
         $content->update([
-            'slug' => ['id' => $slug],
+            'slug' => $slug,
             'status' => 'blueprint'
         ]);
         
