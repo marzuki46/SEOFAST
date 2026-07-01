@@ -665,6 +665,12 @@ class AIService
                 $chunk = json_decode($json, true);
                 if (!is_array($chunk)) continue;
 
+                // Handle errors sent inside the stream
+                if (isset($chunk['error'])) {
+                    $errorMsg = is_string($chunk['error']) ? $chunk['error'] : ($chunk['error']['message'] ?? json_encode($chunk['error']));
+                    throw new \RuntimeException('Custom API Stream Error: ' . $errorMsg);
+                }
+
                 // Accumulate delta content (streaming format)
                 $delta = $chunk['choices'][0]['delta']['content'] ?? null;
                 $reasoning = $chunk['choices'][0]['delta']['reasoning_content'] ?? null;
@@ -699,7 +705,7 @@ class AIService
                 $fullContent .= "\n</think>\n\n";
             }
 
-            if (!empty($fullContent)) {
+            if ($fullContent !== '') {
                 return [
                     'content'      => $fullContent,
                     'usage'        => $lastUsage,
