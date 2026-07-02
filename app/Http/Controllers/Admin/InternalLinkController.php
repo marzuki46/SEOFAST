@@ -94,7 +94,7 @@ class InternalLinkController extends Controller
             }
         }
 
-        // 3. SUB-CLUSTER -> Cluster Induk, Pillar, & Sesama Sub-cluster (1 Induk)
+        // 3. SUB-CLUSTER -> Cluster Induk & Pillar
         foreach ($subClusters as $subA) {
             // Ke parent cluster
             $parentCluster = $clusters->where('id', $subA->parent_id)->first();
@@ -104,12 +104,6 @@ class InternalLinkController extends Controller
             
             // Ke Pillar (Grandparent)
             $addLink($subA, $pillar);
-            
-            // Ke sesama sub-cluster (siblings)
-            $siblings = $subClusters->where('parent_id', $subA->parent_id)->where('id', '!=', $subA->id);
-            foreach ($siblings as $sibling) {
-                $addLink($subA, $sibling);
-            }
         }
 
         // Wipe old links to cleanly replace
@@ -156,36 +150,41 @@ class InternalLinkController extends Controller
         $silo = SiloBlueprint::findOrFail($siloId);
         $contentIds = $silo->contents()->pluck('id');
         
-        // Get up to 5 links that need processing
-        $links = DeterministicLink::with(['source', 'target'])
-            ->whereIn('source_content_id', $contentIds)
+        // Ambil SATU target_content_id yang masih punya status PENDING_AI
+        $firstPendingLink = DeterministicLink::whereIn('source_content_id', $contentIds)
             ->where('mandatory_anchor_text', '[PENDING_AI]')
             ->orderBy('target_content_id')
-            ->limit(5)
-            ->get();
+            ->first();
             
-        if ($links->isEmpty()) {
+        if (!$firstPendingLink) {
             return response()->json(['status' => 'done']);
         }
         
+        $targetId = $firstPendingLink->target_content_id;
+        
+        // Ambil SEMUA link yang mengarah ke target_content_id ini dan statusnya PENDING_AI
+        $links = DeterministicLink::with(['source', 'target'])
+            ->whereIn('source_content_id', $contentIds)
+            ->where('target_content_id', $targetId)
+            ->where('mandatory_anchor_text', '[PENDING_AI]')
+            ->get();
+        
         $aiService = new \App\Services\AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
-        $systemPrompt = "Anda adalah Pakar SEO Internal Linking. Tugas Anda adalah mencari anchor text yang paling natural untuk menautkan link dari Source Article ke Target Article.
-ATURAN MUTLAK KATEGORI ANCHOR:
-Buatlah anchor text yang bervariasi dengan mematuhi distribusi ini secara acak namun cerdas:
-1. Exact Match Anchor (Jarang digunakan): Gunakan judul target persis, atau sangat mirip (hanya boleh muncul 1 dari 5).
-2. Partial Match Anchor (Paling Direkomendasikan): Ekstrak topik inti dan gunakan frasa turunan/sinonim. (contoh jika target 'Cara beternak sapi', anchor bisa: 'panduan beternak sapi', 'tips merawat sapi', 'cara memelihara sapi potong').
-3. Long Tail Anchor: Kalimat/frasa agak panjang (contoh: 'cara membuat sapi sehat dan cepat gemuk', 'cara memilih bibit sapi yang bagus').
-4. UBAH SEDIKIT STRUKTUR KALIMAT jika perlu agar anchor text menyatu dengan konteks sumbernya secara natural 100%. DILARANG spam keyword yang sama persis berkali-kali.
-Return a JSON array of strings corresponding to the links in the EXACT SAME ORDER. NO MARKDOWN, NO EXTRA TEXT. ONLY A RAW JSON ARRAY OF STRINGS.";
+        $systemPrompt = "Anda adalah Pakar SEO Internal Linking. Tugas Anda adalah mencari anchor text yang bervariasi untuk SEBUAH artikel target agar tidak terindikasi spam (keyword cannibalization).
+ATURAN MUTLAK:
+1. Jika diminta 3 anchor, berikan EXACTLY 3 anchor.
+2. Kombinasikan: 1 Exact Match (judul target), sisanya Partial Match (frasa turunan/sinonim) atau Long Tail (kalimat panjang natural).
+3. Return ONLY a JSON array of strings, e.g. [\"Anchor 1\", \"Anchor 2\", \"Anchor 3\"]. NO MARKDOWN, NO EXTRA TEXT.";
 
-        $userPrompt = "Generate SEO-optimized anchor texts for these internal links:\n";
-        foreach ($links as $idx => $link) {
-            $userPrompt .= ($idx + 1) . ". Source Article: '{$link->source->target_keyword}' ---> Target Article: '{$link->target->target_keyword}'\n";
-        }
+        $targetKeyword = $links->first()->target->target_keyword;
+        $count = $links->count();
+        
+        $userPrompt = "Target Article Keyword: '{$targetKeyword}'\n";
+        $userPrompt .= "Tolong berikan {$count} variasi anchor text yang unik dan berbeda satu sama lain untuk artikel target di atas.";
         
         $aiAnchors = $aiService->generateJson($systemPrompt, $userPrompt);
         
-        if (is_array($aiAnchors) && count($aiAnchors) === $links->count()) {
+        if (is_array($aiAnchors) && count($aiAnchors) >= $count) {
             foreach ($links as $idx => $link) {
                 $aiText = $aiAnchors[$idx];
                 $anchorText = trim(strip_tags($aiText), "\"' ");
@@ -195,10 +194,10 @@ Return a JSON array of strings corresponding to the links in the EXACT SAME ORDE
                 ]);
             }
         } else {
-            // If AI fails, use fallback to avoid getting stuck in a loop
-            foreach ($links as $link) {
+            // If AI fails, use fallback
+            foreach ($links as $idx => $link) {
                 $link->update([
-                    'mandatory_anchor_text' => $link->target->target_keyword
+                    'mandatory_anchor_text' => $link->target->target_keyword . ($idx > 0 ? ' bagian ' . ($idx + 1) : '')
                 ]);
             }
             return response()->json(['status' => 'error_fallback']);
