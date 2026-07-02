@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+        
         \Illuminate\Pagination\Paginator::useTailwind();
 
         \Illuminate\Support\Facades\RateLimiter::for('gsc-url-inspection', function (object $job) {

@@ -351,6 +351,8 @@ class ContentController extends Controller
      */
     public function generateSingle(Request $request)
     {
+        error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+        @ini_set('display_errors', '0');
         @set_time_limit(300);
         @ini_set('memory_limit', '512M');
 

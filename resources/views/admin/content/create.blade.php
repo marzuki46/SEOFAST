@@ -391,11 +391,14 @@
                 }
 
                 let data = {};
+                let rawText = '';
                 try {
-                    data = await res.json();
+                    rawText = await res.text();
+                    data = JSON.parse(rawText);
                 } catch (e) {
                     if (res.status === 524 || res.status === 520) return;
-                    throw new Error(`Gagal membaca respons dari server. Status: ${res.status}`);
+                    console.error("Raw response:", rawText);
+                    throw new Error(`Gagal membaca respons dari server. Status: ${res.status}. Output: ${rawText.substring(0, 100)}`);
                 }
 
                 // Render structured log entries
