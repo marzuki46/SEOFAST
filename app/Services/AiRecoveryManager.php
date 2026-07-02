@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AiGenerationJob;
 use App\Models\Content;
+use App\Models\Tenant;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
