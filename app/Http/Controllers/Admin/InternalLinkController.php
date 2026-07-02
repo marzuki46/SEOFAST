@@ -239,20 +239,24 @@ ATURAN MUTLAK:
         
         $aiAnchors = $aiService->generateJson($systemPrompt, $userPrompt);
         
-        if (is_array($aiAnchors) && count($aiAnchors) >= $count) {
+        if (is_array($aiAnchors)) {
             foreach ($links as $idx => $link) {
-                $aiText = $aiAnchors[$idx];
+                $aiText = $aiAnchors[$idx] ?? $link->target->target_keyword;
                 $anchorText = trim(strip_tags($aiText), "\"' ");
                 
                 $link->update([
                     'mandatory_anchor_text' => !empty($anchorText) ? $anchorText : $link->target->target_keyword
                 ]);
             }
+            
+            if (count($aiAnchors) < $count) {
+                return response()->json(['status' => 'error_fallback']);
+            }
         } else {
-            // If AI fails, use fallback
+            // If AI fails completely, use fallback without 'bagian'
             foreach ($links as $idx => $link) {
                 $link->update([
-                    'mandatory_anchor_text' => $link->target->target_keyword . ($idx > 0 ? ' bagian ' . ($idx + 1) : '')
+                    'mandatory_anchor_text' => $link->target->target_keyword
                 ]);
             }
             return response()->json(['status' => 'error_fallback']);
