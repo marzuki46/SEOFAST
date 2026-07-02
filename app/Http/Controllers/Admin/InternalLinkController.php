@@ -15,12 +15,29 @@ class InternalLinkController extends Controller
         $silos = SiloBlueprint::withoutGlobalScopes()->get();
         
         $selectedSilo = $request->get('silo_id', $silos->first()->id ?? null);
+        $selectedCluster = $request->get('cluster_id');
         
         $contents = collect();
         $links = collect();
 
         if ($selectedSilo) {
-            $contents = Content::withoutGlobalScopes()->where('silo_blueprint_id', $selectedSilo)->get();
+            $query = Content::withoutGlobalScopes()->where('silo_blueprint_id', $selectedSilo);
+            
+            if ($selectedCluster) {
+                // Filter specifically for the Pillar, this Cluster, and its Sub-clusters
+                $clusterContents = Content::withoutGlobalScopes()
+                    ->where('id', $selectedCluster) // The Cluster
+                    ->orWhere('parent_id', $selectedCluster) // The Sub-clusters
+                    ->orWhere(function($q) use ($selectedSilo) {
+                        $q->where('silo_blueprint_id', $selectedSilo)
+                          ->where('hierarchy_level', 'pillar');
+                    })
+                    ->pluck('id');
+                    
+                $query->whereIn('id', $clusterContents);
+            }
+            
+            $contents = $query->get();
             $links = DeterministicLink::withoutGlobalScopes()
                 ->whereIn('source_content_id', $contents->pluck('id'))
                 ->with(['source', 'target'])
@@ -106,17 +123,19 @@ class InternalLinkController extends Controller
             $addLink($subA, $pillar);
         }
 
-        // Wipe old links to cleanly replace
-        $contentIds = $silo->contents()->pluck('id');
-        DeterministicLink::whereIn('source_content_id', $contentIds)->delete();
-
+        // We DO NOT wipe old links! We only create [PENDING_AI] for links that DO NOT exist yet.
+        // This protects manually edited anchors or previously generated ones.
         foreach ($plannedLinks as $idx => $link) {
-            DeterministicLink::create([
-                'source_content_id' => $link['source']->id,
-                'target_content_id' => $link['target']->id,
-                'mandatory_anchor_text' => '[PENDING_AI]', // empty state for AI
-                'is_injected_successfully' => false
-            ]);
+            DeterministicLink::firstOrCreate(
+                [
+                    'source_content_id' => $link['source']->id,
+                    'target_content_id' => $link['target']->id,
+                ],
+                [
+                    'mandatory_anchor_text' => '[PENDING_AI]',
+                    'is_injected_successfully' => false
+                ]
+            );
         }
 
         return redirect()->route('admin.links.process_ai_view', ['silo_id' => $silo->id]);
