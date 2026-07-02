@@ -290,6 +290,21 @@ class SiloBlueprintController extends Controller
                 ->with('info', 'Semua konten di cluster ini sudah masuk antrean aktif. Silakan kelola Internal Link.');
         }
         
+        // Strict Sequential Check: Prevent queuing new cluster if another process in the same Silo is not fully finished
+        $hasActiveSilo = \App\Models\Content::withoutGlobalScopes()
+            ->where('silo_blueprint_id', $silo->id)
+            ->where('status', 'ai_processing')
+            ->exists();
+            
+        $hasPendingAnchors = \App\Models\DeterministicLink::withoutGlobalScopes()
+            ->whereIn('source_content_id', $silo->contents()->pluck('id'))
+            ->where('mandatory_anchor_text', '[PENDING_AI]')
+            ->exists();
+            
+        if ($hasActiveSilo || $hasPendingAnchors) {
+            return back()->with('error', 'Tidak dapat memproses cluster baru. Harap tuntaskan proses AI Content dan Mapping Anchor pada antrean yang sedang berjalan di Silo ini terlebih dahulu!');
+        }
+        
         $tenantId = \App\Models\Tenant::first()?->id ?? 1;
         $queuedCount = 0;
         foreach($idsToProcess as $cId) {

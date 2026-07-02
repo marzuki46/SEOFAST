@@ -284,4 +284,37 @@ ATURAN MUTLAK:
 
         return response()->json(['success' => true]);
     }
+    
+    public function resetLinks(Request $request)
+    {
+        $request->validate(['silo_id' => 'required|exists:silo_blueprints,id']);
+        
+        $siloId = $request->silo_id;
+        $clusterId = $request->cluster_id;
+        
+        $silo = SiloBlueprint::findOrFail($siloId);
+        $query = $silo->contents();
+        if ($clusterId) {
+            $query->where(function($q) use ($clusterId) {
+                $q->where('id', $clusterId)
+                  ->orWhere('parent_id', $clusterId);
+            });
+        }
+        $contentIds = $query->pluck('id');
+        
+        // Hapus semua link yang bersumber dari cluster ini
+        DeterministicLink::whereIn('source_content_id', $contentIds)->delete();
+        
+        // Hapus link dari Pillar yang mengarah ke cluster ini (karena itu juga bagian dari mapping cluster)
+        if ($clusterId) {
+            $pillar = $silo->contents()->where('hierarchy_level', 'pillar')->first();
+            if ($pillar) {
+                DeterministicLink::where('source_content_id', $pillar->id)
+                    ->where('target_content_id', $clusterId)
+                    ->delete();
+            }
+        }
+        
+        return back()->with('success', 'Pemetaan tautan berhasil di-reset. Silakan Generate ulang.');
+    }
 }
