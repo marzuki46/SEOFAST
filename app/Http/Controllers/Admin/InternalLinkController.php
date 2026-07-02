@@ -99,19 +99,19 @@ class InternalLinkController extends Controller
             $addLink($pillar, $cluster);
         }
 
-        // 2. CLUSTER -> Pillar (Wajib) & Sub-Cluster miliknya
+        // 2. CLUSTER -> Pillar (Wajib) & Sub-Cluster miliknya (Max 2)
         foreach ($clusters as $clusterA) {
             // Wajib ke Pillar
             $addLink($clusterA, $pillar);
             
-            // Ke Sub-cluster miliknya
-            $itsSubs = $subClusters->where('parent_id', $clusterA->id);
+            // Ke Sub-cluster miliknya (maksimal 2 secara random/urutan)
+            $itsSubs = $subClusters->where('parent_id', $clusterA->id)->take(2);
             foreach ($itsSubs as $sub) {
                 $addLink($clusterA, $sub);
             }
         }
 
-        // 3. SUB-CLUSTER -> Cluster Induk & Pillar
+        // 3. SUB-CLUSTER -> Cluster Induk, Pillar, & Sesama Sub-cluster (Max 2)
         foreach ($subClusters as $subA) {
             // Ke parent cluster
             $parentCluster = $clusters->where('id', $subA->parent_id)->first();
@@ -121,6 +121,14 @@ class InternalLinkController extends Controller
             
             // Ke Pillar (Grandparent)
             $addLink($subA, $pillar);
+            
+            // Ke sesama sub-cluster (siblings) dalam 1 cluster (maksimal 2)
+            $siblings = $subClusters->where('parent_id', $subA->parent_id)
+                                    ->where('id', '!=', $subA->id)
+                                    ->take(2);
+            foreach ($siblings as $sibling) {
+                $addLink($subA, $sibling);
+            }
         }
 
         // We DO NOT wipe old links! We only create [PENDING_AI] for links that DO NOT exist yet.

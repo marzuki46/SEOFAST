@@ -32,65 +32,73 @@
         @endif
     </div>
 
-    <!-- Table: Mapped Links -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-            <h3 class="text-base font-bold text-slate-900 font-outfit uppercase tracking-wider">
-                Daftar Internal Link: {{ $silos->firstWhere('id', $selectedSilo)?->silo_name ?? 'Silo' }}
-            </h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-white border-b border-slate-200 text-slate-500 uppercase text-xs tracking-wider">
-                    <tr>
-                        <th class="px-6 py-4 font-semibold w-1/3">Source (Dari Artikel)</th>
-                        <th class="px-6 py-4 font-semibold w-1/3">Target (Ke Artikel)</th>
-                        <th class="px-6 py-4 font-semibold w-1/3">Anchor Text (Link Label)</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
-                    @forelse($links as $link)
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="px-6 py-4 font-medium text-slate-900">
-                            {{ $link->source->target_keyword ?? 'N/A' }}
-                        </td>
-                        <td class="px-6 py-4 text-indigo-600 font-medium">
-                            &rarr; {{ $link->target->target_keyword ?? 'N/A' }}
-                        </td>
-                        <td class="px-6 py-4 border-b border-slate-100 text-sm">
-                            @if($link->mandatory_anchor_text === '[PENDING_AI]')
-                                <span class="inline-flex items-center gap-2 text-amber-600 font-semibold bg-amber-50 px-3 py-1 rounded-full text-xs">
-                                    <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Menunggu AI...
-                                </span>
-                            @else
-                                <div class="flex items-center">
-                                    <textarea rows="2" class="anchor-input w-full border-transparent hover:border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg shadow-sm sm:text-sm px-3 py-2 bg-slate-50 hover:bg-white transition-colors resize-none font-medium text-emerald-700" data-id="{{ $link->id }}">{{ $link->mandatory_anchor_text }}</textarea>
-                                    <span class="save-indicator ml-3 text-emerald-500 opacity-0 transition-opacity flex-shrink-0">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                    </span>
-                                </div>
-                            @endif
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="3" class="px-6 py-16 text-center">
-                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 text-slate-400 mb-4 shadow-inner">
-                                <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-                                </svg>
-                            </div>
-                            <p class="text-slate-600 font-bold text-lg mb-1">Belum Ada Pemetaan Link</p>
-                            <p class="text-slate-500 text-sm">Tekan tombol "Generate AI Anchor Text" di atas untuk memetakan otomatis sesuai hierarki Silo Anda.</p>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+    <!-- Grouped Links by Source -->
+    <div class="space-y-6">
+        @forelse($links->groupBy('source_content_id') as $sourceId => $sourceLinks)
+            @php $sourceContent = $sourceLinks->first()->source; @endphp
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">
+                            {{ $sourceContent->hierarchy_level }}
+                        </span>
+                        <h3 class="text-base font-bold text-slate-900">
+                            {{ $sourceContent->target_keyword ?? 'Unknown Source' }}
+                        </h3>
+                    </div>
+                    <div class="text-sm font-semibold text-slate-500">
+                        {{ $sourceLinks->count() }} Kewajiban Tautan
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-white border-b border-slate-200 text-slate-500 uppercase text-xs tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4 font-semibold w-2/5">Target (Ke Artikel)</th>
+                                <th class="px-6 py-4 font-semibold w-3/5">Anchor Text (Wajib Disertakan)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            @foreach($sourceLinks as $link)
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-6 py-4 text-indigo-600 font-medium align-top">
+                                    &rarr; {{ $link->target->target_keyword ?? 'N/A' }}
+                                    <div class="text-[10px] text-slate-400 mt-1 uppercase">{{ $link->target->hierarchy_level }}</div>
+                                </td>
+                                <td class="px-6 py-4 border-b border-slate-100 text-sm">
+                                    @if($link->mandatory_anchor_text === '[PENDING_AI]')
+                                        <span class="inline-flex items-center gap-2 text-amber-600 font-semibold bg-amber-50 px-3 py-1 rounded-full text-xs">
+                                            <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            Menunggu AI...
+                                        </span>
+                                    @else
+                                        <div class="flex items-center">
+                                            <textarea rows="2" class="anchor-input w-full border-transparent hover:border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-lg shadow-sm sm:text-sm px-3 py-2 bg-slate-50 hover:bg-white transition-colors resize-none font-medium text-emerald-700" data-id="{{ $link->id }}">{{ $link->mandatory_anchor_text }}</textarea>
+                                            <span class="save-indicator ml-3 text-emerald-500 opacity-0 transition-opacity flex-shrink-0">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                            </span>
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @empty
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-16 text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 text-slate-400 mb-4 shadow-inner">
+                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                    </svg>
+                </div>
+                <p class="text-slate-600 font-bold text-lg mb-1">Belum Ada Pemetaan Link</p>
+                <p class="text-slate-500 text-sm">Tekan tombol "Generate AI Anchor Text" di atas untuk memetakan otomatis sesuai hierarki Silo Anda.</p>
+            </div>
+        @endforelse
     </div>
 </div>
 @endsection
