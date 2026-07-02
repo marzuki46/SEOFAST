@@ -315,7 +315,7 @@ class SiloBlueprintController extends Controller
         }
         
         if ($queuedCount > 0) {
-            return redirect()->route('admin.content.create')->with('success', "Berhasil mendaftarkan {$queuedCount} artikel (Pillar + Cluster + Sub-cluster) ke Dapur Produksi!");
+            return redirect()->route('admin.links.index')->with('success', "Berhasil mendaftarkan {$queuedCount} artikel (Pillar + Cluster + Sub-cluster) ke antrean. Silakan tentukan Anchor Link internal untuk cluster ini terlebih dahulu.");
         }
         return back()->with('info', 'Semua konten terkait sudah berada di dalam antrean aktif.');
     }
