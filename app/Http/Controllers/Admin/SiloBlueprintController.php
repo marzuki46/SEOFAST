@@ -318,7 +318,10 @@ class SiloBlueprintController extends Controller
             return redirect()->route('admin.links.index', ['silo_id' => $silo->id, 'cluster_id' => $content->id])
                 ->with('success', "Berhasil mendaftarkan {$queuedCount} artikel (Pillar + Cluster + Sub-cluster) ke antrean. Silakan tentukan Anchor Link internal untuk cluster ini terlebih dahulu.");
         }
-        return back()->with('info', 'Semua konten terkait sudah berada di dalam antrean aktif.');
+        
+        // Tetap redirect ke halaman links meskipun sudah masuk antrean, agar user bisa melanjutkan mapping link
+        return redirect()->route('admin.links.index', ['silo_id' => $silo->id, 'cluster_id' => $content->id])
+            ->with('info', 'Semua konten terkait sudah berada di dalam antrean aktif. Silakan lanjutkan pengaturan Anchor Link.');
     }
 
     /**
