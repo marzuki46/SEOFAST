@@ -70,7 +70,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify({ silo_id: siloId })
+            body: JSON.stringify({ 
+                silo_id: siloId 
+                @if(isset($clusterId))
+                , cluster_id: {{ $clusterId }}
+                @endif
+            })
         })
         .then(response => response.json())
         .then(data => {

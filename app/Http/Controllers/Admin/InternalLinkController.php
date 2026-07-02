@@ -76,8 +76,18 @@ class InternalLinkController extends Controller
             return redirect()->back()->with('error', 'Silo does not have a Pillar.');
         }
 
-        $clusters = $silo->contents()->where('hierarchy_level', 'cluster')->get();
-        $subClusters = $silo->contents()->where('hierarchy_level', 'sub_cluster')->get();
+        $clusterId = $request->cluster_id;
+        
+        $clustersQuery = $silo->contents()->where('hierarchy_level', 'cluster');
+        $subClustersQuery = $silo->contents()->where('hierarchy_level', 'sub_cluster');
+        
+        if ($clusterId) {
+            $clustersQuery->where('id', $clusterId);
+            $subClustersQuery->where('parent_id', $clusterId);
+        }
+        
+        $clusters = $clustersQuery->get();
+        $subClusters = $subClustersQuery->get();
         
         $plannedLinks = [];
         $linksPerSource = [];
@@ -158,7 +168,18 @@ class InternalLinkController extends Controller
         $clusterId = $request->get('cluster_id');
         $silo = SiloBlueprint::findOrFail($siloId);
         
-        $contentIds = $silo->contents()->pluck('id');
+        $query = $silo->contents();
+        if ($clusterId) {
+            $query->where(function($q) use ($clusterId, $siloId) {
+                $q->where('id', $clusterId)
+                  ->orWhere('parent_id', $clusterId)
+                  ->orWhere(function($subQ) use ($siloId) {
+                      $subQ->where('silo_blueprint_id', $siloId)
+                           ->where('hierarchy_level', 'pillar');
+                  });
+            });
+        }
+        $contentIds = $query->pluck('id');
         
         // Count how many links need processing
         $pendingCount = DeterministicLink::whereIn('source_content_id', $contentIds)
@@ -180,8 +201,21 @@ class InternalLinkController extends Controller
     public function processAiChunk(Request $request)
     {
         $siloId = $request->input('silo_id');
+        $clusterId = $request->input('cluster_id');
         $silo = SiloBlueprint::findOrFail($siloId);
-        $contentIds = $silo->contents()->pluck('id');
+        
+        $query = $silo->contents();
+        if ($clusterId) {
+            $query->where(function($q) use ($clusterId, $siloId) {
+                $q->where('id', $clusterId)
+                  ->orWhere('parent_id', $clusterId)
+                  ->orWhere(function($subQ) use ($siloId) {
+                      $subQ->where('silo_blueprint_id', $siloId)
+                           ->where('hierarchy_level', 'pillar');
+                  });
+            });
+        }
+        $contentIds = $query->pluck('id');
         
         // Ambil SATU target_content_id yang masih punya status PENDING_AI
         $firstPendingLink = DeterministicLink::whereIn('source_content_id', $contentIds)
