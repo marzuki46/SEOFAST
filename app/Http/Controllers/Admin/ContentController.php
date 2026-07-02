@@ -617,10 +617,15 @@ class ContentController extends Controller
 
                 $combined = $aiService5->generate($sysP5, $userP5);
 
-                if (!$combined || mb_strlen(trim($combined)) < 300 || str_contains($combined, '{"error"')) {
-                    $diags = $aiService5->getLastDiagnostics();
-                    $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
-                    throw new \Exception("Phase 5 gagal menghasilkan konten kombinasi yang valid. Reason: " . $reason);
+                $draftLen = mb_strlen(trim($draft));
+                $combinedLen = mb_strlen(trim($combined));
+                
+                if (!$combined || $combinedLen < $draftLen * 0.75 || str_contains($combined, '{"error"')) {
+                    $reason = "AI meringkas output terlalu pendek ({$combinedLen} karakter, padahal draft awal {$draftLen} karakter)";
+                    $addLog('warning', "Phase 5: {$reason}. Menggunakan Fallback penggabungan teks otomatis...");
+                    
+                    // Fallback programmatic concatenation
+                    $combined = $draft . "\n\n## Pembahasan Lanjutan\n\n" . $answers;
                 }
 
                 $job->update(['status' => 'phase_6', 'phase_5_combined' => $combined]);
