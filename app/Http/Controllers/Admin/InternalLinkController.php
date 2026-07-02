@@ -24,14 +24,10 @@ class InternalLinkController extends Controller
             $query = Content::withoutGlobalScopes()->where('silo_blueprint_id', $selectedSilo);
             
             if ($selectedCluster) {
-                // Filter specifically for the Pillar, this Cluster, and its Sub-clusters
+                // Filter specifically for this Cluster and its Sub-clusters
                 $clusterContents = Content::withoutGlobalScopes()
                     ->where('id', $selectedCluster) // The Cluster
                     ->orWhere('parent_id', $selectedCluster) // The Sub-clusters
-                    ->orWhere(function($q) use ($selectedSilo) {
-                        $q->where('silo_blueprint_id', $selectedSilo)
-                          ->where('hierarchy_level', 'pillar');
-                    })
                     ->pluck('id');
                     
                 $query->whereIn('id', $clusterContents);
@@ -170,13 +166,9 @@ class InternalLinkController extends Controller
         
         $query = $silo->contents();
         if ($clusterId) {
-            $query->where(function($q) use ($clusterId, $siloId) {
+            $query->where(function($q) use ($clusterId) {
                 $q->where('id', $clusterId)
-                  ->orWhere('parent_id', $clusterId)
-                  ->orWhere(function($subQ) use ($siloId) {
-                      $subQ->where('silo_blueprint_id', $siloId)
-                           ->where('hierarchy_level', 'pillar');
-                  });
+                  ->orWhere('parent_id', $clusterId);
             });
         }
         $contentIds = $query->pluck('id');
@@ -206,13 +198,9 @@ class InternalLinkController extends Controller
         
         $query = $silo->contents();
         if ($clusterId) {
-            $query->where(function($q) use ($clusterId, $siloId) {
+            $query->where(function($q) use ($clusterId) {
                 $q->where('id', $clusterId)
-                  ->orWhere('parent_id', $clusterId)
-                  ->orWhere(function($subQ) use ($siloId) {
-                      $subQ->where('silo_blueprint_id', $siloId)
-                           ->where('hierarchy_level', 'pillar');
-                  });
+                  ->orWhere('parent_id', $clusterId);
             });
         }
         $contentIds = $query->pluck('id');
