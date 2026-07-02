@@ -77,7 +77,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.status === 'done') {
                 updateProgress(0);
                 setTimeout(() => {
-                    window.location.href = '{{ route('admin.links.index') }}?silo_id=' + siloId;
+                    let redirectUrl = '{{ route('admin.links.index') }}?silo_id=' + siloId;
+                    @if(isset($clusterId))
+                        redirectUrl += '&cluster_id={{ $clusterId }}';
+                    @endif
+                    window.location.href = redirectUrl;
                 }, 1000);
             } else {
                 if (data.status === 'error_fallback') {

@@ -146,12 +146,16 @@ class InternalLinkController extends Controller
             );
         }
 
-        return redirect()->route('admin.links.process_ai_view', ['silo_id' => $silo->id]);
+        return redirect()->route('admin.links.process_ai_view', [
+            'silo_id' => $silo->id,
+            'cluster_id' => $request->cluster_id
+        ]);
     }
 
     public function processAiView(Request $request)
     {
         $siloId = $request->get('silo_id');
+        $clusterId = $request->get('cluster_id');
         $silo = SiloBlueprint::findOrFail($siloId);
         
         $contentIds = $silo->contents()->pluck('id');
@@ -164,11 +168,13 @@ class InternalLinkController extends Controller
         $totalCount = DeterministicLink::whereIn('source_content_id', $contentIds)->count();
 
         if ($pendingCount === 0) {
-            return redirect()->route('admin.links.index', ['silo_id' => $siloId])
-                ->with('success', 'All AI anchors have been processed successfully!');
+            return redirect()->route('admin.links.index', [
+                'silo_id' => $siloId,
+                'cluster_id' => $clusterId
+            ])->with('success', 'All AI anchors have been processed successfully!');
         }
 
-        return view('admin.links.process_ai', compact('silo', 'pendingCount', 'totalCount'));
+        return view('admin.links.process_ai', compact('silo', 'pendingCount', 'totalCount', 'clusterId'));
     }
 
     public function processAiChunk(Request $request)

@@ -18,6 +18,9 @@
             <form action="{{ route('admin.links.generate_ai') }}" method="POST" class="shrink-0">
                 @csrf
                 <input type="hidden" name="silo_id" value="{{ $selectedSilo }}">
+                @if(isset($selectedCluster))
+                    <input type="hidden" name="cluster_id" value="{{ $selectedCluster }}">
+                @endif
                 <button type="submit" class="px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800 text-white font-extrabold rounded-xl shadow-lg shadow-emerald-500/30 transition-all flex items-center gap-3 active:scale-95">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
