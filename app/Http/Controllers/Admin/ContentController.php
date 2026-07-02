@@ -64,7 +64,7 @@ class ContentController extends Controller
             ->where(function ($q) {
                 $q->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6', 'phase_7'])
                   ->orWhere(function ($q2) {
-                      $q2->whereIn('status', ['failed', 'failed_cqi', 'completed'])
+                      $q2->whereIn('status', ['failed', 'failed_cqi'])
                          ->where('updated_at', '>=', now()->subHours(12));
                   });
             })
@@ -294,7 +294,7 @@ class ContentController extends Controller
 
         foreach ($request->content_ids as $id) {
             $content = Content::withoutGlobalScopes()->find($id);
-            if (!$content || !in_array($content->status, ['blueprint', 'draft', 'failed_cqi', 'ai_processing'])) {
+            if (!$content || !in_array($content->status, ['blueprint', 'draft', 'needs_reoptimize', 'failed_cqi', 'ai_processing'])) {
                 continue;
             }
 
