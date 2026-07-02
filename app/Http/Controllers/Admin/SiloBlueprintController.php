@@ -286,7 +286,8 @@ class SiloBlueprintController extends Controller
         }
         
         if (empty($idsToProcess)) {
-            return back()->with('info', 'Semua konten di cluster ini sudah diproses atau masih berupa ide (belum diapprove).');
+            return redirect()->route('admin.links.index', ['silo_id' => $silo->id, 'cluster_id' => $content->id])
+                ->with('info', 'Semua konten di cluster ini sudah masuk antrean aktif. Silakan kelola Internal Link.');
         }
         
         $tenantId = \App\Models\Tenant::first()?->id ?? 1;
