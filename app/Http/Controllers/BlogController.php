@@ -162,7 +162,7 @@ class BlogController extends Controller
      */
     public function category(string $slug): View
     {
-        $category = SiloBlueprint::where('slug', $slug)->first();
+        $category = SiloBlueprint::whereRaw('LOWER(REPLACE(silo_name, " ", "-")) = ?', [strtolower($slug)])->first();
 
         if (!$category) {
             abort(404, 'Category not found');
