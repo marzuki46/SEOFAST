@@ -74,12 +74,14 @@ class ContentController extends Controller
                 $q->withoutGlobalScopes()->select(['id', 'target_keyword', 'status', 'slug', 'silo_blueprint_id']);
             }])
             ->latest()
+            ->limit(50)
             ->get();
             
         $processingContents = Content::withoutGlobalScopes()
             ->where('status', 'ai_processing')
             ->select(['id', 'target_keyword', 'status', 'slug', 'silo_blueprint_id', 'updated_at'])
             ->latest()
+            ->limit(50)
             ->get();
 
         return view('admin.content.create', compact('activeJobs', 'processingContents'));
