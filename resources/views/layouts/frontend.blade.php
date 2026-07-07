@@ -25,6 +25,12 @@
         $bingVerif   = SystemSetting::get('seo_indexing_bing_verification');
         $keywords    = SystemSetting::get('homepage_meta_keywords');
         $faviconUrl  = SystemSetting::get('favicon_url', asset('favicon.ico'));
+        $logoUrl     = SystemSetting::get('logo_url');
+        $logoAlt     = SystemSetting::get('logo_alt', $siteName);
+        $logoText    = substr($siteName, 0, 2);
+        $brandName   = $siteName;
+        $brandShort  = substr($brandName, 0, 3);
+        $brandRest   = substr($brandName, 3);
     @endphp
 
     <!-- SEO Meta Tags (SSR) -->
@@ -34,6 +40,55 @@
     <link rel="canonical" href="{{ $seoCanonical }}">
     @if($keywords)
     <meta name="keywords" content="{{ $keywords }}">
+    @endif
+
+    {{-- Hreflang — hanya untuk route yang punya EN version (homepage & blog) --}}
+    @php
+        $multiLang = \App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '1';
+        $blogPrefix = \App\Models\SystemSetting::get('permalink_blog', 'blog');
+        $productPrefix = \App\Models\SystemSetting::get('permalink_product', 'produk');
+        $projectPrefix = \App\Models\SystemSetting::get('permalink_project', 'projeku');
+        $currentPath = request()->path();
+        $normalizedPath = ltrim($currentPath, '/');
+        $isOnEn = app()->getLocale() === 'en';
+
+        // Normalize: remove leading /en/ to compare
+        $pathWithoutEn = preg_replace('/^en\//', '', $normalizedPath);
+        $pathWithoutEn = preg_replace('/^en$/', '', $pathWithoutEn);
+
+        // Cek apakah path ini punya EN version
+        $hasEnVersion = false;
+        if (empty($pathWithoutEn)) {
+            // Homepage (/ or /en)
+            $hasEnVersion = true;
+        } elseif (str_starts_with($pathWithoutEn, $blogPrefix . '/') || $pathWithoutEn === $blogPrefix) {
+            // Blog routes (/blog/... or /en/blog/...)
+            $hasEnVersion = true;
+        } elseif (str_starts_with($pathWithoutEn, $blogPrefix . '/category/')) {
+            // Category pages
+            $hasEnVersion = true;
+        } elseif (str_starts_with($pathWithoutEn, $blogPrefix . '/preview/')) {
+            // Preview
+            $hasEnVersion = true;
+        } elseif (str_starts_with($pathWithoutEn, $productPrefix . '/') || $pathWithoutEn === $productPrefix) {
+            // Product routes (/produk/... or /en/produk/...)
+            $hasEnVersion = true;
+        } elseif (str_starts_with($pathWithoutEn, $projectPrefix . '/') || $pathWithoutEn === $projectPrefix) {
+            // Project routes (/projeku/... or /en/projeku/...)
+            $hasEnVersion = true;
+        } elseif (!empty($pathWithoutEn) && !str_starts_with($pathWithoutEn, 'admin') && !str_starts_with($pathWithoutEn, 'buyer') && !str_starts_with($pathWithoutEn, 'auth') && $pathWithoutEn !== 'sitemap.xml' && $pathWithoutEn !== 'robots.txt' && !str_starts_with($pathWithoutEn, 'g/')) {
+            // Static pages (catch-all route) have EN version
+            $hasEnVersion = true;
+        }
+
+        // Self-referencing ID
+        $idUrl = url($pathWithoutEn ?: '/');
+        $enUrl = url('en/' . ltrim($pathWithoutEn, '/'));
+    @endphp
+    <link rel="alternate" hreflang="id" href="{{ $idUrl }}">
+    <link rel="alternate" hreflang="x-default" href="{{ $idUrl }}">
+    @if($multiLang && $hasEnVersion)
+    <link rel="alternate" hreflang="en" href="{{ $enUrl }}">
     @endif
 
     <!-- Search Engine Verification (SSR) -->
@@ -53,6 +108,8 @@
     <meta property="og:image" content="{{ $seoOgImage }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'id_ID' }}">
+    <meta property="og:locale:alternate" content="{{ app()->getLocale() === 'en' ? 'id_ID' : 'en_US' }}">
 
     <!-- Twitter Card (SSR) -->
     <meta name="twitter:card" content="summary_large_image">
@@ -70,10 +127,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- Compiled CSS & JS (Vite) -->
+    <!-- Compiled CSS & JS (Vite) — Alpine.js bundled -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
@@ -144,11 +198,54 @@
     <!-- Schema Markup (SSR) -->
     @yield('schema_markup')
 
+    <!-- WebSite Schema + Sitelinks Search Box -->
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "WebSite",
+        "name": "{{ $siteName }}",
+        "url": "{{ config('app.url') }}",
+        "inLanguage": "{{ app()->getLocale() === 'en' ? 'en-US' : 'id-ID' }}",
+        "potentialAction": {
+            "@@type": "SearchAction",
+            "target": {
+                "@@type": "EntryPoint",
+                "urlTemplate": "{{ url(SystemSetting::get('permalink_blog', 'blog')) }}?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+
+    <!-- Organization Schema -->
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "Organization",
+        "name": "{{ $siteName }}",
+        "url": "{{ config('app.url') }}",
+        @if($logoUrl)
+        "logo": "{{ $logoUrl }}",
+        @endif
+        "description": "{{ SystemSetting::get('seo_global_meta_description', '') }}",
+        "foundingDate": "2025",
+        @if($logoUrl)
+        "image": "{{ $logoUrl }}",
+        @endif
+        "sameAs": [
+            {{-- Sosial media links bisa ditambah via settings nanti --}}
+        ]
+    }
+    </script>
+
     <!-- Google Analytics / GTM / FB Pixel (SSR, no JS required for crawlers) -->
     {!! \App\Services\SeoHelper::trackingHeadScripts() !!}
 
     <!-- Advanced SEO Head Code (custom per-site) -->
     {!! \App\Models\SystemSetting::get('seo_advanced_head_code') !!}
+
+    <!-- Per-page head extras (pagination, alternate links, etc.) -->
+    @yield('head_extra')
 </head>
 <body class="min-h-screen relative overflow-x-hidden antialiased">
     <!-- GTM noscript body open -->
@@ -161,13 +258,17 @@
     <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-50 glass-nav">
         <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center gap-12">
-                <a href="{{ route('home') }}" class="flex items-center gap-2 group">
+                <a href="{{ route('home') }}" class="flex items-center gap-2 group" aria-label="{{ $siteName }}">
+                    @if($logoUrl)
+                    <img src="{{ $logoUrl }}" alt="{{ $logoAlt }}" loading="lazy" class="h-10 w-auto group-hover:scale-105 transition-transform">
+                    @else
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple flex items-center justify-center font-outfit font-extrabold text-white text-xl shadow-lg shadow-brand-indigo/10 group-hover:scale-105 transition-transform">
-                        SF
+                        {{ $logoText }}
                     </div>
                     <span class="font-outfit font-extrabold text-2xl tracking-tight text-slate-900">
-                        SEO<span class="bg-gradient-to-r from-brand-indigo to-brand-purple bg-clip-text text-transparent">FAST</span>
+                        {{ $brandShort }}<span class="bg-gradient-to-r from-brand-indigo to-brand-purple bg-clip-text text-transparent">{{ $brandRest }}</span>
                     </span>
+                    @endif
                 </a>
                 
                 <div class="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600">
@@ -202,32 +303,20 @@
             </div>
 
             <div class="hidden md:flex items-center gap-4">
-                @if(\App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '1')
+                @if(\App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '1' && $hasEnVersion)
                     <div class="relative" x-data="{ langOpen: false }" @click.away="langOpen = false">
                         <button @click="langOpen = !langOpen" aria-label="Toggle Language" aria-expanded="false" :aria-expanded="langOpen.toString()" class="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors bg-white/50 px-2 py-1.5 rounded-lg border border-slate-200 shadow-sm">
                             <span class="uppercase">{{ app()->getLocale() }}</span>
                             <svg class="w-3.5 h-3.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
                         <div x-show="langOpen" x-transition class="absolute right-0 mt-2 w-32 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50" style="display: none;">
-                            @php
-                                $isEn = app()->getLocale() === 'en';
-                                $currentPath = request()->path();
-                                
-                                // Generate ID Path (remove /en if exists)
-                                $idPath = preg_replace('/^en(\/|$)/', '', $currentPath);
-                                $idUrl = url($idPath ?: '/');
-                                
-                                // Generate EN Path
-                                $enPath = $isEn ? $currentPath : 'en/' . ltrim($currentPath, '/');
-                                $enUrl = url($enPath);
-                            @endphp
-                            <a href="{{ $idUrl }}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors {{ !$isEn ? 'font-semibold text-brand-indigo bg-slate-50' : '' }}">
+                            <a href="{{ $idUrl }}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors {{ !$isOnEn ? 'font-semibold text-brand-indigo bg-slate-50' : '' }}">
                                 Indonesia
-                                @if(!$isEn)<svg class="w-4 h-4 text-brand-indigo" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>@endif
+                                @if(!$isOnEn)<svg class="w-4 h-4 text-brand-indigo" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>@endif
                             </a>
-                            <a href="{{ $enUrl }}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors {{ $isEn ? 'font-semibold text-brand-indigo bg-slate-50' : '' }}">
+                            <a href="{{ $enUrl }}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors {{ $isOnEn ? 'font-semibold text-brand-indigo bg-slate-50' : '' }}">
                                 English
-                                @if($isEn)<svg class="w-4 h-4 text-brand-indigo" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>@endif
+                                @if($isOnEn)<svg class="w-4 h-4 text-brand-indigo" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>@endif
                             </a>
                         </div>
                     </div>
@@ -254,17 +343,19 @@
             </div>
 
             <!-- Mobile menu button -->
-            <div class="md:hidden flex items-center gap-4">
-                <button @click="mobileMenuOpen = !mobileMenuOpen" aria-label="Toggle mobile menu" class="text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg bg-slate-100/50">
-                    <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    <svg x-show="mobileMenuOpen" style="display:none;" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+            <div class="md:hidden">
+                <div class="flex items-center gap-4">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" aria-label="Toggle mobile menu" class="text-slate-600 hover:text-slate-900 focus:outline-none p-2 rounded-lg bg-slate-100/50">
+                        <svg x-show="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        <svg x-show="mobileMenuOpen" style="display:none;" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
             </div>
         </nav>
 
         <!-- Mobile Menu Panel -->
         <div x-show="mobileMenuOpen" x-transition.opacity style="display:none;" class="md:hidden absolute top-20 left-0 w-full bg-white border-b border-slate-200 shadow-xl">
-            <div class="px-4 pt-4 pb-6 space-y-1 max-h-[calc(100vh-5rem)] overflow-y-auto">
+            <div class="px-6 pt-4 pb-6 space-y-1 max-h-[calc(100vh-5rem)] overflow-y-auto">
                 @if($primaryMenu && $primaryMenu->items->isNotEmpty())
                     @foreach($primaryMenu->items as $item)
                         @if($item->children->count() > 0)
@@ -324,15 +415,10 @@
                 <div class="md:col-span-2">
                     <a href="{{ route('home') }}" class="flex items-center gap-2 mb-6">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-indigo to-brand-purple flex items-center justify-center font-outfit font-bold text-white text-md">
-                            {{ \App\Models\SystemSetting::get('footer_logo_text', 'SF') }}
+                            {{ substr($siteName, 0, 2) }}
                         </div>
                         <span class="font-outfit font-extrabold text-xl tracking-tight text-slate-900">
-                            @php
-                                $brandName = \App\Models\SystemSetting::get('footer_brand_name', 'SEOFAST');
-                                $firstPart = substr($brandName, 0, 3);
-                                $secondPart = substr($brandName, 3);
-                            @endphp
-                            {{ $firstPart }}<span class="bg-gradient-to-r from-brand-indigo to-brand-purple bg-clip-text text-transparent">{{ $secondPart }}</span>
+                            {{ $brandShort }}<span class="bg-gradient-to-r from-brand-indigo to-brand-purple bg-clip-text text-transparent">{{ $brandRest }}</span>
                         </span>
                     </a>
                     <p class="text-slate-600 text-sm max-w-sm leading-relaxed mb-6">
@@ -390,7 +476,7 @@
 
             <div class="border-t border-slate-200/60 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p class="text-xs text-slate-500">
-                    &copy; {{ date('Y') }} {{ \App\Models\SystemSetting::get('footer_brand_name', 'SEOFAST') }} Inc. All rights reserved. Made for speed & high performance.
+                    &copy; {{ date('Y') }} {{ $brandName }} Inc. All rights reserved. Made for speed & high performance.
                 </p>
                 <div class="flex gap-6 text-xs text-slate-500">
                     <a href="{{ url('/privacy-policy') }}" class="hover:text-slate-900 transition-colors">Privacy Policy</a>

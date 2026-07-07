@@ -59,3 +59,8 @@ Schedule::call(function () {
             ->delete();
     }
 })->weekly();
+
+// Horizon snapshot — setiap 5 menit (biar grafik metrics terisi)
+if (config('horizon.defaults')) {
+    Schedule::command('horizon:snapshot')->everyFiveMinutes();
+}

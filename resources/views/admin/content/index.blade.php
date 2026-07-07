@@ -45,6 +45,7 @@
                         <th class="px-6 py-3.5">Silo Category</th>
                         <th class="px-6 py-3.5">GSC Coverage</th>
                         <th class="px-6 py-3.5">CQI Score</th>
+                        <th class="px-6 py-3.5">Read.</th>
                         <th class="px-6 py-3.5">Status</th>
                         <th class="px-6 py-3.5 text-right">Actions</th>
                     </tr>
@@ -87,6 +88,14 @@
                                     </div>
                                     <span class="font-bold text-slate-800">{{ round($post->cqi_score) }}%</span>
                                 </div>
+                            @else
+                                <span class="text-slate-400">--</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm">
+                            @if($post->readability_score)
+                                @php $r = $post->readability_score; @endphp
+                                <span class="font-bold {{ $r < 40 ? 'text-red-500' : ($r > 70 ? 'text-emerald-500' : 'text-amber-500') }}">{{ number_format($r, 1) }}</span>
                             @else
                                 <span class="text-slate-400">--</span>
                             @endif

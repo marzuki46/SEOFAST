@@ -11,8 +11,8 @@
 @section('schema_markup')
 @php
     $schemaType = $page->seoMeta?->schema['@'.'type'] ?? \App\Models\SystemSetting::get('seo_schema_default_type', 'Organization');
-    $orgName = \App\Models\SystemSetting::get('seo_schema_org_name', 'SEOFAST');
-    $orgLogo = \App\Models\SystemSetting::get('seo_schema_org_logo', asset('favicon.ico'));
+    $orgName = \App\Models\SystemSetting::get('site_name', config('app.name', 'SEOFAST'));
+    $orgLogo = \App\Models\SystemSetting::get('logo_url', asset('favicon.ico'));
     $authorName = \App\Models\SystemSetting::get('seo_schema_author', 'Admin SEOFAST');
 @endphp
 
@@ -30,7 +30,7 @@
   "image": "{{ $page->seoMeta?->og_image ?? \App\Models\SystemSetting::get('seo_og_image', asset('assets/og-default.jpg')) }}",
   "datePublished": "{{ $page->created_at->toIso8601String() }}",
   "dateModified": "{{ $page->updated_at->toIso8601String() }}",
-  "inLanguage": "id",
+  "inLanguage": "{{ app()->getLocale() === 'en' ? 'en-US' : 'id-ID' }}",
   "author": {
     "@@type": "Person",
     "name": "{{ $authorName }}",
@@ -50,7 +50,8 @@
 @endsection
 
 @section('content')
-    {!! $page->html_content !!}
+    @php $templateView = 'pages.templates.' . ($page->template ?? 'default'); @endphp
+    @include($templateView)
 @endsection
 
 

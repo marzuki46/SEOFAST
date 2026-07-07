@@ -7,6 +7,7 @@ use App\Models\Content;
 use App\Models\SiloBlueprint;
 use App\Models\AiGenerationJob;
 use App\Jobs\Ai\ProcessAiGenerationJob;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -142,8 +143,8 @@ class ContentController extends Controller
             // Dispatch background processing job
             ProcessAiGenerationJob::dispatch($content->id, $job->id);
 
-            return redirect()->route('admin.content.index')
-                ->with('success', 'AI Generation Job has been queued. The article is being written in 4 distinct quality phases!');
+            return redirect()->route('admin.content.drafts')
+                ->with('success', 'AI Generation Job has been queued. The article is being written in 6 distinct phases!');
         }
 
         return redirect()->route('admin.content.index')
@@ -190,6 +191,7 @@ class ContentController extends Controller
             'og_title' => 'nullable|string',
             'og_description' => 'nullable|string',
             'og_image' => 'nullable|url',
+            'twitter_card' => 'nullable|string|in:summary_large_image,summary',
             'schema_type' => 'nullable|string',
             'schema_custom_json' => 'nullable|string',
             'featured_image_upload' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
@@ -197,11 +199,30 @@ class ContentController extends Controller
             'published_at' => 'nullable|date',
         ]);
 
-        $updateData = $request->except(['canonical', 'robots', 'og_title', 'og_description', 'og_image', 'schema_type', 'schema_custom_json', 'featured_image_upload']);
+        $updateData = $request->except(['canonical', 'robots', 'og_title', 'og_description', 'og_image', 'twitter_card', 'schema_type', 'schema_custom_json', 'featured_image_upload']);
 
         if ($request->hasFile('featured_image_upload')) {
-            $path = $request->file('featured_image_upload')->store('content-images', 'public');
-            $updateData['featured_image_url'] = '/storage/' . $path;
+            $result = app(\App\Services\ImageService::class)->processUpload(
+                $request->file('featured_image_upload'), 'content-images', 1200
+            );
+            if ($result) {
+                $updateData['featured_image_url'] = $result['url'];
+            }
+        }
+
+        // Auto-generate OG image if publishing without featured_image
+        if (($updateData['status'] ?? null) === 'published' && empty($updateData['featured_image_url']) && !$content->featured_image_url) {
+            $title = $updateData['meta_title'] ?? $content->meta_title ?? $updateData['target_keyword'] ?? $content->target_keyword;
+            $slug = $updateData['target_keyword'] ?? $content->target_keyword ?? 'content';
+            $ogUrl = app(\App\Services\ImageService::class)->generateOgImage($title, $slug);
+            if ($ogUrl) {
+                $updateData['featured_image_url'] = $ogUrl;
+            }
+        }
+
+        // Auto-set published_at when publishing
+        if (($updateData['status'] ?? null) === 'published' && !$content->published_at) {
+            $updateData['published_at'] = now();
         }
 
         $content->update($updateData);
@@ -227,6 +248,7 @@ class ContentController extends Controller
             'og_title' => $request->og_title,
             'og_description' => $request->og_description,
             'og_image' => $request->og_image,
+            'twitter_card' => $request->twitter_card ?? 'summary_large_image',
             'schema' => $schema,
         ]);
 
@@ -360,6 +382,9 @@ class ContentController extends Controller
         // Cloudflare akan memutus koneksi jika tidak ada data yang dikirim selama 100 detik.
         // Dengan StreamedResponse, kita mengirim HTTP Header dan satu byte spasi terlebih dahulu.
         return response()->stream(function () use ($request) {
+            // Enable keep-alive pings for streamed responses
+            \App\Services\AIService::$progressPingsEnabled = true;
+
             // Kirim spasi untuk memulai response body dan mencegah timeout
             echo " ";
             if (ob_get_level() > 0) ob_flush();
@@ -382,7 +407,6 @@ class ContentController extends Controller
 
     private function _doGenerateSingle(Request $request)
     {
-        set_time_limit(0);
         ignore_user_abort(true);
 
         try {
@@ -392,9 +416,6 @@ class ContentController extends Controller
                 'target_status' => 'nullable|string|in:draft,published',
             ]);
 
-            // RELEASE SESSION LOCK IMMEDIATELY
-            // This prevents subsequent AJAX polling requests from hanging and causing Cloudflare 524 timeouts
-            // while the background process is running (since PHP default file session blocks concurrent requests).
             if ($request->hasSession()) {
                 $request->session()->save();
             }
@@ -408,13 +429,13 @@ class ContentController extends Controller
                 return ['success' => false, 'error' => 'Content or Job not found.', 'logs' => []];
             }
 
-            $recoveryManager = new \App\Services\AiRecoveryManager($content->tenant ?? null);
-            if ($recoveryManager->isCircuitOpen()) {
+            $recovery = new \App\Services\AiRecoveryManager($content->tenant ?? null);
+            if ($recovery->isCircuitOpen()) {
                 return [
-                    'success' => true, 
-                    'status' => 'wait', 
-                    'keyword' => $content->target_keyword, 
-                    'logs' => [['level' => 'warn', 'message' => 'Circuit Breaker aktif (Rate Limit API). Sistem mendinginkan (pause) selama 90 detik sebelum melanjutkan...']]
+                    'success' => true,
+                    'status'  => 'wait',
+                    'keyword' => $content->target_keyword,
+                    'logs'    => [['level' => 'warn', 'message' => 'Circuit Breaker aktif (Rate Limit API). Menunggu 90 detik...']],
                 ];
             }
 
@@ -422,455 +443,89 @@ class ContentController extends Controller
                 return [
                     'success' => true,
                     'keyword' => $content->target_keyword,
-                    'title'    => $content->title,
-                    'cqi'      => $content->cqi_score,
-                    'status'   => $content->status,
-                    'logs'     => [['level' => 'success', 'message' => '✅ Artikel telah berhasil diselesaikan oleh background process.']]
+                    'title'   => $content->title,
+                    'cqi'     => $content->cqi_score,
+                    'status'  => 'completed',
+                    'logs'    => [['level' => 'success', 'message' => '✅ Artikel selesai diproses oleh background queue.']],
+                ];
+            }
+
+            if (in_array($job->status, ['failed', 'failed_cqi'])) {
+                return [
+                    'success' => false,
+                    'keyword' => $content->target_keyword,
+                    'error'   => $job->error_log['error'] ?? $job->error_log['reason'] ?? 'Job gagal diproses.',
+                    'logs'    => [['level' => 'error', 'message' => '❌ Artikel gagal diproses.']],
                 ];
             }
 
             $lockKey = "ai_job_lock_{$job->id}";
             $lock = \Illuminate\Support\Facades\Cache::lock($lockKey, 120);
             if (!$lock->get()) {
-                return ['success' => true, 'status' => 'wait', 'keyword' => $content->target_keyword, 'logs' => [['level' => 'running', 'message' => 'Proses masih berjalan di latar belakang (menunggu 10d)...']]];
+                return [
+                    'success' => true,
+                    'status'  => 'wait',
+                    'keyword' => $content->target_keyword,
+                    'logs'    => [['level' => 'running', 'message' => 'Proses masih berjalan di background queue...']],
+                ];
             }
 
             try {
+                $keyword = $content->target_keyword;
 
-            $addLog = function(string $level, string $message) use (&$logs) {
-                $logs[] = ['level' => $level, 'message' => $message];
-                \Illuminate\Support\Facades\Log::info("AI [{$level}] {$message}");
-                echo " ";
-                if (ob_get_level() > 0) ob_flush();
-                flush();
-            };
-
-            if (!$content || !$job) {
-                return ['success' => false, 'error' => 'Content or Job not found.', 'logs' => []];
-            }
-
-            $keyword     = $content->target_keyword;
-            $seedKeyword = $content->siloBlueprint?->seed_keyword ?? $keyword;
-            $lang        = $content->siloBlueprint?->target_language ?? 'id';
-            $country     = $content->siloBlueprint?->target_country ?? 'ID';
-            $tenant      = $content->tenant;
-
-            $job->update(['status' => 'phase_1', 'started_at' => now()]);
-            $addLog('info', "Mulai Phase 1: Generating draft untuk [{$keyword}]...");
-
-                        // ── PHASE 1: LSI/Entity Keywords ─────────────────────────────
-            $lsi = $job->phase_1_lsi;
-            if (!$lsi) {
-                $addLog('info', "Mulai Phase 1: Generating entitas & LSI keywords untuk [{$keyword}]...");
-                $aiService1 = new \App\Services\AIService($tenant, 'default');
-                
-                $sysP1 = \App\Models\SystemSetting::get('ai_prompt_phase1_sys',
-                    "You are an Expert SEO Strategist. Generate a list of semantic entities and LSI keywords relevant to '{keyword}'. Return the list as a simple comma-separated string.");
-                $sysP1 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir balasan. Berikan hasil akhirnya saja langsung.";
-                $userP1 = "Topic: {$keyword}\nLanguage: {$lang}\nCountry: {$country}";
-                
-                $lsi = $aiService1->generate($sysP1, $userP1);
-                
-                if (!$lsi || mb_strlen(trim($lsi)) < 10) {
-                    $diags = $aiService1->getLastDiagnostics();
-                    $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
-                    throw new \Exception("Phase 1 gagal menghasilkan LSI keywords. Reason: " . $reason);
-                }
-                
-                $job->update(['status' => 'phase_2', 'phase_1_lsi' => $lsi]);
-                $addLog('success', "Phase 1 SELESAI | LSI: " . mb_strlen($lsi) . " karakter");
-                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
-            } else {
-                $addLog('info', "Memulihkan LSI Phase 1 dari sesi sebelumnya...");
-            }
-
-            // ── PHASE 2: Generate Content & Inject Links ─────────────────────────────
-            $draft = $job->phase_1_draft;
-            if (!$draft) {
-                $addLog('info', "Mulai Phase 2: Generating konten awal untuk [{$keyword}]...");
-                $aiService2 = new \App\Services\AIService($tenant, 'default');
-
-                $strategy = \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic');
-                $linkInstructions = '';
-                
-                if (in_array($strategy, ['deterministic', 'both'])) {
-                    $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)
-                        ->with('targetContent')->get();
-                    
-                    if ($deterministicLinks->isNotEmpty()) {
-                        $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (Embed organically in text using Markdown):\n";
-                        foreach ($deterministicLinks as $link) {
-                            $url = url('/blog/' . ($link->targetContent?->slug ?? '#'));
-                            $linkInstructions .= "- [{$link->anchor_text}]({$url})\n";
-                        }
-                    }
-                }
-
-                if ($content->hierarchy_level === 'pillar') {
-                    $clusters = \App\Models\Content::where('parent_id', $content->id)
-                                    ->where('hierarchy_level', 'cluster')
-                                    ->whereNotIn('status', ['idea'])
-                                    ->get();
-                    if ($clusters->isNotEmpty()) {
-                        $linkInstructions .= "\n\nCRITICAL PILLAR REQUIREMENT: As a Pillar Page, you MUST extend the content by explicitly creating dedicated sections (H2/H3) for the following cluster topics. You MUST naturally insert their corresponding links within their respective sections:\n";
-                        foreach ($clusters as $cluster) {
-                            $dLink = \App\Models\DeterministicLink::where('source_content_id', $content->id)
-                                ->where('target_content_id', $cluster->id)
-                                ->first();
-                            $anchor = $dLink ? ($dLink->mandatory_anchor_text ?? $cluster->target_keyword) : $cluster->target_keyword;
-                            
-                            $slugStr = is_string($cluster->slug) ? $cluster->slug : ($cluster->slug['id'] ?? '#');
-                            $url = url('/blog/' . ltrim($slugStr, '/'));
-                            
-                            $linkInstructions .= "- Cluster Topic: {$cluster->target_keyword} => Link Markdown: [{$anchor}]({$url})\n";
-                        }
-                    }
-                }
-
-                $sysP2 = \App\Models\SystemSetting::get('ai_prompt_phase2_sys',
-                    "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 800 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Return ONLY the article draft in Markdown.");
-                $sysP2 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir konten. Berikan hasil akhirnya saja langsung.";
-                $userP2 = "Keyword: **{$keyword}**\nSeed: {$seedKeyword}\nLSI Keywords: {$lsi}\n\nRequirements:\n- Minimum 800 words\n- Use H2 and H3 headings\n{$linkInstructions}\nDo NOT output the LSI list separately, just weave everything seamlessly.";
-
-                $draft = $aiService2->generate($sysP2, $userP2);
-
-                if (!$draft || mb_strlen(trim($draft)) < 300) {
-                    $diags = $aiService2->getLastDiagnostics();
-                    $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
-                    throw new \Exception("Phase 2 gagal menghasilkan draf konten yang valid. Reason: " . $reason);
-                }
-
-                $job->update(['status' => 'phase_3', 'phase_1_draft' => $draft]);
-                $addLog('success', "Phase 2 SELESAI | Draft: " . mb_strlen($draft) . " karakter");
-                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
-            } else {
-                $addLog('info', "Memulihkan Draft Phase 2 dari sesi sebelumnya...");
-            }
-
-            // ── PHASE 3: Critical Questions ──────────────────────────
-            $critique = $job->phase_2_critique;
-            if (!$critique || !is_array($critique)) {
-                $addLog('info', "Phase 3: Generating Pertanyaan Kritis untuk [{$keyword}]...");
-                $aiService3 = new \App\Services\AIService($tenant, 'default');
-                $sysP3 = \App\Models\SystemSetting::get('ai_prompt_phase3_sys',
-                    "You are a strict Senior SEO Content Auditor. Read the draft and generate a list of 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]");
-                $sysP3 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir balasan. Berikan hasil akhirnya saja langsung dalam format JSON.";
-                $critique = $aiService3->generateJson($sysP3, "Keyword: {$keyword}\n\nDraft:\n{$draft}");
-
-                if (!$critique || !is_array($critique) || (isset($critique['cqi_score']))) {
-                    $critique = ['Apa saja strategi lanjutan yang belum dibahas?', 'Bagaimana cara menghindari kesalahan umum?'];
-                    $addLog('warn', "Phase 3: JSON array gagal di-parse, menggunakan default pertanyaan.");
-                }
-
-                $job->update(['status' => 'phase_4', 'phase_2_critique' => $critique]);
-                $addLog('info', "Phase 3 SELESAI | Dihasilkan " . count($critique) . " Pertanyaan Kritis");
-                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
-            } else {
-                $addLog('info', "Memulihkan Pertanyaan Kritis Phase 3 dari sesi sebelumnya...");
-            }
-
-            // ── PHASE 4: Answer Questions ──────────────────────────────────
-            $answers = $job->phase_4_answers;
-            if (!$answers) {
-                $addLog('info', "Phase 4: Menjawab pertanyaan kritis...");
-                $aiService4 = new \App\Services\AIService($tenant, 'default');
-                $criticalQs = implode("\n- ", is_array($critique) ? $critique : ['Berikan pembahasan lebih mendalam.']);
-                
-                $sysP4 = \App\Models\SystemSetting::get('ai_prompt_phase4_sys',
-                    "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions'. Return ONLY the answers in Markdown formatting.");
-                $sysP4 = strtr($sysP4, ['{lang}' => $lang]);
-                $sysP4 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir balasan. Berikan hasil akhirnya saja langsung.";
-                $userP4 = "Topic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}";
-
-                $answers = $aiService4->generate($sysP4, $userP4);
-
-                if (!$answers || mb_strlen(trim($answers)) < 100 || str_contains($answers, '{"error"')) {
-                    $diags = $aiService4->getLastDiagnostics();
-                    $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
-                    throw new \Exception("Phase 4 gagal menghasilkan jawaban yang valid. Reason: " . $reason);
-                }
-
-                $job->update(['status' => 'phase_5', 'phase_4_answers' => $answers]);
-                $addLog('success', "Phase 4 SELESAI | Answers: " . mb_strlen($answers) . " karakter");
-                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
-            } else {
-                $addLog('info', "Memulihkan Answers Phase 4 dari sesi sebelumnya...");
-            }
-            
-            // ── PHASE 5: Combine into Extended Content ──────────────────────────────────
-            $combined = $job->phase_5_combined;
-            if (!$combined) {
-                $addLog('info', "Phase 5: Menggabungkan menjadi Extended Content...");
-                $aiService5 = new \App\Services\AIService($tenant, 'default');
-                
-                $sysP5 = \App\Models\SystemSetting::get('ai_prompt_phase5_sys',
-                    "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.");
-                $brandNames = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
-                $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
-                $sysP5 = strtr($sysP5, [
-                    '{lang}' => $lang,
-                    '{brand_names}' => $brandNames,
-                    '{brand_positioning}' => $brandPositioning,
-                ]);
-                $sysP5 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir konten. Berikan hasil akhirnya saja langsung.";
-                $userP5 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}";
-
-                $combined = $aiService5->generate($sysP5, $userP5);
-
-                $draftLen = mb_strlen(trim($draft));
-                $combinedLen = mb_strlen(trim($combined));
-                
-                if (!$combined || $combinedLen < $draftLen * 0.75 || str_contains($combined, '{"error"')) {
-                    $reason = "AI meringkas output terlalu pendek ({$combinedLen} karakter, padahal draft awal {$draftLen} karakter)";
-                    $addLog('warning', "Phase 5: {$reason}. Menggunakan Fallback penggabungan teks otomatis...");
-                    
-                    // Fallback programmatic concatenation
-                    $combined = $draft . "\n\n## Pembahasan Lanjutan\n\n" . $answers;
-                }
-
-                $job->update(['status' => 'phase_6', 'phase_5_combined' => $combined]);
-                $addLog('success', "Phase 5 SELESAI | Combined: " . mb_strlen($combined) . " karakter");
-                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
-            } else {
-                $addLog('info', "Memulihkan Extended Content Phase 5 dari sesi sebelumnya...");
-            }
-
-            // ── PHASE 6: HTML Conversion ───────────────────────────
-            $finalBody = $job->phase_6_html;
-            if (!$finalBody) {
-                $addLog('info', "Phase 6: Konversi ke HTML & optimasi akhir...");
-                $aiService6 = new \App\Services\AIService($tenant, 'default');
-
-                $sysP6 = \App\Models\SystemSetting::get('ai_prompt_phase6_sys',
-                    "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the comprehensive length.");
-                $brandNames = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
-                $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
-                $sysP6 = strtr($sysP6, [
-                    '{lang}' => $lang,
-                    '{brand_names}' => $brandNames,
-                    '{brand_positioning}' => $brandPositioning,
-                ]);
-                
-                // CRITICAL: Force the AI to wrap output to prevent conversational filler from leaking
-                $sysP6 .= "\n\nCRITICAL REQUIREMENT: You MUST wrap your ENTIRE final HTML output exactly inside <article_body> and </article_body> tags. Do not include any explanations outside these tags.";
-                $sysP6 .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir artikel yang dibuat. Berikan hasil akhirnya saja langsung.";
-                
-                $userP6 = "Keyword: **{$keyword}**\n\nArticle:\n{$combined}";
-
-                $finalBody = $aiService6->generate($sysP6, $userP6);
-                if ($finalBody) {
-                    $finalBody = preg_replace('/^```html|```$/mi', '', trim($finalBody)); // Remove markdown HTML blocks if any
-                    
-                    // Extract strictly from <article_body> if present
-                    if (preg_match('/<article_body>([\s\S]*?)<\/article_body>/i', $finalBody, $matches)) {
-                        $finalBody = trim($matches[1]);
-                    } else {
-                        // Fallback extraction if AI ignored the wrap instruction
-                        if (preg_match('/<(?:h[1-3]|p|div|section)[\s\S]*>/i', $finalBody, $matches)) {
-                            $finalBody = $matches[0];
-                        }
-                    }
-                }
-
-                if (!$finalBody || mb_strlen(trim($finalBody)) < 300 || str_contains($finalBody, '{"error"')) {
-                    $diags = $aiService6->getLastDiagnostics();
-                    $reason = end($diags)['error'] ?? 'Unknown API error or timeout';
-                    
-                    // Fallback to PHP Markdown parser if AI fails (prevents complete pipeline failure)
-                    $addLog('warning', "Phase 6 AI Gagal (" . $reason . "). Menggunakan Fallback Markdown Parser PHP...");
-                    $finalBody = \Illuminate\Support\Str::markdown($combined);
-                    
-                    if (!$finalBody || mb_strlen(trim($finalBody)) < 100) {
-                        throw new \Exception("Phase 6 gagal mengkonversi ke HTML dengan valid. Reason: " . $reason);
-                    }
-                }
-
-                $job->update(['status' => 'phase_7', 'phase_6_html' => $finalBody]);
-                $addLog('success', "Phase 6 SELESAI | HTML: " . mb_strlen($finalBody) . " karakter");
-                return ['success' => true, 'status' => 'continue', 'logs' => $logs, 'keyword' => $keyword];
-            } else {
-                $addLog('info', "Memulihkan HTML Phase 6 dari sesi sebelumnya...");
-            }
-
-            // ── Save to DB & Phase 7 (SEO Meta) ───────────────────────────────
-            $blogPrefix  = \App\Models\SystemSetting::get('permalink_blog', 'blog');
-            
-            // CAPITALIZE EVERY WORD IN HEADINGS (h1-h6)
-            $finalBody = preg_replace_callback('/(<h[1-6][^>]*>)(.*?)(<\/h[1-6]>)/i', function($matches) {
-                // $matches[1] is open tag, $matches[2] is the text inside, $matches[3] is close tag
-                // Use mb_convert_case for UTF-8 support
-                $capitalizedText = mb_convert_case($matches[2], MB_CASE_TITLE, "UTF-8");
-                // However, mb_convert_case might lowercase existing acronyms like SEO -> Seo.
-                // An alternative is ucwords(strtolower(...)) but same issue. 
-                // Let's use ucwords() on just the first character of each word, preserving acronyms.
-                // A better approach to preserve acronyms:
-                $capitalizedText = preg_replace_callback('/\b([a-z])/u', function($m) {
-                    return mb_strtoupper($m[1], 'UTF-8');
-                }, $matches[2]);
-                
-                return $matches[1] . $capitalizedText . $matches[3];
-            }, $finalBody);
-            
-            $contentHash = hash('sha256', $finalBody);
-            
-            $cqiScore = null;
-
-            $job->update([
-                'status'        => 'completed',
-                'completed_at'  => now(),
-            ]);
-
-            $deterministicLinks = \App\Models\DeterministicLink::where('source_content_id', $content->id)->get();
-            if ($deterministicLinks->isNotEmpty()) {
-                \App\Models\DeterministicLink::where('source_content_id', $content->id)
-                    ->update([
-                        'is_injected_successfully' => true,
-                        'injected_at' => now()
+                // ── Step 1: Ensure job starts from phase_1 ──
+                if (in_array($job->status, ['pending', 'failed_cqi'])) {
+                    $job->update([
+                        'status'      => 'phase_1',
+                        'started_at'  => now(),
+                        'retry_count' => ($job->status === 'failed_cqi') ? ($job->retry_count + 1) : 0,
                     ]);
-            }
-
-            // CAPITALIZE TITLE
-            $newTitle = preg_replace_callback('/\b([a-z])/u', function($m) {
-                return mb_strtoupper($m[1], 'UTF-8');
-            }, $content->title ?? '');
-
-            $content->body_raw = $finalBody;
-            $content->update([
-                'title'        => $newTitle,
-                'content_hash' => $contentHash,
-                'status'       => $targetStatus,
-                'published_at' => $content->published_at ?? now(),
-            ]);
-            $content->save();
-
-            // ── Phase 7: SEO Meta (non-blocking) ─────────────────────────────
-            try {
-                $aiService7 = new \App\Services\AIService($tenant, 'default');
-                $addLog('info', "Phase 7: Generating SEO Meta...");
-                $metaTitlePrompt = str_replace('{keyword}', $keyword, \App\Models\SystemSetting::get('ai_prompt_meta_title',
-                    'Write a highly click-worthy SEO title for "{keyword}". Max 60 chars. Return ONLY the title.'));
-                $metaTitlePrompt .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir balasan. Berikan hasil akhirnya saja langsung.";
-                $metaDescPrompt  = str_replace('{keyword}', $keyword, \App\Models\SystemSetting::get('ai_prompt_meta_description',
-                    'Write an engaging SEO meta description for "{keyword}". 150-160 chars with CTA. Return ONLY the description.'));
-                $metaDescPrompt .= "\n\nIMPORTANT: Jangan pakai basa-basi di awal maupun di akhir balasan. Berikan hasil akhirnya saja langsung.";
-
-                $metaTitle = trim($aiService7->generate('You are an expert SEO specialist.', $metaTitlePrompt), " \t\n\r\"'");
-                $metaDesc  = trim($aiService7->generate('You are an expert SEO specialist.', $metaDescPrompt), " \t\n\r\"'");
-
-                $metaTitle = preg_replace_callback('/\b([a-z])/u', function($m) {
-                    return mb_strtoupper($m[1], 'UTF-8');
-                }, $metaTitle);
-
-                $content->updateSeoMeta([
-                    'title'          => $metaTitle ?: $newTitle,
-                    'description'    => $metaDesc,
-                    'canonical'      => url('/' . $blogPrefix . '/' . $content->slug),
-                    'robots'         => 'index, follow',
-                    'og_title'       => $metaTitle ?: $newTitle,
-                    'og_description' => $metaDesc,
-                    'og_image'       => $content->featured_image_url ?: \App\Models\SystemSetting::get('seo_og_image'),
-                ]);
-                $addLog('success', "Phase 7 SELESAI | SEO Meta dibuat: \"{$metaTitle}\"");
-            } catch (\Exception $e) {
-                $addLog('warn', "Phase 7 SEO Meta gagal (non-fatal): " . $e->getMessage());
-            }
-
-            // ── Phase 8: Vectorization / Embeddings (non-blocking) ────────────────
-            try {
-                $strategy = \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic');
-                if (in_array($strategy, ['semantic', 'both'])) {
-                    $addLog('info', "Phase 8: Generating Embeddings (Vectors)...");
-                    $aiService8 = new \App\Services\AIService($tenant, 'default');
-                    
-                    // Simple chunking logic (strip tags, split by ~1000 chars)
-                    $plainText = strip_tags($finalBody);
-                    $plainText = preg_replace('/\s+/', ' ', $plainText);
-                    $chunks = mb_str_split($plainText, 1000);
-
-                    // Clear old embeddings if any
-                    \App\Models\ContentEmbedding::where('content_id', $content->id)->delete();
-
-                    $vectorCount = 0;
-                    foreach ($chunks as $chunk) {
-                        $chunk = trim($chunk);
-                        if (mb_strlen($chunk) < 50) continue; // skip very small chunks
-
-                        $vector = $aiService8->generateEmbeddings($chunk);
-                        if ($vector && is_array($vector)) {
-                            \App\Models\ContentEmbedding::create([
-                                'content_id'  => $content->id,
-                                'chunk_text'  => $chunk,
-                                'vector_data' => $vector,
-                            ]);
-                            $vectorCount++;
-                        }
-                    }
-                    $addLog('success', "Phase 8 SELESAI | {$vectorCount} Vectors disimpan untuk pencocokan semantik.");
                 }
-            } catch (\Exception $e) {
-                $addLog('warn', "Phase 8 Embeddings gagal (non-fatal): " . $e->getMessage());
-            }
 
-            $addLog('success', "✅ [{$keyword}] GENERATION SELESAI → status: {$targetStatus} | {$contentHash}");
+                // Reset stale data when starting from beginning
+                if (in_array($job->status, ['phase_1', 'phase_2'])) {
+                    $job->update([
+                        'started_at'     => now(),
+                        'phase_1_lsi'    => null,
+                        'phase_1_draft'  => null,
+                        'phase_2_critique' => null,
+                        'phase_4_answers'  => null,
+                        'phase_5_combined' => null,
+                        'phase_6_html'     => null,
+                    ]);
+                }
 
+                // ── Step 2: Run current phase INLINE (not via queue) ──
+                $processJob = new \App\Jobs\Ai\ProcessAiGenerationJob(
+                    $content->id, $job->id, $targetStatus
+                );
+                $processJob->handle();
 
-            return [
-                'success' => true,
-                'keyword' => $keyword,
-                'title'    => $content->title,
-                'cqi'      => $cqiScore,
-                'status'   => $targetStatus,
-                'logs'     => $logs,
-            ];
+                $job->refresh();
+                $logs[] = ['level' => 'success', 'message' => "✅ Fase selesai. Status: {$job->status}"];
 
+                return [
+                    'success' => true,
+                    'status'  => 'continue',
+                    'keyword' => $keyword,
+                    'logs'    => $logs,
+                ];
             } finally {
                 if (isset($lock)) {
                     $lock->release();
                 }
             }
-
         } catch (\Throwable $e) {
             if (isset($lock)) {
                 $lock->release();
             }
-
-            $errorMsg = "FATAL ERROR: " . $e->getMessage();
-            
-            if (isset($job) && $job && isset($content) && $content) {
-                $recoveryManager = new \App\Services\AiRecoveryManager($content->tenant);
-                $currentPhase = $job->status ?? 'unknown';
-                
-                $recoveryResult = $recoveryManager->handleFailure($job, $content, $e, $currentPhase, $logs);
-                
-                if (isset($recoveryResult['status']) && in_array($recoveryResult['status'], ['continue', 'wait'])) {
-                    if (isset($addLog)) {
-                        // Logs are already appended by reference, but we can flush them if needed
-                        $lastLog = end($logs);
-                        if ($lastLog) {
-                            $addLog($lastLog['level'], $lastLog['message']);
-                        }
-                    }
-                    return [
-                        'success' => true,
-                        'status' => $recoveryResult['status'],
-                        'keyword' => $keyword ?? 'Unknown',
-                        'logs' => $logs,
-                    ];
-                }
-            } else {
-                if (isset($job) && $job) {
-                    $job->update(['status' => 'failed', 'error_log' => ['reason' => $e->getMessage()]]);
-                }
-                if (isset($content) && $content) {
-                    $content->update(['status' => 'failed_cqi']);
-                }
+            $errorMsg = 'FATAL: ' . $e->getMessage();
+            if (isset($job) && $job) {
+                $job->update(['status' => 'failed', 'error_log' => ['reason' => $e->getMessage()]]);
             }
-            
-            if (isset($addLog)) {
-                $addLog('error', $errorMsg);
-                return ['success' => false, 'keyword' => $keyword ?? 'Unknown', 'error' => $errorMsg, 'logs' => $logs];
+            if (isset($content) && $content) {
+                $content->update(['status' => 'failed_cqi']);
             }
-            
             return ['success' => false, 'error' => $errorMsg, 'logs' => []];
         }
     }
@@ -885,17 +540,31 @@ class ContentController extends Controller
      */
     public function checkConnection()
     {
-        $tenant    = \App\Models\Tenant::first();
-        $aiService = new \App\Services\AIService($tenant, 'default');
-        $result    = $aiService->testConnection();
+        try {
+            $tenant    = \App\Models\Tenant::first();
+            $aiService = new \App\Services\AIService($tenant, 'default');
+            $result    = $aiService->testConnection();
 
-        return response()->json([
-            'ok'          => $result['ok'],
-            'provider'    => $result['provider'],
-            'model'       => $result['model'],
-            'error'       => $result['error'],
-            'diagnostics' => $result['diagnostics'] ?? [],
-        ]);
+            return response()->json([
+                'ok'          => $result['ok'] ?? false,
+                'provider'    => $result['provider'] ?? 'unknown',
+                'model'       => $result['model'] ?? 'unknown',
+                'error'       => $result['error'] ?? null,
+                'diagnostics' => $result['diagnostics'] ?? [],
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('checkConnection error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return response()->json([
+                'ok'          => false,
+                'provider'    => 'unknown',
+                'model'       => 'unknown',
+                'error'       => $e->getMessage(),
+                'diagnostics' => [],
+            ]);
+        }
     }
 
     /**
@@ -906,10 +575,10 @@ class ContentController extends Controller
     public function workQueue(Request $request)
     {
         if (function_exists('set_time_limit')) {
-            @set_time_limit(120);
+            @set_time_limit(300);
         }
 
-        $activeStatuses = ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6', 'phase_7'];
+        $activeStatuses = ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6'];
 
         try {
             $hasJobsInQueue = \Illuminate\Support\Facades\DB::table('jobs')->exists();
@@ -985,13 +654,15 @@ class ContentController extends Controller
                     $toStatus   = strtoupper($after->status);
 
                     $phaseLabel = match($after->status) {
-                        'phase_1'  => '📝 Phase 1 — Generating Initial Draft',
-                        'phase_2'  => '🔍 Phase 2 — Quality Critique & CQI Scoring',
-                        'phase_3'  => '✍️  Phase 3 — Expanding & Enriching Content',
-                        'phase_4'  => '🎨 Phase 4 — Master Edit & Link Injection',
+                        'phase_1'  => '📝 Phase 1 — LSI Keywords',
+                        'phase_2'  => '✍️  Phase 2 — Draft + Links',
+                        'phase_3'  => '❓ Phase 3 — Critical Questions',
+                        'phase_4'  => '🔍 Phase 4 — Deep Answers',
+                        'phase_5'  => '🎨 Phase 5 — Combine + HTML + CQI',
+                        'phase_6'  => '💾 Phase 6 — Save + Meta + Embeddings',
                         'completed'=> '✅ COMPLETED — Content saved to DB',
                         'failed'   => '❌ FAILED — ' . (($after->error_log['reason'] ?? $after->error_log['error'] ?? 'Unknown error')),
-                        'failed_cqi' => '⚠️  CQI FAILED — Retrying Phase 1',
+                        'failed_cqi' => '⚠️  CQI FAILED — Retrying Phase 2',
                         default    => strtoupper($after->status),
                     };
 
@@ -1080,6 +751,83 @@ class ContentController extends Controller
 
 
 
+
+    /**
+     * Bulk publish selected content items.
+     */
+    public function bulkPublish(Request $request)
+    {
+        $request->validate([
+            'content_ids'   => 'required|array',
+            'content_ids.*' => 'exists:contents,id',
+        ]);
+
+        $count = 0;
+        foreach ($request->content_ids as $id) {
+            $content = Content::withoutGlobalScopes()->find($id);
+            if (!$content || $content->status === 'published') {
+                continue;
+            }
+            $content->update([
+                'status'       => 'published',
+                'published_at' => $content->published_at ?? now(),
+            ]);
+            $count++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'count'   => $count,
+        ]);
+    }
+
+    /**
+     * Show content calendar.
+     */
+    public function calendar(Request $request)
+    {
+        $month = (int) $request->input('month', now()->month);
+        $year = (int) $request->input('year', now()->year);
+
+        $startOfMonth = Carbon::create($year, $month, 1)->startOfMonth();
+        $endOfMonth = (clone $startOfMonth)->endOfMonth();
+
+        $contents = Content::whereNotNull('published_at')
+            ->whereBetween('published_at', [$startOfMonth, $endOfMonth])
+            ->orderBy('published_at')
+            ->get(['id', 'target_keyword as title', 'slug', 'status', 'published_at', 'featured_image_url']);
+
+        $postsByDate = $contents->groupBy(fn($c) => $c->published_at->format('Y-m-d'));
+
+        $firstDay = (clone $startOfMonth)->startOfWeek(Carbon::MONDAY);
+        $lastDay = (clone $endOfMonth)->endOfWeek(Carbon::SUNDAY);
+
+        $weeks = [];
+        $cursor = clone $firstDay;
+        while ($cursor <= $lastDay) {
+            $week = [];
+            for ($i = 0; $i < 7; $i++) {
+                $dateStr = $cursor->format('Y-m-d');
+                $week[] = (object) [
+                    'date' => clone $cursor,
+                    'isCurrentMonth' => $cursor->month === $month,
+                    'isToday' => $cursor->isToday(),
+                    'posts' => $postsByDate[$dateStr] ?? collect(),
+                    'postCount' => ($postsByDate[$dateStr] ?? collect())->count(),
+                ];
+                $cursor->addDay();
+            }
+            $weeks[] = $week;
+        }
+
+        $prevMonth = (clone $startOfMonth)->subMonth();
+        $nextMonth = (clone $startOfMonth)->addMonth();
+
+        return view('admin.content.calendar', compact(
+            'weeks', 'month', 'year', 'startOfMonth',
+            'prevMonth', 'nextMonth', 'postsByDate'
+        ));
+    }
 
     /**
      * Remove the specified resource from storage.

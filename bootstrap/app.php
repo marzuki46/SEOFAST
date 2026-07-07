@@ -15,11 +15,20 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->append(\App\Http\Middleware\HideServerHeaders::class);
         $middleware->web(append: [
+            \App\Http\Middleware\CheckInstalled::class,
+            \App\Http\Middleware\ForceHttps::class,
+            \App\Http\Middleware\TrailingSlashNormalizer::class,
+            \App\Http\Middleware\CheckRedirects::class,
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\Capture404::class,
+            \App\Http\Middleware\CachePublicPages::class,
+            \App\Http\Middleware\SetNoindexPaths::class,
         ]);
 
         $middleware->alias([
             'auth.admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'check.installed' => \App\Http\Middleware\CheckInstalled::class,
+            'cache.public' => \App\Http\Middleware\CachePublicPages::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

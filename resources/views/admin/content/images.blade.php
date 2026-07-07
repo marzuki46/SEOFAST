@@ -18,12 +18,16 @@
                 </p>
             </div>
             
-            <div class="w-full md:w-auto">
+            <div class="w-full md:w-auto flex items-center gap-2">
                 <form id="searchForm" class="flex items-center gap-2">
                     <input type="text" id="searchQuery" value="{{ $content->target_keyword }}" placeholder="Search images..." 
                            class="w-full md:w-64 rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 outline-none">
                     <button type="submit" class="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition shadow-sm">Search</button>
                 </form>
+                <button id="generateAiBtn" type="button" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl text-sm font-semibold hover:from-purple-700 hover:to-indigo-700 transition shadow-sm whitespace-nowrap">
+                    <span id="aiBtnText">Generate AI Illus</span>
+                    <svg id="aiSpinner" class="hidden animate-spin h-4 w-4 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                </button>
             </div>
         </div>
 
@@ -48,7 +52,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <p class="text-slate-500 font-medium">Fetching high-res images from Unsplash API...</p>
+        <p id="loadingText" class="text-slate-500 font-medium">Fetching images...</p>
     </div>
 
     <div id="imageResults" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -73,9 +77,66 @@
         const resultsContainer = document.getElementById('imageResults');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const selectForm = document.getElementById('selectImageForm');
+        const generateAiBtn = document.getElementById('generateAiBtn');
+        const aiBtnText = document.getElementById('aiBtnText');
+        const aiSpinner = document.getElementById('aiSpinner');
         
         // Initial search based on keyword
         performSearch(queryInput.value);
+
+        generateAiBtn.addEventListener('click', function() {
+            const prompt = queryInput.value.trim() || '{{ $content->target_keyword }}';
+            aiBtnText.textContent = 'Generating...';
+            aiSpinner.classList.remove('hidden');
+            generateAiBtn.disabled = true;
+            loadingIndicator.classList.remove('hidden');
+            document.getElementById('loadingText').textContent = 'AI sedang membuat ilustrasi...';
+
+            fetch('{{ route('admin.content.images.ai-generate', $content->id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ prompt: prompt })
+            })
+            .then(res => res.json())
+            .then(data => {
+                aiBtnText.textContent = 'Generate AI Illus';
+                aiSpinner.classList.add('hidden');
+                generateAiBtn.disabled = false;
+                loadingIndicator.classList.add('hidden');
+
+                if (data.success && data.image) {
+                    resultsContainer.innerHTML = '';
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm group relative cursor-pointer hover:ring-2 hover:ring-indigo-500 transition-all';
+                    card.innerHTML = `
+                        <div class="aspect-w-16 aspect-h-12 w-full bg-slate-100">
+                            <img src="${data.image.url}" alt="${data.image.alt_text}" class="w-full h-48 object-cover group-hover:scale-105 transition duration-500">
+                        </div>
+                        <div class="p-4 absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-900/90 to-transparent translate-y-full group-hover:translate-y-0 transition duration-300">
+                            <p class="text-white text-xs font-medium truncate">${data.image.author}</p>
+                            <button type="button" class="mt-2 w-full py-1.5 bg-purple-500 hover:bg-purple-400 text-white text-xs font-bold rounded-lg shadow select-btn" data-url="${data.image.url}" data-alt="${data.image.alt_text}">
+                                Pilih Gambar Ini
+                            </button>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(card);
+                    attachSelectButtons();
+                } else {
+                    resultsContainer.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-rose-500">' + (data.message || 'Gagal generate ilustrasi.') + '</p></div>';
+                }
+            })
+            .catch(err => {
+                aiBtnText.textContent = 'Generate AI Illus';
+                aiSpinner.classList.add('hidden');
+                generateAiBtn.disabled = false;
+                loadingIndicator.classList.add('hidden');
+                resultsContainer.innerHTML = '<div class="col-span-full text-center py-12 text-rose-500">Error: ' + err.message + '</div>';
+            });
+        });
 
         searchForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -84,9 +145,23 @@
             }
         });
 
+        function attachSelectButtons() {
+            document.querySelectorAll('.select-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('selectedImageUrl').value = this.getAttribute('data-url');
+                    document.getElementById('selectedAltText').value = this.getAttribute('data-alt');
+                    
+                    if (confirm('Gunakan gambar ini untuk artikel? AI akan memproses dan menyuntikkannya ke konten.')) {
+                        selectForm.submit();
+                    }
+                });
+            });
+        }
+
         function performSearch(query) {
             resultsContainer.innerHTML = '';
             loadingIndicator.classList.remove('hidden');
+            document.getElementById('loadingText').textContent = 'Fetching images from Openverse & Wikimedia...';
 
             fetch(`{{ route('admin.content.images.search', $content->id) }}`, {
                 method: 'POST',
@@ -121,17 +196,7 @@
                         resultsContainer.appendChild(card);
                     });
 
-                    // Attach event listeners to new buttons
-                    document.querySelectorAll('.select-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            document.getElementById('selectedImageUrl').value = this.getAttribute('data-url');
-                            document.getElementById('selectedAltText').value = this.getAttribute('data-alt');
-                            
-                            if (confirm('Gunakan gambar ini untuk artikel? AI akan memproses dan menyuntikkannya ke konten.')) {
-                                selectForm.submit();
-                            }
-                        });
-                    });
+                    attachSelectButtons();
                 } else {
                     resultsContainer.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-slate-500">No images found for this query. Try a different keyword.</p></div>';
                 }

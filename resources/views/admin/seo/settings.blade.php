@@ -132,9 +132,32 @@
                                 </div>
                             </div>
 
+                            {{-- BLOG SEO --}}
+                            <div class="border-b border-slate-100 pb-6">
+                                <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="text-brand-indigo">④</span> Blog & Archive SEO</h4>
+                                <div class="grid grid-cols-1 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Blog Index Title</label>
+                                        <input type="text" name="blog_meta_title" value="{{ \App\Models\SystemSetting::get('blog_meta_title') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="SEOFAST Blog — Latest Insights in AI Content & SEO Automation">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Blog Index Meta Description</label>
+                                        <textarea name="blog_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Discover advanced SEO workflows...">{{ \App\Models\SystemSetting::get('blog_meta_description') }}</textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage Meta Title (fallback)</label>
+                                        <input type="text" name="home_meta_title" value="{{ \App\Models\SystemSetting::get('home_meta_title') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Fallback when seo_global_meta_title is empty">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage Meta Description (fallback)</label>
+                                        <textarea name="home_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Fallback when seo_global_meta_description is empty">{{ \App\Models\SystemSetting::get('home_meta_description') }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
                             {{-- TRACKING IDs --}}
                             <div>
-                                <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="text-brand-indigo">④</span> Tracking & Verification</h4>
+                                <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="text-brand-indigo">⑤</span> Tracking & Verification</h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
                                         <label class="block text-sm font-semibold text-slate-700 mb-1">Google Analytics ID</label>
@@ -396,14 +419,6 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Organization / Local Business Name</label>
-                                    <input type="text" name="seo_schema_org_name" value="{{ $settings['seo_schema']['seo_schema_org_name'] ?? \App\Models\SystemSetting::get('seo_schema_org_name') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="PT. Perusahaan Anda">
-                                </div>
-                                <div>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Organization Logo URL</label>
-                                    <input type="url" name="seo_schema_org_logo" value="{{ $settings['seo_schema']['seo_schema_org_logo'] ?? \App\Models\SystemSetting::get('seo_schema_org_logo') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="https://domain.com/logo.png">
-                                </div>
-                                <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Publisher / Author Name (Default)</label>
                                     <input type="text" name="seo_schema_author" value="{{ $settings['seo_schema']['seo_schema_author'] ?? \App\Models\SystemSetting::get('seo_schema_author') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Admin SEOFAST">
                                 </div>
@@ -418,9 +433,16 @@
                                     </select>
                                 </div>
                                 <div class="border-t border-slate-200 pt-6">
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Noindex Paths</label>
+                                    <textarea name="noindex_paths" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2" placeholder="/admin/*
+/buyer/*
+/ghost/*">{{ $settings['seo_indexing']['noindex_paths'] ?? \App\Models\SystemSetting::get('noindex_paths') }}</textarea>
+                                    <p class="text-xs text-slate-500 mt-1">Satu path per baris. Gunakan <code class="bg-slate-100 px-1 rounded">*</code> sebagai wildcard. Path yang cocok akan otomatis mendapat header <code class="bg-slate-100 px-1 rounded">X-Robots-Tag: noindex</code>.</p>
+                                </div>
+                                <div class="border-t border-slate-200 pt-6">
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Robots.txt Editor</label>
                                     @php
-                                        $defaultRobots = "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /login\nDisallow: /dashboard\nDisallow: /buyer/\nDisallow: /ghost/\n\nSitemap: " . url('/sitemap.xml') . "\n";
+                                        $defaultRobots = "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /admin/dashboard\nDisallow: /master/adminis-trator\nDisallow: /buyer/\nDisallow: /g/\n\nSitemap: " . url('/sitemap.xml') . "\n";
                                     @endphp
                                     <textarea name="robots_txt_content" rows="8" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2">{{ $settings['seo_indexing']['robots_txt_content'] ?? \App\Models\SystemSetting::get('robots_txt_content', $defaultRobots) }}</textarea>
                                     <p class="text-xs text-slate-500 mt-1">Kosongkan jika Anda ingin mengembalikan file <code class="bg-slate-100 px-1 rounded">robots.txt</code> ke versi default sistem.</p>

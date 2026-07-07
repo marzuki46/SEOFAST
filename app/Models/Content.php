@@ -13,6 +13,29 @@ class Content extends Model
 {
     use TenantAwareTrait, SoftDeletes, \App\Traits\HasSeoMeta;
 
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::saving(function ($content) {
+            if ($content->isDirty('body_raw')) {
+                $content->content_hash = hash('sha256', $content->body_raw ?? '');
+                $content->rendered_html_path = null;
+            }
+            if ($content->isDirty('status') && $content->status === 'published' && !$content->published_at) {
+                $content->published_at = now();
+            }
+            if ($content->isDirty('status') && $content->status === 'published' && !$content->featured_image_url) {
+                $title = $content->meta_title ?: $content->target_keyword;
+                $slug = $content->target_keyword ?: 'content';
+                $ogUrl = app(\App\Services\ImageService::class)->generateOgImage($title, $slug);
+                if ($ogUrl) {
+                    $content->featured_image_url = $ogUrl;
+                }
+            }
+        });
+    }
+
     protected $fillable = [
         'tenant_id',
         'silo_blueprint_id',
@@ -129,6 +152,11 @@ class Content extends Model
         return $this->hasOne(SeoFeedbackLoop::class);
     }
 
+    public function brokenLinks(): HasMany
+    {
+        return $this->hasMany(BrokenLink::class);
+    }
+
     public function isPublished(): bool
     {
         return $this->status === 'published';
@@ -235,6 +263,12 @@ class Content extends Model
         $markdown = $this->body_raw;
         if (!$markdown) return '';
 
+        $currentHash = hash('sha256', $markdown);
+
+        if ($this->rendered_html_path && $this->content_hash === $currentHash) {
+            return $this->rendered_html_path;
+        }
+
         // Pass HTML output as is (Phase 6 now generates HTML instead of Markdown)
         $html = $markdown;
 
@@ -308,8 +342,12 @@ class Content extends Model
         // Resolve multi-language internal links based on current app locale
         $html = \App\Services\SeoHelper::resolveInternalLinks($html, app()->getLocale());
 
-        // Apply lazy loading and ensure alt tags exist
-        $html = \App\Services\SeoHelper::lazyLoadImages($html);
+        // Apply lazy loading and ensure alt tags exist (fallback to post title)
+        $html = \App\Services\SeoHelper::lazyLoadImages($html, $this->title);
+
+        $this->rendered_html_path = $html;
+        $this->content_hash = $currentHash;
+        $this->saveQuietly();
 
         return $html;
     }

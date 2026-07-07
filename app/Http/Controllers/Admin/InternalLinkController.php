@@ -224,49 +224,57 @@ class InternalLinkController extends Controller
             ->where('mandatory_anchor_text', '[PENDING_AI]')
             ->get();
         
-        $aiService = new \App\Services\AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
-        $systemPrompt = "Anda adalah Pakar SEO Internal Linking. Tugas Anda adalah mencari anchor text yang bervariasi untuk SEBUAH artikel target agar tidak terindikasi spam (keyword cannibalization).
-ATURAN MUTLAK:
-1. Jika diminta 3 anchor, berikan EXACTLY 3 anchor.
-2. Kombinasikan: 1 Exact Match (judul target), sisanya Partial Match (frasa turunan/sinonim) atau Long Tail (kalimat panjang natural).
-3. Return ONLY a JSON array of strings, e.g. [\"Anchor 1\", \"Anchor 2\", \"Anchor 3\"]. NO MARKDOWN, NO EXTRA TEXT.";
-
-        $targetKeyword = $links->first()->target->target_keyword;
+        $target = $links->first()->target;
+        $targetKeyword = $target->target_keyword;
+        $isPillarTarget = $target->hierarchy_level === 'pillar';
         $count = $links->count();
-        
+
+        $aiService = new \App\Services\AIService($silo->tenant ?? \App\Models\Tenant::first(), 'keyword');
+
+        if ($isPillarTarget) {
+            $systemPrompt = "Anda adalah Pakar SEO Internal Linking. Tugas Anda adalah mencari anchor text bervariasi untuk artikel PILLAR (halaman induk utama).
+ATURAN MUTLAK:
+1. Jika diminta {$count} anchor, berikan EXACTLY {$count} anchor.
+2. Boleh menggunakan 1 Exact Match (judul target persis), sisanya WAJIB Partial Match (frasa turunan/sinonim) atau Long Tail (kalimat alami panjang).
+3. Return ONLY a JSON array of strings, e.g. [\"Anchor 1\", \"Anchor 2\"]. NO MARKDOWN, NO EXTRA TEXT.";
+        } else {
+            $systemPrompt = "Anda adalah Pakar SEO Internal Linking. Tugas Anda adalah mencari anchor text bervariasi untuk artikel target agar tidak terindikasi spam (keyword cannibalization).
+ATURAN MUTLAK:
+1. Jika diminta {$count} anchor, berikan EXACTLY {$count} anchor.
+2. DILARANG KERAS menggunakan Exact Match (judul target persis). SEMUA anchor WAJIB Partial Match (frasa turunan/sinonim) atau Long Tail (kalimat alami).
+3. Return ONLY a JSON array of strings, e.g. [\"Anchor 1\", \"Anchor 2\"]. NO MARKDOWN, NO EXTRA TEXT.";
+        }
+
         $userPrompt = "Target Article Keyword: '{$targetKeyword}'\n";
         $userPrompt .= "Tolong berikan {$count} variasi anchor text yang unik dan berbeda satu sama lain untuk artikel target di atas.";
-        
+
+        // METHOD 1: AI generates anchor texts
         $aiAnchors = $aiService->generateJson($systemPrompt, $userPrompt);
-        
-        if (is_array($aiAnchors)) {
+
+        if (is_array($aiAnchors) && count($aiAnchors) >= $count) {
             foreach ($links as $idx => $link) {
-                $aiText = $aiAnchors[$idx] ?? $link->target->target_keyword;
+                $aiText = $aiAnchors[$idx] ?? $targetKeyword;
                 $anchorText = trim(strip_tags($aiText), "\"' ");
-                
                 $link->update([
-                    'mandatory_anchor_text' => !empty($anchorText) ? $anchorText : $link->target->target_keyword
+                    'mandatory_anchor_text' => !empty($anchorText) ? $anchorText : $targetKeyword
                 ]);
-            }
-            
-            if (count($aiAnchors) < $count) {
-                return response()->json(['status' => 'error_fallback']);
             }
         } else {
-            // If AI fails completely, use fallback without 'bagian'
+            // METHOD 2: Generate partial-match anchors programmatically
+            $fallbackAnchors = $this->generateFallbackAnchors($targetKeyword, $count, $isPillarTarget);
             foreach ($links as $idx => $link) {
+                $anchorText = $fallbackAnchors[$idx] ?? $targetKeyword;
                 $link->update([
-                    'mandatory_anchor_text' => $link->target->target_keyword
+                    'mandatory_anchor_text' => $anchorText
                 ]);
             }
-            return response()->json(['status' => 'error_fallback']);
         }
-        
+
         $remaining = DeterministicLink::whereIn('source_content_id', $contentIds)
             ->where('mandatory_anchor_text', '[PENDING_AI]')
             ->count();
-            
-            return response()->json([
+
+        return response()->json([
             'status' => 'continue',
             'remaining' => $remaining
         ]);
@@ -316,5 +324,50 @@ ATURAN MUTLAK:
         }
         
         return back()->with('success', 'Pemetaan tautan berhasil di-reset. Silakan Generate ulang.');
+    }
+
+    /**
+     * METHOD 2 (fallback): Generate anchor texts programmatically when AI fails.
+     * Extracts partial-match phrases from the target keyword.
+     */
+    private function generateFallbackAnchors(string $targetKeyword, int $count, bool $allowExact): array
+    {
+        $anchors = [];
+
+        if ($allowExact && $count > 0) {
+            $anchors[] = $targetKeyword;
+        }
+
+        $words = explode(' ', $targetKeyword);
+        $wordCount = count($words);
+
+        if ($wordCount >= 4) {
+            $partial = implode(' ', array_slice($words, 0, 3));
+            $anchors[] = 'Tentang ' . $partial;
+            $anchors[] = 'Panduan ' . $partial;
+            $anchors[] = 'Strategi ' . $targetKeyword;
+        } elseif ($wordCount >= 2) {
+            $anchors[] = 'Informasi ' . $targetKeyword;
+            $anchors[] = 'Panduan ' . $targetKeyword;
+            $anchors[] = 'Pembahasan ' . $targetKeyword;
+        } else {
+            $anchors[] = 'Pembahasan tentang ' . $targetKeyword;
+            $anchors[] = 'Informasi lengkap ' . $targetKeyword;
+            $anchors[] = 'Artikel terkait ' . $targetKeyword;
+        }
+
+        // METHOD 2B: Ensure enough anchors with varied prefixes
+        $prefixes = ['Simak', 'Pelajari', 'Temukan', 'Lihat', 'Baca', 'Kunjungi'];
+        $suffixes = ['selengkapnya', 'lebih detail', 'di halaman ini', 'lainnya'];
+        while (count($anchors) < $count) {
+            $p = $prefixes[array_rand($prefixes)];
+            $s = $suffixes[array_rand($suffixes)];
+            $candidate = $p . ' ' . $targetKeyword . ' ' . $s;
+            if (!in_array($candidate, $anchors)) {
+                $anchors[] = $candidate;
+            }
+        }
+
+        return array_slice($anchors, 0, $count);
     }
 }

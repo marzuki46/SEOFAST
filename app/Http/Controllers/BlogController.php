@@ -34,7 +34,7 @@ class BlogController extends Controller
             });
         }
 
-        $posts = $query->paginate(6);
+        $posts = $query->with('siloBlueprint')->paginate(6);
 
         $categories = SiloBlueprint::withCount(['contents' => function ($query) {
             $query->where('status', 'published')
@@ -45,7 +45,8 @@ class BlogController extends Controller
                   });
         }])->having('contents_count', '>', 0)->get();
 
-        $recentPosts = Content::where('status', 'published')
+        $recentPosts = Content::with('siloBlueprint')
+            ->where('status', 'published')
             ->whereNotNull('body_raw')
             ->where('published_at', '<=', now())
             ->where(function($q) {
@@ -65,7 +66,7 @@ class BlogController extends Controller
     public function show(string $slug): View
     {
         // Find the post by slug in the current locale
-        $query = Content::where(function($q) use ($slug) {
+        $query = Content::with('siloBlueprint', 'seoMeta')->where(function($q) use ($slug) {
                 $q->where('slug', $slug)
                   ->orWhere('slug', 'LIKE', '%"id":"' . $slug . '"%')
                   ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%')
@@ -88,7 +89,8 @@ class BlogController extends Controller
         }
 
         // Get related posts (only those with actual content, excluding empty/blueprint)
-        $relatedPosts = Content::where('silo_blueprint_id', $post->silo_blueprint_id)
+        $relatedPosts = Content::with('siloBlueprint')
+            ->where('silo_blueprint_id', $post->silo_blueprint_id)
             ->where('id', '!=', $post->id)
             ->where('status', 'published')
             ->where('published_at', '<=', now())
@@ -123,7 +125,7 @@ class BlogController extends Controller
      */
     public function preview(string $slug): View
     {
-        $post = Content::where(function($q) use ($slug) {
+        $post = Content::with('siloBlueprint', 'seoMeta')->where(function($q) use ($slug) {
                 $q->where('slug', $slug)
                   ->orWhere('slug', 'LIKE', '%"id":"' . $slug . '"%')
                   ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%')
@@ -134,7 +136,8 @@ class BlogController extends Controller
             abort(404);
         }
 
-        $relatedPosts = Content::where('silo_blueprint_id', $post->silo_blueprint_id)
+        $relatedPosts = Content::with('siloBlueprint')
+            ->where('silo_blueprint_id', $post->silo_blueprint_id)
             ->where('id', '!=', $post->id)
             ->where('status', 'published')
             ->where('published_at', '<=', now())
@@ -159,16 +162,14 @@ class BlogController extends Controller
      */
     public function category(string $slug): View
     {
-        // Find silo blueprint that matches the slug on-the-fly
-        $category = SiloBlueprint::all()->first(function ($silo) use ($slug) {
-            return $silo->slug === $slug;
-        });
+        $category = SiloBlueprint::where('slug', $slug)->first();
 
         if (!$category) {
             abort(404, 'Category not found');
         }
 
-        $posts = Content::where('silo_blueprint_id', $category->id)
+        $posts = Content::with('siloBlueprint')
+            ->where('silo_blueprint_id', $category->id)
             ->where('status', 'published')
             ->where('published_at', '<=', now())
             ->whereNotNull('body_raw')
@@ -182,7 +183,8 @@ class BlogController extends Controller
         $categories = SiloBlueprint::withCount(['contents' => function ($query) {
             $query->where('status', 'published');
         }])->get();
-        $recentPosts = Content::where('status', 'published')
+        $recentPosts = Content::with('siloBlueprint')
+            ->where('status', 'published')
             ->orderBy('published_at', 'desc')
             ->take(5)
             ->get();

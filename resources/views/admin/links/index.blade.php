@@ -138,7 +138,7 @@
                     const linkId = this.getAttribute('data-id');
                     const newValue = this.value;
                     
-                    fetch(`/admin/links/${linkId}`, {
+                    fetch(`{{ url('/admin/links') }}/${linkId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',

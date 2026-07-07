@@ -18,11 +18,26 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BlogController;
 
+// Install Wizard Routes (must be before all other routes)
+Route::middleware('web')->group(function () {
+    Route::get('/install', [\App\Http\Controllers\InstallController::class, 'welcome'])->name('install.welcome');
+    Route::get('/install/database', [\App\Http\Controllers\InstallController::class, 'database'])->name('install.database');
+    Route::post('/install/database', [\App\Http\Controllers\InstallController::class, 'saveDb'])->name('install.save-db');
+    Route::get('/install/admin', [\App\Http\Controllers\InstallController::class, 'admin'])->name('install.admin');
+    Route::post('/install/admin', [\App\Http\Controllers\InstallController::class, 'saveAdmin'])->name('install.save-admin');
+    Route::get('/install/run', [\App\Http\Controllers\InstallController::class, 'run'])->name('install.run');
+    Route::get('/install/complete', [\App\Http\Controllers\InstallController::class, 'complete'])->name('install.complete');
+});
+
 // Public Website Routes
 Route::get('/', [\App\Http\Controllers\PageController::class, 'home'])->name('home');
 
 // SEO Infrastructure Routes (Fase 3)
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-static.xml', [\App\Http\Controllers\SitemapController::class, 'staticSitemap'])->name('sitemap.static');
+Route::get('/sitemap-posts-{page}.xml', [\App\Http\Controllers\SitemapController::class, 'postsSitemap'])->where('page', '[0-9]+')->name('sitemap.posts');
+Route::get('/sitemap-en-static.xml', [\App\Http\Controllers\SitemapController::class, 'staticSitemapEn'])->name('sitemap.en.static');
+Route::get('/sitemap-en-posts-{page}.xml', [\App\Http\Controllers\SitemapController::class, 'postsSitemapEn'])->where('page', '[0-9]+')->name('sitemap.en.posts');
 Route::get('/robots.txt', [\App\Http\Controllers\SitemapController::class, 'robots'])->name('robots');
 // Ghost Publish — Blueprint URLs with noindex placeholder
 Route::get('/g/{slug}', [\App\Http\Controllers\SitemapController::class, 'ghost'])->name('ghost.show');
@@ -56,23 +71,45 @@ Route::prefix('en')->group(function() use ($blogPrefix, $blogRoutes) {
 });
 
 // Public Product Routes
+$productRoutes = function() {
+    Route::get('/', [\App\Http\Controllers\ProductSalesController::class, 'index'])->name('catalog');
+    Route::get('/{slug}', [\App\Http\Controllers\ProductSalesController::class, 'show'])->name('show');
+    Route::post('/{product}/order', [\App\Http\Controllers\ProductSalesController::class, 'order'])->name('order');
+};
+
 $productPrefix = SystemSetting::get('permalink_product', 'produk');
+
+// Default Locale (ID)
 if ($productPrefix) {
-    Route::prefix($productPrefix)->name('products.')->middleware('throttle:60,1')->group(function () {
-        Route::get('/', [\App\Http\Controllers\ProductSalesController::class, 'index'])->name('catalog');
-        Route::get('/{slug}', [\App\Http\Controllers\ProductSalesController::class, 'show'])->name('show');
-        Route::post('/{product}/order', [\App\Http\Controllers\ProductSalesController::class, 'order'])->name('order');
-    });
+    Route::prefix($productPrefix)->name('products.')->middleware('throttle:60,1')->group($productRoutes);
 }
 
+// English Locale (EN)
+Route::prefix('en')->group(function() use ($productPrefix, $productRoutes) {
+    if ($productPrefix) {
+        Route::prefix($productPrefix)->name('en.products.')->middleware('throttle:60,1')->group($productRoutes);
+    }
+});
+
 // Public Project Routes
+$projectRoutes = function() {
+    Route::get('/', [\App\Http\Controllers\ProjectController::class, 'index'])->name('index');
+    Route::get('/{slug}', [\App\Http\Controllers\ProjectController::class, 'show'])->name('show');
+};
+
 $projectPrefix = SystemSetting::get('permalink_project', 'projeku');
+
+// Default Locale (ID)
 if ($projectPrefix) {
-    Route::prefix($projectPrefix)->name('projects.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\ProjectController::class, 'index'])->name('index');
-        Route::get('/{slug}', [\App\Http\Controllers\ProjectController::class, 'show'])->name('show');
-    });
+    Route::prefix($projectPrefix)->name('projects.')->group($projectRoutes);
 }
+
+// English Locale (EN)
+Route::prefix('en')->group(function() use ($projectPrefix, $projectRoutes) {
+    if ($projectPrefix) {
+        Route::prefix($projectPrefix)->name('en.projects.')->group($projectRoutes);
+    }
+});
 
 // Authentication Routes (Admin)
 Route::middleware('guest')->group(function () {
@@ -101,8 +138,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     
     // Admin Dashboard
-    Route::middleware(['auth.admin'])->group(function () {
+    Route::prefix('admin')->middleware(['auth.admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/dashboard/cache-html', [DashboardController::class, 'cacheHtml'])->name('admin.dashboard.cache-html');
+        Route::post('/dashboard/queue-restart', [DashboardController::class, 'restartQueue'])->name('admin.dashboard.queue-restart');
 
         // Users Management
         Route::prefix('users')->name('admin.users.')->group(function () {
@@ -166,23 +205,26 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('content')->name('admin.content.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\ContentController::class, 'index'])->name('index');
             Route::get('/prapost', [\App\Http\Controllers\Admin\ContentController::class, 'prapost'])->name('prapost');
+            Route::get('/calendar', [\App\Http\Controllers\Admin\ContentController::class, 'calendar'])->name('calendar');
             Route::get('/drafts', [\App\Http\Controllers\Admin\ContentController::class, 'drafts'])->name('drafts');
             Route::post('/work-queue', [\App\Http\Controllers\Admin\ContentController::class, 'workQueue'])->name('work_queue');
             Route::match(['get', 'post'], '/start-ai-batch', [\App\Http\Controllers\Admin\ContentController::class, 'bulkGenerateAi'])->name('bulk_generate');
             Route::post('/generate-single', [\App\Http\Controllers\Admin\ContentController::class, 'generateSingle'])->name('generate_single');
-            Route::post('/check-ai-connection', [\App\Http\Controllers\Admin\ContentController::class, 'checkConnection'])->name('check_connection');
+            Route::match(['get', 'post'], '/check-ai-connection', [\App\Http\Controllers\Admin\ContentController::class, 'checkConnection'])->name('check_connection');
             Route::get('/create', [\App\Http\Controllers\Admin\ContentController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\Admin\ContentController::class, 'store'])->name('store');
             
-            // Phase 4: Image Search
+            // Phase 4: Image Search & AI Illustration
             Route::get('/{content}/images', [\App\Http\Controllers\Admin\ImageSearchController::class, 'index'])->name('images');
             Route::post('/{content}/images/search', [\App\Http\Controllers\Admin\ImageSearchController::class, 'search'])->name('images.search');
             Route::post('/{content}/images/select', [\App\Http\Controllers\Admin\ImageSearchController::class, 'select'])->name('images.select');
+            Route::post('/{content}/images/ai-generate', [\App\Http\Controllers\Admin\ImageSearchController::class, 'generateAiIllustration'])->name('images.ai-generate');
             
             Route::get('/{content}', [\App\Http\Controllers\Admin\ContentController::class, 'show'])->name('show');
             Route::get('/{content}/edit', [\App\Http\Controllers\Admin\ContentController::class, 'edit'])->name('edit');
             Route::put('/{content}', [\App\Http\Controllers\Admin\ContentController::class, 'update'])->name('update');
             Route::post('/{content}/generate', [\App\Http\Controllers\Admin\ContentController::class, 'generateAi'])->name('generate');
+            Route::post('/bulk-publish', [\App\Http\Controllers\Admin\ContentController::class, 'bulkPublish'])->name('bulk_publish');
             Route::delete('/{content}', [\App\Http\Controllers\Admin\ContentController::class, 'destroy'])->name('destroy');
         });
 
@@ -232,6 +274,15 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{menu}/items', [\App\Http\Controllers\Admin\MenuController::class, 'storeItems'])->name('items.store');
         });
 
+        // Infrastructure Settings (Queue, Cache, Redis)
+        Route::prefix('infrastructure')->name('admin.infrastructure.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\InfrastructureController::class, 'index'])->name('index');
+            Route::post('/update-queue', [\App\Http\Controllers\Admin\InfrastructureController::class, 'updateQueue'])->name('update-queue');
+            Route::post('/update-cache', [\App\Http\Controllers\Admin\InfrastructureController::class, 'updateCache'])->name('update-cache');
+            Route::post('/restart-queue', [\App\Http\Controllers\Admin\InfrastructureController::class, 'restartQueue'])->name('restart-queue');
+            Route::post('/queue-status', [\App\Http\Controllers\Admin\InfrastructureController::class, 'queueStatus'])->name('queue-status');
+        });
+
         // System Settings & Cache
         Route::prefix('settings')->name('admin.settings.')->group(function () {
             // Super Admin Global Settings (Tabbed)
@@ -247,6 +298,56 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/clean-garbage', [\App\Http\Controllers\Admin\SeoSettingController::class, 'cleanGarbage'])->name('clean_garbage');
             // We use SystemSettingController@update for the form submission
             Route::post('/', [\App\Http\Controllers\Admin\SystemSettingController::class, 'update'])->name('update');
+        });
+
+        // Redirect Manager
+        Route::prefix('redirects')->name('admin.redirects.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\RedirectController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\Admin\RedirectController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\Admin\RedirectController::class, 'store'])->name('store');
+            Route::get('/{redirect}/edit', [\App\Http\Controllers\Admin\RedirectController::class, 'edit'])->name('edit');
+            Route::put('/{redirect}', [\App\Http\Controllers\Admin\RedirectController::class, 'update'])->name('update');
+            Route::delete('/{redirect}', [\App\Http\Controllers\Admin\RedirectController::class, 'destroy'])->name('destroy');
+        });
+
+        // 404 Error Tracker
+        Route::prefix('errors')->name('admin.errors.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\PageErrorController::class, 'index'])->name('index');
+            Route::post('/clear-all', [\App\Http\Controllers\Admin\PageErrorController::class, 'clearAll'])->name('clear_all');
+            Route::post('/{pageError}/redirect', [\App\Http\Controllers\Admin\PageErrorController::class, 'createRedirect'])->name('create_redirect');
+            Route::delete('/{pageError}', [\App\Http\Controllers\Admin\PageErrorController::class, 'destroy'])->name('destroy');
+        });
+
+        // Broken Link Checker
+        Route::prefix('broken-links')->name('admin.broken-links.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\BrokenLinkController::class, 'index'])->name('index');
+            Route::post('/scan', [\App\Http\Controllers\Admin\BrokenLinkController::class, 'scan'])->name('scan');
+            Route::delete('/clear-all', [\App\Http\Controllers\Admin\BrokenLinkController::class, 'clearAll'])->name('clear_all');
+            Route::delete('/{brokenLink}', [\App\Http\Controllers\Admin\BrokenLinkController::class, 'destroy'])->name('destroy');
+        });
+
+        // Content Duplication Detector
+        Route::prefix('duplicates')->name('admin.duplicates.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\DuplicateContentController::class, 'index'])->name('index');
+            Route::post('/detect', [\App\Http\Controllers\Admin\DuplicateContentController::class, 'detect'])->name('detect');
+            Route::post('/{mapping}/resolve', [\App\Http\Controllers\Admin\DuplicateContentController::class, 'resolve'])->name('resolve');
+            Route::post('/{mapping}/unresolve', [\App\Http\Controllers\Admin\DuplicateContentController::class, 'unresolve'])->name('unresolve');
+        });
+
+        // Readability Dashboard
+        Route::prefix('readability')->name('admin.readability.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ReadabilityController::class, 'index'])->name('index');
+            Route::post('/compute', [\App\Http\Controllers\Admin\ReadabilityController::class, 'compute'])->name('compute');
+        });
+
+        Route::prefix('url-audit')->name('admin.url-audit.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\UrlAuditController::class, 'index'])->name('index');
+            Route::post('/run', [\App\Http\Controllers\Admin\UrlAuditController::class, 'run'])->name('run');
+        });
+
+        Route::prefix('serp-rank')->name('admin.serp-rank.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\SerpRankController::class, 'index'])->name('index');
+            Route::post('/sample', [\App\Http\Controllers\Admin\SerpRankController::class, 'generateSample'])->name('sample');
         });
     });
 });
@@ -293,4 +394,9 @@ Route::prefix('buyer')->name('buyer.')->group(function () {
         // Route::put('/profile', [\App\Http\Controllers\Buyer\BuyerProfileController::class, 'update'])->name('profile.update');
     });
 });
+// English Locale (EN) — Home & Pages
+Route::get('/en', [\App\Http\Controllers\PageController::class, 'home'])->name('en.home');
+Route::get('/en/{slug}', [\App\Http\Controllers\PageController::class, 'show'])->where('slug', '.*')->name('en.page.show');
+
+// Catch-all — ID pages (must be last)
 Route::get('/{slug}', [\App\Http\Controllers\PageController::class, 'show'])->where('slug', '.*')->name('page.show');

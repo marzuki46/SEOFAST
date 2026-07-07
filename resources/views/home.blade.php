@@ -1,7 +1,12 @@
 @extends('layouts.frontend')
 
-@section('title', 'SEOFAST V3 — The High-Performance SEO Operating System')
-@section('meta_description', 'Deploy high-performance, SEO-optimized AI content with automated keyword research, Topical Silo building, and real-time Google Search Console synchronization.')
+@php
+    use App\Models\SystemSetting;
+    $homeTitle = SystemSetting::get('seo_global_meta_title') ?: SystemSetting::get('home_meta_title', 'SEOFAST V3 — The High-Performance SEO Operating System');
+    $homeDesc = SystemSetting::get('seo_global_meta_description') ?: SystemSetting::get('home_meta_description', 'Deploy high-performance, SEO-optimized AI content with automated keyword research, Topical Silo building, and real-time Google Search Console synchronization.');
+@endphp
+@section('title', $homeTitle)
+@section('meta_description', $homeDesc)
 
 @section('content')
 <!-- Hero Section -->

@@ -159,13 +159,14 @@ class SeoHelper
     /**
      * Apply lazy loading to all <img> tags in HTML content and ensure alt text exists.
      */
-    public static function lazyLoadImages(string $html): string
+    public static function lazyLoadImages(string $html, string $fallbackAlt = ''): string
     {
         // Add loading="lazy" and decoding="async" if missing
         $html = preg_replace('/<img(?![^>]*loading=)([^>]*)>/i', '<img loading="lazy" decoding="async" $1>', $html);
         
-        // Add alt="" if missing (for accessibility and SEO)
-        $html = preg_replace('/<img(?![^>]*alt=)([^>]*)>/i', '<img alt="Image" $1>', $html);
+        // Add alt fallback using post title / keyword if missing
+        $altFallback = htmlspecialchars($fallbackAlt ?: 'Image', ENT_QUOTES, 'UTF-8');
+        $html = preg_replace('/<img(?![^>]*alt=)([^>]*)>/i', '<img alt="' . $altFallback . '" $1>', $html);
 
         return $html;
     }
@@ -192,9 +193,11 @@ class SeoHelper
             }
         }
 
+        $locale = app()->getLocale();
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => $schemaType,
+            'inLanguage' => $locale === 'en' ? 'en-US' : 'id-ID',
         ];
 
         // Auto-fill common properties

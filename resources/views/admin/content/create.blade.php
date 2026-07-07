@@ -97,7 +97,6 @@
                                         'phase_4'    => 'bg-pink-100 text-pink-700',
                                         'phase_5'    => 'bg-amber-100 text-amber-700',
                                         'phase_6'    => 'bg-indigo-100 text-indigo-700',
-                                        'phase_7'    => 'bg-sky-100 text-sky-700',
                                         'completed'  => 'bg-emerald-100 text-emerald-700',
                                         'failed'     => 'bg-rose-100 text-rose-700',
                                         'failed_cqi' => 'bg-orange-100 text-orange-700',
@@ -108,9 +107,8 @@
                                         'phase_2'    => '📝 Phase 2: Content',
                                         'phase_3'    => '❓ Phase 3: Questions',
                                         'phase_4'    => '✍️ Phase 4: Answers',
-                                        'phase_5'    => '🔗 Phase 5: Combine',
-                                        'phase_6'    => '🎨 Phase 6: HTML',
-                                        'phase_7'    => '🎯 Phase 7: SEO Meta',
+                                        'phase_5'    => '🔗 Phase 5: Combine + CQI',
+                                        'phase_6'    => '🎨 Phase 6: Save + Meta',
                                         'completed'  => '✅ Completed',
                                         'failed'     => '❌ Failed',
                                         'failed_cqi' => '⚠️ Error',
@@ -240,8 +238,9 @@
          */
         async function checkAiConnection() {
             appendLog('check', 'Mengecek koneksi ke AI provider...');
+            let res;
             try {
-                const res = await fetch('{{ route("admin.content.check_connection") }}', {
+                res = await fetch('{{ route("admin.content.check_connection") }}', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN':     '{{ csrf_token() }}',
@@ -251,41 +250,60 @@
                     },
                     body: JSON.stringify({})
                 });
-
-                if (!res.ok) {
-                    appendLog('error', `Koneksi check HTTP ${res.status} — ${res.statusText}`);
-                    return false;
-                }
-
-                const data = await res.json();
-
-                // Render per-provider diagnostics (always, for visibility)
-                if (data.diagnostics && data.diagnostics.length > 0) {
-                    data.diagnostics.forEach(d => {
-                        const icon    = d.status === 'success' ? '✔' : (d.status === 'skipped' ? '⊘' : '✘');
-                        const timing  = d.elapsed_ms != null ? ` [${d.elapsed_ms}ms]` : '';
-                        const fmt     = d.response_format && d.response_format !== 'unknown' ? ` fmt:${d.response_format}` : '';
-                        const http    = d.http_status != null ? ` HTTP ${d.http_status}` : '';
-                        const len     = d.content_length != null ? ` ${d.content_length}chars` : '';
-                        let line = `  ${icon} [${d.provider}] ${d.model}${timing}${http}${fmt}${len}`;
-                        if (d.error) line += ` → ${d.error}`;
-                        const lvl = d.status === 'success' ? 'success' : (d.status === 'skipped' ? 'warn' : 'error');
-                        appendLog(lvl, line);
-                        if (d.raw_snippet) appendLog('warn', `     RAW: ${d.raw_snippet.substring(0, 200)}`);
-                    });
-                }
-
-                if (data.ok) {
-                    appendLog('success', `✅ Koneksi AI OK — Provider: [${data.provider}] | Model: [${data.model}]`);
-                    appendLog('info', 'Semua phase (1-4) menggunakan provider yang sama.');
-                    return true;
-                } else {
-                    appendLog('error', `❌ Koneksi AI GAGAL — ${data.error}`);
-                    appendLog('warn', 'Periksa API Key & Base URL di Settings → AI Configuration.');
-                    return false;
-                }
             } catch (err) {
-                appendLog('error', 'Koneksi check exception: ' + err.message);
+                appendLog('error', 'Network error: ' + err.message);
+                return false;
+            }
+
+            if (!res.ok) {
+                appendLog('error', `Koneksi check HTTP ${res.status} — ${res.statusText}`);
+                return false;
+            }
+
+            let raw;
+            try {
+                raw = await res.text();
+            } catch (err) {
+                appendLog('error', 'Gagal membaca response: ' + err.message);
+                return false;
+            }
+
+            if (!raw || raw.trim().length === 0) {
+                appendLog('error', 'Response kosong (status: ' + res.status + ' ' + res.statusText + '). Coba refresh halaman atau klik Clear Cache.');
+                return false;
+            }
+
+            let data;
+            try {
+                data = JSON.parse(raw);
+            } catch (err) {
+                appendLog('error', `Response bukan JSON valid: ${raw.substring(0, 200)}`);
+                return false;
+            }
+
+            // Render per-provider diagnostics
+            if (data.diagnostics && data.diagnostics.length > 0) {
+                data.diagnostics.forEach(d => {
+                    const icon    = d.status === 'success' ? '✔' : (d.status === 'skipped' ? '⊘' : '✘');
+                    const timing  = d.elapsed_ms != null ? ` [${d.elapsed_ms}ms]` : '';
+                    const fmt     = d.response_format && d.response_format !== 'unknown' ? ` fmt:${d.response_format}` : '';
+                    const http    = d.http_status != null ? ` HTTP ${d.http_status}` : '';
+                    const len     = d.content_length != null ? ` ${d.content_length}chars` : '';
+                    let line = `  ${icon} [${d.provider}] ${d.model}${timing}${http}${fmt}${len}`;
+                    if (d.error) line += ` → ${d.error}`;
+                    const lvl = d.status === 'success' ? 'success' : (d.status === 'skipped' ? 'warn' : 'error');
+                    appendLog(lvl, line);
+                    if (d.raw_snippet) appendLog('warn', `     RAW: ${d.raw_snippet.substring(0, 200)}`);
+                });
+            }
+
+            if (data.ok) {
+                appendLog('success', `✅ Koneksi AI OK — Provider: [${data.provider}] | Model: [${data.model}]`);
+                appendLog('info', 'Semua phase menggunakan provider yang sama.');
+                return true;
+            } else {
+                appendLog('error', `❌ Koneksi AI GAGAL — ${data.error}`);
+                appendLog('warn', 'Periksa API Key & Base URL di Settings → AI Configuration.');
                 return false;
             }
         }
@@ -353,7 +371,8 @@
                 isWorking = false;
                 sessionStorage.setItem('ai_worker_running', 'false');
                 setWorkingUI(false);
-                appendLog('success', '═══ Semua job AI selesai! Cek halaman Draft. ═══');
+                appendLog('success', '═══ Semua job AI selesai! Mengarahkan ke halaman Draft... ═══');
+                setTimeout(() => { window.location.href = '{{ route("admin.content.drafts") }}'; }, 1500);
                 return;
             }
 
@@ -425,8 +444,8 @@
                         return;
                     }
                 } else if (data.status === 'continue') {
-                    // Masukkan kembali ke antrean paling depan untuk lanjut ke phase berikutnya
-                    currentJob.retries = 0; // reset retries on success
+                    // Phase inline berhasil. Lanjut ke phase berikutnya.
+                    currentJob.retries = 0;
                     currentJob.resumed = true;
                     jobQueue.unshift(currentJob);
                 } else if (data.status === 'wait') {
@@ -434,6 +453,15 @@
                     currentJob.resumed = true;
                     jobQueue.unshift(currentJob);
                     setTimeout(processNextJob, 10000); // Tunggu 10 detik
+                    return;
+                }
+
+                // Cek apakah job sudah selesai atau gagal
+                if (data.status === 'completed' || data.cqi !== undefined) {
+                    appendLog('success', `✅ Artikel [${currentJob.keyword}] selesai! CQI: ${data.cqi || 'N/A'}`);
+                    // Hapus dari antrean — jangan dimasukkan kembali
+                    await refreshTable();
+                    setTimeout(processNextJob, 500);
                     return;
                 }
 

@@ -233,7 +233,7 @@
         document.getElementById('modal-desc-input').value = el.getAttribute('data-desc') || '';
         document.getElementById('modal-url-input').value = el.getAttribute('data-url');
         
-        document.getElementById('modal-form').action = '/media/' + el.getAttribute('data-id');
+        document.getElementById('modal-form').action = '{{ url('/admin/media') }}/' + el.getAttribute('data-id');
         document.getElementById('delete-id').value = el.getAttribute('data-id');
     }
 
@@ -260,7 +260,7 @@
             btn.textContent = 'Deleting...';
             btn.disabled = true;
 
-            fetch('/media', {
+            fetch('{{ url('/admin/media') }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

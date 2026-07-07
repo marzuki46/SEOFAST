@@ -55,8 +55,22 @@
                         @if($key === 'general')
                             <div class="grid grid-cols-1 gap-6">
                                 <div>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">App Name</label>
-                                    <input type="text" name="app_name" value="{{ $settings['general']['app_name'] ?? 'SEOFAST' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Site Name (Brand)</label>
+                                    <input type="text" name="site_name" value="{{ $settings['general']['site_name'] ?? 'SEOFAST' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="SEOFAST">
+                                    <p class="text-xs text-slate-500 mt-1">Nama brand yang tampil di header, title tag, dan Open Graph.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Logo URL</label>
+                                    <input type="url" name="logo_url" value="{{ $settings['general']['logo_url'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="https://domain.com/logo.png">
+                                    <p class="text-xs text-slate-500 mt-1">URL gambar logo. Biarkan kosong untuk pakai teks brand.</p>
+                                    @if(!empty($settings['general']['logo_url']))
+                                    <img src="{{ $settings['general']['logo_url'] }}" alt="Preview Logo" class="mt-2 h-10 rounded-lg border border-slate-200 p-1">
+                                    @endif
+                                </div>
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Logo Alt Text</label>
+                                    <input type="text" name="logo_alt" value="{{ $settings['general']['logo_alt'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Nama Brand Anda">
+                                    <p class="text-xs text-slate-500 mt-1">Teks alternatif untuk logo (penting untuk SEO dan aksesibilitas).</p>
                                 </div>
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">App URL</label>
@@ -137,16 +151,6 @@
                             </div>
                         @elseif($key === 'footer')
                             <div class="grid grid-cols-1 gap-6">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Footer Logo Text</label>
-                                        <input type="text" name="footer_logo_text" value="{{ $settings['footer']['footer_logo_text'] ?? 'SF' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
-                                    </div>
-                                    <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Footer Brand Name</label>
-                                        <input type="text" name="footer_brand_name" value="{{ $settings['footer']['footer_brand_name'] ?? 'SEOFAST' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
-                                    </div>
-                                </div>
                                 <div>
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Footer Description</label>
                                     <textarea name="footer_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['footer']['footer_description'] ?? 'The ultimate SEO Operating System for modern marketing. Zero manual refresh, zero soft failures, and seamless closed-loop Google Search Console synchronization.' }}</textarea>

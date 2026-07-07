@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Log;
 
 class AIService
 {
+    /** Enable keep-alive progress pings (for streamed responses only). */
+    public static bool $progressPingsEnabled = false;
+
     private ?Tenant $tenant;
     private array $config;
     private string $role;
@@ -432,10 +435,10 @@ class AIService
     {
         return Http::withOptions([
             'progress' => function () {
+                if (!self::$progressPingsEnabled) return;
                 static $lastPing = 0;
                 $now = microtime(true);
-                // Ping every 5 seconds if running inside a stream (ob_get_level > 0)
-                if ($now - $lastPing > 5 && ob_get_level() > 0) {
+                if ($now - $lastPing > 5) {
                     echo " ";
                     @ob_flush();
                     @flush();

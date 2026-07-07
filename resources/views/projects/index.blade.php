@@ -1,11 +1,8 @@
 @extends('layouts.frontend')
 
-@section('title', 'Projects — SEOFAST')
-@section('meta_description', 'Daftar proyek dan portofolio SEOFAST.')
-
-@section('styles')
-    <meta name="robots" content="noindex, nofollow">
-@endsection
+@section('title', 'Portofolio Proyek — ' . \App\Models\SystemSetting::get('site_name', 'SEOFAST'))
+@section('meta_description', 'Jelajahi portofolio proyek SEOFAST: studi kasus nyata tentang implementasi SEO, konten AI, dan otomasi pemasaran digital.')
+@section('canonical_url', url()->current())
 
 @section('content')
 <div class="max-w-7xl mx-auto py-12 px-4">

@@ -35,6 +35,7 @@
 <script src="https://unpkg.com/grapesjs-plugin-forms@2.0.5"></script>
 <script src="https://unpkg.com/grapesjs-blocks-flexbox@1.0.1"></script>
 <script src="https://unpkg.com/grapesjs-custom-code@1.0.1"></script>
+<script src="{{ asset('js/page-builder-blocks.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const editor = grapesjs.init({
@@ -54,78 +55,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Custom Tailwind Blocks
-    const blockManager = editor.BlockManager;
-    
-    blockManager.add('tailwind-hero', {
-        label: 'Hero Section',
-        category: 'Tailwind Blocks',
-        content: `
-            <section class="bg-white dark:bg-gray-900">
-                <div class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
-                    <div class="mr-auto place-self-center lg:col-span-7">
-                        <h1 class="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white">Payments tool for software companies</h1>
-                        <p class="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl dark:text-gray-400">From checkout to global sales tax compliance, companies around the world use Flowbite to simplify their payment stack.</p>
-                        <a href="#" class="inline-flex items-center justify-center px-4 py-2.5 mr-3 text-sm font-medium text-center text-white rounded-lg bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-900">
-                            Get started
-                            <svg class="w-5 h-5 ml-2 -mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                        </a>
-                        <a href="#" class="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-center text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
-                            Speak to Sales
-                        </a> 
-                    </div>
-                    <div class="hidden lg:mt-0 lg:col-span-5 lg:flex">
-                        <img src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/hero/phone-mockup.png" alt="mockup">
-                    </div>                
-                </div>
-            </section>
-        `
-    });
-
-    blockManager.add('tailwind-features', {
-        label: 'Features',
-        category: 'Tailwind Blocks',
-        content: `
-            <section class="bg-white dark:bg-gray-900">
-              <div class="py-8 px-4 mx-auto max-w-screen-xl sm:py-16 lg:px-6">
-                  <div class="max-w-screen-md mb-8 lg:mb-16">
-                      <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white">Designed for business teams like yours</h2>
-                      <p class="text-gray-500 sm:text-xl dark:text-gray-400">Here at Flowbite we focus on markets where technology, innovation, and capital can unlock long-term value and drive economic growth.</p>
-                  </div>
-                  <div class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-12 md:space-y-0">
-                      <div>
-                          <h3 class="mb-2 text-xl font-bold dark:text-white">Marketing</h3>
-                          <p class="text-gray-500 dark:text-gray-400">Plan it, create it, launch it. Collaborate seamlessly with all the organization and hit your marketing goals every month with our marketing plan.</p>
-                      </div>
-                      <div>
-                          <h3 class="mb-2 text-xl font-bold dark:text-white">Legal</h3>
-                          <p class="text-gray-500 dark:text-gray-400">Protect your organization, devices and network from unapproved access with the highest level of security and protection.</p>
-                      </div>
-                      <div>
-                          <h3 class="mb-2 text-xl font-bold dark:text-white">Business Automation</h3>
-                          <p class="text-gray-500 dark:text-gray-400">Auto-assign tasks, send Slack messages, and much more. Now you can concentrate on your most important tasks.</p>
-                      </div>
-                  </div>
-              </div>
-            </section>
-        `
-    });
-
-    blockManager.add('tailwind-cta', {
-        label: 'Call to Action',
-        category: 'Tailwind Blocks',
-        content: `
-            <section class="bg-white dark:bg-gray-900">
-                <div class="py-8 px-4 mx-auto max-w-screen-xl sm:py-16 lg:px-6">
-                    <div class="mx-auto max-w-screen-sm text-center">
-                        <h2 class="mb-4 text-4xl tracking-tight font-extrabold leading-tight text-gray-900 dark:text-white">Start your free trial today</h2>
-                        <p class="mb-6 font-light text-gray-500 dark:text-gray-400 md:text-lg">Try Flowbite Platform for 30 days. No credit card required.</p>
-                        <a href="#" class="text-white bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-indigo-600 dark:hover:bg-indigo-700 focus:outline-none dark:focus:ring-indigo-800">Free trial for 30 days</a>
-                    </div>
-                </div>
-            </section>
-        `
-    });
+    // Register 20+ Tailwind pre-built sections (like Elementor widgets)
+    registerTailwindBlocks(editor);
 
     // Load existing data if any
     let existingData = {!! $page->builder_data ? json_encode($page->builder_data) : 'null' !!};

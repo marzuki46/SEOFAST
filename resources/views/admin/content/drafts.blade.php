@@ -148,7 +148,23 @@
                                         </svg>
                                     </button>
                                 </form>
-                                @elseif($post->status === 'blueprint' || $post->status === 'draft')
+                                @else
+                                <form action="{{ route('admin.content.update', $post->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Publish &quot;{{ $post->title }}&quot; sekarang?')">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="status" value="published">
+                                    <input type="hidden" name="published_at" value="{{ now() }}">
+                                    <input type="hidden" name="target_keyword" value="{{ $post->target_keyword }}">
+                                    <input type="hidden" name="hierarchy_level" value="{{ $post->hierarchy_level }}">
+                                    <input type="hidden" name="silo_blueprint_id" value="{{ $post->silo_blueprint_id }}">
+                                    <button type="submit" class="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition ring-1 ring-inset ring-emerald-600/20" title="Publish Now">
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Publish
+                                    </button>
+                                </form>
+                                @if($post->status === 'blueprint' || $post->status === 'draft')
                                 <form action="{{ route('admin.content.generate', $post->id) }}" method="POST" class="inline-block">
                                     @csrf
                                     <button type="submit" class="p-1 text-indigo-400 hover:text-indigo-600 transition" title="Generate with AI (Phase 5)">
@@ -158,6 +174,7 @@
                                         </svg>
                                     </button>
                                 </form>
+                                @endif
                                 @endif
                                 <form action="{{ route('admin.content.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this post?');" class="inline-block">
                                     @csrf
@@ -191,6 +208,12 @@
                     <option value="published">Langsung Publish</option>
                 </select>
             </div>
+            <button id="btn-publish" type="button" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:bg-emerald-700 transition">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Publish Selected
+            </button>
             <button id="btn-generate" type="button" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
@@ -213,6 +236,75 @@
         document.querySelectorAll('.content-checkbox').forEach(cb => cb.checked = e.target.checked);
     });
 
+    document.getElementById('btn-publish')?.addEventListener('click', function () {
+        const ids = Array.from(document.querySelectorAll('.content-checkbox:checked')).map(cb => cb.value);
+        if (ids.length === 0) {
+            alert('Pilih minimal satu konten terlebih dahulu.');
+            return;
+        }
+        if (!confirm('Publish ' + ids.length + ' konten terpilih sekarang?')) {
+            return;
+        }
+
+        const csrfToken = document.getElementById('csrf-token').value;
+        const statusBanner = document.getElementById('ajax-status');
+        const btn = this;
+        const checkedRows = document.querySelectorAll('.content-checkbox:checked');
+
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>&nbsp;Publishing...';
+
+        const formData = new FormData();
+        formData.append('_token', csrfToken);
+        formData.append('action', 'publish');
+        ids.forEach(id => formData.append('content_ids[]', id));
+
+        fetch('{{ route("admin.content.bulk_publish") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                checkedRows.forEach(cb => {
+                    const row = cb.closest('tr');
+                    if (row) {
+                        row.style.transition = 'opacity 0.3s, transform 0.3s';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(-20px)';
+                        setTimeout(() => row.remove(), 300);
+                    }
+                });
+                statusBanner.className = 'rounded-xl p-4 border text-sm font-semibold bg-emerald-50 border-emerald-200 text-emerald-800 mb-4';
+                statusBanner.textContent = data.count + ' konten berhasil dipublish!';
+                statusBanner.classList.remove('hidden');
+                setTimeout(() => {
+                    const remaining = document.querySelectorAll('.content-checkbox').length;
+                    if (remaining === 0) location.reload();
+                    else { btn.disabled = false; btn.innerHTML = '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>&nbsp;Publish Selected'; }
+                }, 600);
+            } else {
+                statusBanner.className = 'rounded-xl p-4 border text-sm font-semibold bg-rose-50 border-rose-200 text-rose-800 mb-4';
+                statusBanner.textContent = 'Error: ' + (data.error || 'Unknown error');
+                statusBanner.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>&nbsp;Publish Selected';
+            }
+        })
+        .catch(err => {
+            statusBanner.className = 'rounded-xl p-4 border text-sm font-semibold bg-rose-50 border-rose-200 text-rose-800 mb-4';
+            statusBanner.textContent = 'Error: ' + err.message;
+            statusBanner.classList.remove('hidden');
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>&nbsp;Publish Selected';
+        });
+    });
+
     document.getElementById('btn-generate')?.addEventListener('click', function () {
         const ids = Array.from(document.querySelectorAll('.content-checkbox:checked')).map(cb => cb.value);
         if (ids.length === 0) {
@@ -224,6 +316,7 @@
         const csrfToken = document.getElementById('csrf-token').value;
         const statusBanner = document.getElementById('ajax-status');
         const btn = this;
+        const checkedRows = document.querySelectorAll('.content-checkbox:checked');
 
         btn.disabled = true;
         btn.innerHTML = '<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>&nbsp;Memproses...';
@@ -247,10 +340,31 @@
         })
         .then(response => {
             if (response.ok || response.redirected) {
+                // Hapus baris yang dipilih dari tabel (fade-out)
+                checkedRows.forEach(cb => {
+                    const row = cb.closest('tr');
+                    if (row) {
+                        row.style.transition = 'opacity 0.3s, transform 0.3s';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(-20px)';
+                        setTimeout(() => row.remove(), 300);
+                    }
+                });
+
                 statusBanner.className = 'rounded-xl p-4 border text-sm font-semibold bg-emerald-50 border-emerald-200 text-emerald-800 mb-4';
-                statusBanner.textContent = ids.length + ' konten berhasil diantri! Mengarahkan ke AI Monitor (Evaluasi)...';
+                statusBanner.textContent = ids.length + ' konten berhasil dikembalikan ke antrean AI!';
                 statusBanner.classList.remove('hidden');
-                setTimeout(() => { window.location.href = '{{ route("admin.content.create") }}'; }, 1500);
+
+                // Cek apakah masih ada baris yang tersisa di tabel
+                setTimeout(() => {
+                    const remaining = document.querySelectorAll('.content-checkbox').length;
+                    if (remaining === 0) {
+                        location.reload(); // reload untuk trigger empty state
+                    } else {
+                        btn.disabled = false;
+                        btn.innerHTML = '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>&nbsp;Kembalikan ke Antrean AI (Evaluasi Ulang)';
+                    }
+                }, 600);
             } else {
                 return response.text().then(text => {
                     throw new Error('HTTP ' + response.status + ' — ' + text.substring(0, 300));

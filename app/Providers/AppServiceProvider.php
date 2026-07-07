@@ -11,7 +11,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            \App\Services\Gsc\GoogleSearchConsoleService::class,
+            function ($app) {
+                $tenantId = \App\Models\Tenant::first()?->id ?? 1;
+                return new \App\Services\Gsc\GoogleSearchConsoleService($tenantId);
+            }
+        );
     }
 
     /**

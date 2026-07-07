@@ -43,15 +43,17 @@ class PageController extends Controller
             'featured_image_upload' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $page = Page::create($request->only('title', 'slug', 'meta_title', 'meta_description'));
-        
+        $data = $request->only('title', 'slug', 'meta_title', 'meta_description');
+        $data['template'] = 'default';
+        $page = Page::create($data);
+
         $seoMeta = ['title' => $request->meta_title, 'description' => $request->meta_description];
         if ($request->hasFile('featured_image_upload')) {
             $path = $request->file('featured_image_upload')->store('content-images', 'public');
             $seoMeta['og_image'] = '/storage/' . $path;
         }
         $page->updateSeoMeta($seoMeta);
-        
+
         return redirect()->route('admin.pages.builder', $page->id)->with('success', 'Page created! Now build it.');
     }
 
@@ -66,15 +68,41 @@ class PageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:pages,slug,' . $page->id,
+            'template' => 'nullable|string|max:100',
+            'hero_headline' => 'nullable|string|max:255',
+            'hero_subheadline' => 'nullable|string|max:500',
+            'hero_cta_text' => 'nullable|string|max:255',
+            'hero_cta_url' => 'nullable|string|max:500',
+            'hero_cta_text_2' => 'nullable|string|max:255',
+            'hero_cta_url_2' => 'nullable|string|max:500',
+            'hero_image' => 'nullable|string|max:500',
+            'hero_video_url' => 'nullable|string|max:500',
+            'hero_features' => 'nullable|string',
+            'hero_bg_color' => 'nullable|string|max:20',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'is_published' => 'nullable|boolean',
             'featured_image_upload' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $data = $request->only('title', 'slug', 'meta_title', 'meta_description');
+        $data = $request->only([
+            'title', 'slug', 'template',
+            'hero_headline', 'hero_subheadline',
+            'hero_cta_text', 'hero_cta_url',
+            'hero_cta_text_2', 'hero_cta_url_2',
+            'hero_image', 'hero_video_url',
+            'hero_bg_color', 'meta_title', 'meta_description',
+        ]);
         $data['is_published'] = $request->has('is_published');
-        
+
+        // Convert hero_features textarea to array
+        if ($request->filled('hero_features')) {
+            $data['hero_features'] = array_map('trim', explode("\n", $request->hero_features));
+            $data['hero_features'] = array_values(array_filter($data['hero_features']));
+        } else {
+            $data['hero_features'] = null;
+        }
+
         $page->update($data);
 
         $seoMeta = ['title' => $request->meta_title, 'description' => $request->meta_description];
@@ -86,7 +114,7 @@ class PageController extends Controller
 
         $page->updateSeoMeta($seoMeta);
 
-        return redirect()->route('admin.pages.index')->with('success', 'Page settings and meta updated successfully.');
+        return redirect()->route('admin.pages.index')->with('success', 'Page settings updated successfully.');
     }
 
     public function builder(Page $page)

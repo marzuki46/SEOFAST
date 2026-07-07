@@ -23,3 +23,59 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# ─── BROWSER CACHING ──────────────────────────────────────
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg                        "access plus 1 year"
+    ExpiresByType image/png                         "access plus 1 year"
+    ExpiresByType image/webp                        "access plus 1 year"
+    ExpiresByType image/gif                         "access plus 1 year"
+    ExpiresByType image/svg+xml                     "access plus 1 year"
+    ExpiresByType image/avif                        "access plus 1 year"
+    ExpiresByType font/woff                         "access plus 1 year"
+    ExpiresByType font/woff2                        "access plus 1 year"
+    ExpiresByType text/css                          "access plus 1 month"
+    ExpiresByType application/javascript            "access plus 1 month"
+    ExpiresByType application/x-javascript           "access plus 1 month"
+    ExpiresByType text/javascript                   "access plus 1 month"
+    ExpiresByType application/json                  "access plus 1 day"
+    ExpiresByType image/x-icon                      "access plus 1 year"
+    ExpiresDefault                                  "access plus 1 week"
+</IfModule>
+
+# ─── COMPRESSION ──────────────────────────────────────────
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+    AddOutputFilterByType DEFLATE application/xml application/rss+xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE font/woff font/woff2
+</IfModule>
+
+# ─── CACHE-CONTROL HEADERS ────────────────────────────────
+<IfModule mod_headers.c>
+    # Static assets: 1 year
+    <FilesMatch "\.(ico|jpg|jpeg|png|webp|avif|gif|svg|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    # CSS & JS: 1 month
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=2592000, immutable"
+    </FilesMatch>
+    # Build assets (versioned): 1 year
+    <FilesMatch "\.(css|js)$">
+        Header append Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    # JSON: 1 day
+    <FilesMatch "\.json$">
+        Header set Cache-Control "public, max-age=86400"
+    </FilesMatch>
+</IfModule>
+
+# ─── SECURITY HEADERS ─────────────────────────────────────
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
