@@ -265,6 +265,7 @@ class ProcessAiGenerationJob implements ShouldQueue
     {
         $keyword = $content->target_keyword;
         $draft   = $job->phase_1_draft;
+        $lang    = $content->siloBlueprint?->target_language ?? 'id';
 
         if (!$draft) {
             throw new \Exception('Phase 3 (Questions) FAILED: phase_1_draft is empty in DB.');
@@ -272,19 +273,36 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         Log::info("AI Phase 3 (Questions) START | job={$job->id} | keyword={$keyword}");
 
+        $langHint = $lang === 'id'
+            ? 'Tulis pertanyaan dalam Bahasa Indonesia.'
+            : "Write questions in {$lang}.";
+
         $sysTemplate = \App\Models\SystemSetting::get(
             'ai_prompt_phase3_sys',
-            "You are a strict Senior SEO Content Auditor. Read the draft below and generate a list of 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]"
+            "You are a strict Senior SEO Content Auditor. Read the draft below and generate a list of at least 10 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Be thorough and cover depth, relevance, E-E-A-T, and practical implementation. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]"
         );
         $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword]);
-        $userPrompt = "Target keyword: {$keyword}\n\nDraft to audit:\n\n{$draft}";
+        $userPrompt = "Target keyword: {$keyword}\n{$langHint}\n\nDraft to audit:\n\n{$draft}";
 
         $aiService = new AIService($content->tenant, 'default');
         $critique  = $aiService->generateJson($sysPrompt, $userPrompt);
 
-        if (!$critique || !is_array($critique)) {
-            $critique = ['What advanced strategies are not yet covered?', 'How to avoid common mistakes?'];
-            Log::warning("Phase 3: JSON array failed, using default questions.");
+        if (!$critique || !is_array($critique) || count($critique) < 10) {
+            $criticalQuestions = [
+                "Apa strategi {$keyword} yang paling efektif?",
+                "Bagaimana cara mengukur keberhasilan {$keyword}?",
+                "Apa kesalahan umum dalam {$keyword} dan cara menghindarinya?",
+                "Studi kasus sukses {$keyword} terbaru?",
+                "Bagaimana {$keyword} berkembang dalam 5 tahun terakhir?",
+                "Tools apa yang wajib digunakan untuk {$keyword}?",
+                "Apa perbedaan {$keyword} dengan metode tradisional?",
+                "Bagaimana cara memulai {$keyword} untuk pemula?",
+                "Berapa biaya yang dibutuhkan untuk {$keyword}?",
+                "Apa tren terbaru dalam {$keyword}?",
+            ];
+            $critique = is_array($critique) ? array_merge($critique, $criticalQuestions) : $criticalQuestions;
+            $critique = array_slice($critique, 0, 10);
+            Log::warning("Phase 3: Kurang dari 10 pertanyaan, padding defaults.");
         }
 
         $job->update(['phase_2_critique' => $critique]);

@@ -166,7 +166,8 @@ class AiRecoveryManager
 
                 case 'phase_2':
                     $existingLsi = $job->phase_1_lsi ?? "{$keyword}, {$keyword} guide";
-                    $template = $this->buildTemplateDraft($keyword, $existingLsi);
+                    $lang = $content->siloBlueprint?->target_language ?? 'id';
+                    $template = $this->buildTemplateDraft($keyword, $existingLsi, $lang);
                     $job->update([
                         'status'       => 'phase_3',
                         'phase_1_draft' => $template,
@@ -175,21 +176,53 @@ class AiRecoveryManager
                     return ['success' => true, 'status' => 'continue'];
 
                 case 'phase_3':
-                    $defaultQuestions = ["What is {$keyword}?", "How to implement {$keyword}?", "Best practices for {$keyword}?"];
+                    $lang = $content->siloBlueprint?->target_language ?? 'id';
+                    $isId = $lang === 'id';
+                    $questions = $isId
+                        ? [
+                            "Apa itu {$keyword} dan mengapa penting?",
+                            "Bagaimana cara memulai {$keyword} untuk pemula?",
+                            "Apa strategi {$keyword} paling efektif tahun ini?",
+                            "Studi kasus sukses {$keyword} di Indonesia?",
+                            "Tools apa yang wajib digunakan untuk {$keyword}?",
+                            "Apa kesalahan umum {$keyword} dan cara menghindarinya?",
+                            "Bagaimana mengukur ROI {$keyword}?",
+                            "Apa perbedaan {$keyword} dengan metode tradisional?",
+                            "Tren {$keyword} apa yang harus diantisipasi?",
+                            "Bagaimana cara mengoptimalkan {$keyword} untuk hasil maksimal?",
+                        ]
+                        : [
+                            "What is {$keyword} and why is it important?",
+                            "How to get started with {$keyword} for beginners?",
+                            "What are the most effective {$keyword} strategies this year?",
+                            "Successful case studies of {$keyword}?",
+                            "What tools are essential for {$keyword}?",
+                            "Common {$keyword} mistakes and how to avoid them?",
+                            "How to measure {$keyword} ROI?",
+                            "What is the difference between {$keyword} and traditional methods?",
+                            "Upcoming {$keyword} trends to watch?",
+                            "How to optimize {$keyword} for maximum results?",
+                        ];
                     $job->update([
                         'status'           => 'phase_4',
-                        'phase_2_critique' => $defaultQuestions,
+                        'phase_2_critique' => $questions,
                     ]);
-                    $logs[] = ['level' => 'success', 'message' => "✅ Fallback questions generated for: {$keyword}"];
+                    $logs[] = ['level' => 'success', 'message' => "✅ Fallback 10 questions generated for: {$keyword}"];
                     return ['success' => true, 'status' => 'continue'];
 
                 case 'phase_4':
                     $draft = $job->phase_1_draft ?? '';
                     $critique = $job->phase_2_critique ?? [];
                     $questions = is_array($critique) ? (isset($critique[0]) ? $critique : ($critique['questions'] ?? [])) : [];
+                    $lang = $content->siloBlueprint?->target_language ?? 'id';
+                    $isId = $lang === 'id';
                     $answers = '';
                     foreach ($questions as $i => $q) {
-                        $answers .= "\n\n## " . ($i + 1) . ". {$q}\n\n{$keyword} is an important topic. To implement it successfully, follow best practices and proven strategies. Consult with experts and use reliable tools for best results.";
+                        if ($isId) {
+                            $answers .= "\n\n## " . ($i + 1) . ". {$q}\n\n{$keyword} adalah strategi penting yang perlu dipahami dengan baik. Implementasi yang sukses membutuhkan riset mendalam, perencanaan matang, dan eksekusi yang konsisten. Mulailah dengan mempelajari fundamentalnya, gunakan tools yang tepat, dan evaluasi hasil secara berkala. Konsultasi dengan ahli di bidang ini sangat disarankan untuk hasil optimal.";
+                        } else {
+                            $answers .= "\n\n## " . ($i + 1) . ". {$q}\n\n{$keyword} is an important strategy that needs to be well understood. Successful implementation requires deep research, careful planning, and consistent execution. Start by learning the fundamentals, use the right tools, and evaluate results regularly. Consulting with experts in this field is highly recommended for optimal results.";
+                        }
                     }
                     $job->update([
                         'status'          => 'phase_5',
@@ -239,7 +272,7 @@ class AiRecoveryManager
     /**
      * Build a template draft article from keyword + LSI.
      */
-    private function buildTemplateDraft(string $keyword, string $lsi): string
+    private function buildTemplateDraft(string $keyword, string $lsi, string $lang = 'id'): string
     {
         $lsiList = explode(',', $lsi);
         $lsiItems = '';
@@ -250,12 +283,72 @@ class AiRecoveryManager
             }
         }
 
+        if ($lang === 'id') {
+            return <<<MARKDOWN
+# Panduan Lengkap {$keyword}
+
+## Pendahuluan
+
+**{$keyword}** adalah strategi penting yang wajib dipahami oleh siapa pun yang ingin sukses di era digital. Panduan ini akan membahas secara komprehensif mulai dari konsep dasar hingga teknik lanjutan yang bisa langsung Anda terapkan.
+
+## Apa Itu {$keyword}?
+
+{$keyword} adalah pendekatan strategis untuk mencapai hasil optimal dalam pemasaran digital. Dengan memahami fundamentalnya, Anda dapat mengembangkan strategi yang efektif dan terukur.
+
+## Konsep Kunci
+
+Berikut adalah topik-topik penting yang harus Anda kuasai dalam **{$keyword}**:
+
+{$lsiItems}
+
+## Panduan Langkah demi Langkah
+
+1. **Riset Mendalam** — Mulailah dengan memahami prinsip dasar {$keyword} dan identifikasi target audience Anda.
+2. **Perencanaan** — Buat rencana strategis berdasarkan praktik terbaik industri dan analisis kompetitor.
+3. **Eksekusi** — Terapkan strategi Anda dengan detail dan konsisten.
+4. **Monitoring** — Pantau hasil secara berkala menggunakan tools analitik.
+5. **Optimasi** — Evaluasi data dan lakukan perbaikan berkelanjutan.
+
+## Tips dan Trik
+
+- Tetapkan tujuan yang spesifik dan terukur sebelum memulai
+- Gunakan tools dan resources yang terpercaya
+- Uji berbagai pendekatan untuk menemukan yang paling efektif
+- Ikuti perkembangan terbaru dalam {$keyword}
+- Dokumentasikan setiap proses untuk referensi masa depan
+
+## Kesalahan yang Harus Dihindari
+
+- Melewatkan tahap riset awal
+- Tidak mengukur hasil dengan tepat
+- Terlalu mempersulit proses yang sebenarnya sederhana
+- Mengabaikan kebutuhan dan perilaku pengguna
+- Gagal melakukan iterasi berdasarkan feedback
+
+## Studi Kasus
+
+Banyak bisnis di Indonesia telah berhasil menerapkan {$keyword} dan mendapatkan hasil yang signifikan. Kunci keberhasilan mereka adalah konsistensi, evaluasi berkala, dan adaptasi terhadap perubahan tren.
+
+## Kesimpulan
+
+Menguasai **{$keyword}** membutuhkan waktu dan praktik, tetapi dengan pendekatan yang tepat, Anda bisa mencapai hasil yang luar biasa. Fokus pada pembelajaran berkelanjutan dan jangan ragu untuk bereksperimen.
+
+---
+
+*Artikel ini dibuat oleh SEOFAST AI Pipeline.*
+MARKDOWN;
+        }
+
         return <<<MARKDOWN
 # Comprehensive Guide to {$keyword}
 
 ## Introduction
 
-Understanding **{$keyword}** is essential for anyone looking to improve their digital strategy. This guide covers all the fundamental aspects and advanced techniques you need to know.
+**{$keyword}** is an essential strategy for anyone looking to succeed in the digital landscape. This comprehensive guide covers everything from fundamental concepts to advanced techniques you can implement right away.
+
+## What Is {$keyword}?
+
+{$keyword} is a strategic approach to achieving optimal results in digital marketing. By understanding the fundamentals, you can develop effective and measurable strategies.
 
 ## Key Concepts
 
@@ -265,15 +358,15 @@ The following topics are critical to mastering **{$keyword}**:
 
 ## Step-by-Step Implementation
 
-1. **Research** — Start by understanding the core principles of {$keyword}.
-2. **Plan** — Create a structured approach based on industry best practices.
-3. **Execute** — Implement your strategy with attention to detail.
-4. **Monitor** — Track results and optimize continuously.
-5. **Iterate** — Refine your approach based on data and feedback.
+1. **In-Depth Research** — Start by understanding the core principles of {$keyword} and identifying your target audience.
+2. **Planning** — Create a strategic plan based on industry best practices and competitor analysis.
+3. **Execution** — Implement your strategy with attention to detail and consistency.
+4. **Monitoring** — Track results regularly using analytics tools.
+5. **Optimization** — Evaluate data and make continuous improvements.
 
 ## Best Practices
 
-- Always start with a clear goal in mind
+- Set specific and measurable goals before starting
 - Use reliable tools and resources
 - Test different approaches to find what works best
 - Stay updated with the latest developments in {$keyword}
@@ -281,19 +374,23 @@ The following topics are critical to mastering **{$keyword}**:
 
 ## Common Mistakes to Avoid
 
-- Skipping the research phase
+- Skipping the initial research phase
 - Not measuring results properly
 - Overcomplicating the process
-- Ignoring user intent
+- Ignoring user intent and behavior
 - Failing to iterate based on feedback
+
+## Case Studies
+
+Many businesses have successfully implemented {$keyword} and achieved significant results. The keys to their success are consistency, regular evaluation, and adaptation to changing trends.
 
 ## Conclusion
 
-Mastering **{$keyword}** takes time and practice, but with the right approach, you can achieve excellent results. Focus on continuous learning and improvement.
+Mastering **{$keyword}** takes time and practice, but with the right approach, you can achieve excellent results. Focus on continuous learning and don't be afraid to experiment.
 
 ---
 
-*This article was automatically generated by SEOFAST AI Pipeline.*
+*This article was generated by SEOFAST AI Pipeline.*
 MARKDOWN;
     }
 
