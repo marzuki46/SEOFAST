@@ -708,6 +708,13 @@ class ProcessAiGenerationJob implements ShouldQueue
             $finalBody
         );
 
+        // Ensure only one H1 — demote extra H1s to H2
+        $h1Count = preg_match_all('/<h1[^>]*>/i', $finalBody);
+        if ($h1Count > 1) {
+            $finalBody = preg_replace('/<h1[^>]*>/i', '<h2>', $finalBody, $h1Count - 1);
+            $finalBody = preg_replace('/<\/h1>/i', '</h2>', $finalBody, $h1Count - 1);
+        }
+
         // Capitalize headings
         $finalBody = preg_replace_callback('/(<h[1-6][^>]*>)(.*?)(<\/h[1-6]>)/i', function ($matches) {
             $capitalized = preg_replace_callback('/\b([a-z])/u', function ($m) {
