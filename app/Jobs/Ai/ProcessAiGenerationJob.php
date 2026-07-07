@@ -107,13 +107,13 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         $aiService = new AIService($content->tenant, 'default');
 
-        // METHOD 1: Generate structured JSON with separate LSI and Entities
+        // METHOD 1: Generate structured JSON with LSI, Entities, and Anchor keywords
         $sysTemplate = \App\Models\SystemSetting::get(
             'ai_prompt_phase1_sys',
-            'You are an Expert SEO Strategist. Generate LSI keywords and semantic entities relevant to "{keyword}". Return ONLY a valid JSON object with exactly this structure: {"lsi": ["keyword1", "keyword2", "keyword3"], "entities": ["entity1", "entity2", "entity3"]}. NO MARKDOWN, NO EXTRA TEXT.'
+            'You are an Expert SEO Strategist. Generate LSI keywords, semantic entities, and anchor keywords (anchor texts for internal links) relevant to "{keyword}". Return ONLY a valid JSON object with exactly this structure: {"lsi": ["keyword1", "keyword2", "keyword3"], "entities": ["entity1", "entity2", "entity3"], "anchors": ["anchor text 1", "anchor text 2", "anchor text 3"]}. NO MARKDOWN, NO EXTRA TEXT.'
         );
         $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country]);
-        $langPh1    = $lang === 'id' ? "BUAT LSI DAN ENTITIES DALAM BAHASA INDONESIA.\n" : '';
+        $langPh1    = $lang === 'id' ? "BUAT LSI, ENTITIES, DAN ANCHOR KEYWORD DALAM BAHASA INDONESIA.\n" : '';
         $userPrompt = "{$langPh1}Topic: {$keyword}\nLanguage: {$lang}\nCountry: {$country}";
 
         $result = $aiService->generateJson($sysPrompt, $userPrompt);
@@ -121,10 +121,11 @@ class ProcessAiGenerationJob implements ShouldQueue
         if (is_array($result) && !empty($result['lsi']) && !empty($result['entities'])) {
             $lsiList = is_array($result['lsi']) ? $result['lsi'] : [$result['lsi']];
             $entityList = is_array($result['entities']) ? $result['entities'] : [$result['entities']];
+            $anchorList = isset($result['anchors']) ? (is_array($result['anchors']) ? $result['anchors'] : [$result['anchors']]) : [];
         } else {
             // METHOD 2 (fallback): Generate plain comma-separated string, parse manually
             Log::warning("Phase 1 JSON failed, trying comma-separated fallback.");
-            $fallbackPrompt = "Generate LSI keywords and semantic entities for '{$keyword}'. Return as: LSI: kw1, kw2, kw3 | ENTITIES: ent1, ent2, ent3";
+            $fallbackPrompt = "Generate LSI keywords, semantic entities, and anchor keywords for '{$keyword}'. Return as: LSI: kw1, kw2, kw3 | ENTITIES: ent1, ent2, ent3 | ANCHORS: anchor1, anchor2, anchor3";
             $fallback = $aiService->generate($sysPrompt, $userPrompt);
 
             if (!$fallback || mb_strlen(trim($fallback)) < 10) {
@@ -134,11 +135,15 @@ class ProcessAiGenerationJob implements ShouldQueue
             // Try to parse the fallback format
             $lsiList = [];
             $entityList = [];
+            $anchorList = [];
             if (preg_match('/LSI:\s*(.+?)(?:\||$)/i', $fallback, $m)) {
                 $lsiList = array_map('trim', explode(',', $m[1]));
             }
-            if (preg_match('/ENTITIES?:\s*(.+?)$/i', $fallback, $m)) {
+            if (preg_match('/ENTITIES?:\s*(.+?)(?:\||$)/i', $fallback, $m)) {
                 $entityList = array_map('trim', explode(',', $m[1]));
+            }
+            if (preg_match('/ANCHORS?:\s*(.+?)$/i', $fallback, $m)) {
+                $anchorList = array_map('trim', explode(',', $m[1]));
             }
             if (empty($lsiList)) {
                 // METHOD 3 (last resort): Treat entire output as LSI
@@ -146,9 +151,15 @@ class ProcessAiGenerationJob implements ShouldQueue
             }
         }
 
+        // Fallback anchors dari LSI jika AI tidak menghasilkan anchors
+        if (empty($anchorList) && !empty($lsiList)) {
+            $anchorList = $lsiList;
+        }
+
         $stored = json_encode([
             'lsi'      => $lsiList,
             'entities' => $entityList,
+            'anchors'  => $anchorList,
         ], JSON_UNESCAPED_UNICODE);
 
         $job->update([
@@ -156,7 +167,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             'phase_1_lsi' => $stored,
         ]);
 
-        Log::info("AI Phase 1 (LSI + Entities) DONE | job={$job->id} | lsi=" . count($lsiList) . " | entities=" . count($entityList));
+        Log::info("AI Phase 1 (LSI + Entities + Anchors) DONE | job={$job->id} | lsi=" . count($lsiList) . " | entities=" . count($entityList) . " | anchors=" . count($anchorList));
 
         self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
     }

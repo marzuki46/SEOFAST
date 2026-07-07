@@ -156,12 +156,16 @@ class AiRecoveryManager
 
             switch ($phase) {
                 case 'phase_1':
-                    $fallbackLsi = "{$keyword}, {$keyword} tips, {$keyword} guide, {$keyword} tutorial, {$keyword} best practices, {$keyword} strategy, learn {$keyword}, {$keyword} for beginners, {$keyword} examples, {$keyword} tools";
+                    $fallbackLsi = json_encode([
+                        'lsi'     => ["{$keyword}", "{$keyword} tips", "{$keyword} guide", "{$keyword} tutorial", "{$keyword} best practices", "{$keyword} strategy", "learn {$keyword}", "{$keyword} for beginners", "{$keyword} examples", "{$keyword} tools"],
+                        'entities'=> ["{$keyword} tool", "{$keyword} platform", "{$keyword} expert", "{$keyword} case study"],
+                        'anchors' => ["baca selengkapnya tentang {$keyword}", "panduan {$keyword} lengkap", "strategi {$keyword}", "tips {$keyword}", "{$keyword} untuk pemula"],
+                    ], JSON_UNESCAPED_UNICODE);
                     $job->update([
                         'status'      => 'phase_2',
                         'phase_1_lsi' => $fallbackLsi,
                     ]);
-                    $logs[] = ['level' => 'success', 'message' => "✅ Fallback LSI keywords generated for: {$keyword}"];
+                    $logs[] = ['level' => 'success', 'message' => "✅ Fallback LSI + entities + anchors generated for: {$keyword}"];
                     return ['success' => true, 'status' => 'continue'];
 
                 case 'phase_2':
