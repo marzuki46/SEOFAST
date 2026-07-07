@@ -76,6 +76,7 @@ class ProcessAiGenerationJob implements ShouldQueue
                 'phase_4' => $this->runPhase4($content, $job),
                 'phase_5' => $this->runPhase5($content, $job),
                 'phase_6' => $this->runPhase6($content, $job),
+                'phase_7' => $this->runPhase7($content, $job),
                 default   => Log::warning("ProcessAiGenerationJob: unknown status '{$currentStatus}' for job {$this->jobId}"),
             };
         } catch (\Exception $e) {
@@ -618,9 +619,8 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         // Save final output to job
         $job->update([
-            'status'       => 'completed',
+            'status'       => 'phase_7',
             'phase_4_final'=> $finalBody,
-            'completed_at' => now(),
         ]);
 
         // Mark deterministic links as injected
@@ -650,8 +650,29 @@ class ProcessAiGenerationJob implements ShouldQueue
 
             Log::info("AI Phase 6 (Saved) DONE | job={$job->id} | status={$targetStatus} | cqi={$cqiScore} | body=" . mb_strlen($finalBody));
         } catch (\Exception $e) {
-            Log::error("Content save failed for job {$job->id} but job marked completed: " . $e->getMessage());
+            Log::error("Content save failed for job {$job->id} but job saved to draft: " . $e->getMessage());
         }
+
+        self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
+    }
+
+    // -------------------------------------------------------------------------
+    // PHASE 7 — SEO Meta + Embeddings + Cleanup
+    // -------------------------------------------------------------------------
+
+    private function runPhase7(Content $content, AiGenerationJob $job): void
+    {
+        $keyword   = $content->target_keyword;
+        $finalBody = $job->phase_6_html;
+
+        Log::info("AI Phase 7 (SEO Meta) START | job={$job->id} | keyword={$keyword}");
+
+        $job->update([
+            'status'       => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        $blogPrefix = \App\Models\SystemSetting::get('permalink_blog', 'blog');
 
         // SEO Meta Generation (non-blocking)
         try {
@@ -661,10 +682,12 @@ class ProcessAiGenerationJob implements ShouldQueue
         }
 
         // Embeddings (non-blocking)
-        try {
-            $this->generateEmbeddings($content, $finalBody);
-        } catch (\Exception $e) {
-            Log::warning("Embeddings failed for job {$job->id}: " . $e->getMessage());
+        if ($finalBody) {
+            try {
+                $this->generateEmbeddings($content, $finalBody);
+            } catch (\Exception $e) {
+                Log::warning("Embeddings failed for job {$job->id}: " . $e->getMessage());
+            }
         }
 
         // Clean up retry hints
@@ -673,6 +696,8 @@ class ProcessAiGenerationJob implements ShouldQueue
         } catch (\Exception $e) {
             Log::warning("Cleanup retry hints failed for job {$job->id}: " . $e->getMessage());
         }
+
+        Log::info("AI Phase 7 (SEO Meta) DONE | job={$job->id}");
 
         // Chain next job
         $this->dispatchNextPendingJob();

@@ -581,7 +581,7 @@ class ContentController extends Controller
             @set_time_limit(300);
         }
 
-        $activeStatuses = ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6'];
+        $activeStatuses = ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6', 'phase_7'];
 
         try {
             $hasJobsInQueue = \Illuminate\Support\Facades\DB::table('jobs')->exists();
@@ -662,7 +662,8 @@ class ContentController extends Controller
                         'phase_3'  => '❓ Phase 3 — Critical Questions',
                         'phase_4'  => '🔍 Phase 4 — Deep Answers',
                         'phase_5'  => '🎨 Phase 5 — Combine + HTML + CQI',
-                        'phase_6'  => '💾 Phase 6 — Save + Meta + Embeddings',
+                        'phase_6'  => '💾 Phase 6 — Save to Draft',
+                        'phase_7'  => '🔎 Phase 7 — SEO Meta + Embeddings',
                         'completed'=> '✅ COMPLETED — Content saved to DB',
                         'failed'   => '❌ FAILED — ' . (($after->error_log['reason'] ?? $after->error_log['error'] ?? 'Unknown error')),
                         'failed_cqi' => '⚠️  CQI FAILED — Retrying Phase 2',
