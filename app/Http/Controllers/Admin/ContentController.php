@@ -62,6 +62,7 @@ class ContentController extends Controller
     public function create()
     {
         $activeJobs = AiGenerationJob::withoutGlobalScopes()
+            ->select(['id', 'content_id', 'status', 'error_log', 'updated_at', 'created_at'])
             ->where(function ($q) {
                 $q->whereIn('status', ['pending', 'processing', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6', 'phase_7'])
                   ->orWhere(function ($q2) {
@@ -70,13 +71,14 @@ class ContentController extends Controller
                   });
             })
             ->with(['content' => function($q) {
-                $q->withoutGlobalScopes();
+                $q->withoutGlobalScopes()->select(['id', 'target_keyword', 'status', 'slug', 'silo_blueprint_id']);
             }])
             ->latest()
             ->get();
             
         $processingContents = Content::withoutGlobalScopes()
             ->where('status', 'ai_processing')
+            ->select(['id', 'target_keyword', 'status', 'slug', 'silo_blueprint_id', 'updated_at'])
             ->latest()
             ->get();
 
