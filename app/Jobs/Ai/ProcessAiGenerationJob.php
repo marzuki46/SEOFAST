@@ -187,16 +187,16 @@ class ProcessAiGenerationJob implements ShouldQueue
     private function styleInstructions(string $lang): string
     {
         $base = $lang === 'id'
-            ? "### FORMAT PENULISAN (WAJIB):\n"
-            . "- DILARANG menggunakan bullet list, numbered list, atau format daftar apapun.\n"
-            . "- Setiap paragraf WAJIB terdiri dari 3–5 kalimat yang padat dan informatif.\n"
+            ? "### FORMAT PENULISAN:\n"
+            . "- Setiap paragraf 3–5 kalimat dengan variasi acak (jangan semua paragraf sama panjangnya).\n"
             . "- Gunakan kata transisi (sehingga, oleh karena itu, selain itu, dengan demikian, sebagai contoh) untuk menghubungkan antar paragraf agar mengalir natural sebagai satu kesatuan.\n"
-            . "- Apabila perlu menampilkan data, perbandingan, fitur, atau informasi terstruktur — GUNAKAN TABEL HTML (<table> dengan <thead>, <tbody>, <th>, <td>) JANGAN gunakan daftar.\n"
+            . "- Apabila menampilkan data, perbandingan, atau informasi terstruktur — GUNAKAN TABEL HTML (<table> dengan <thead>, <tbody>, <th>, <td>).\n"
+            . "- Boleh menggunakan bullet list atau numbered list, tapi secukupnya saja, jangan dominasi artikel.\n"
             . "- Jaga gaya bahasa formal Indonesia yang enak dibaca (rata kiri-kanan / justify)."
-            : "- DO NOT use bullet points, numbered lists, or any list format.\n"
-            . "- Every paragraph MUST have 3–5 sentences.\n"
+            : "- Each paragraph should have 3–5 sentences with random variation (not all same length).\n"
             . "- Use transition words (therefore, moreover, consequently, for example, additionally) to connect paragraphs into one cohesive flow.\n"
-            . "- When displaying data, comparisons, features, or structured information — use HTML TABLES (<table> with <thead>, <tbody>, <th>, <td>) DO NOT use lists.\n"
+            . "- When displaying data, comparisons, or structured information — use HTML TABLES (<table> with <thead>, <tbody>, <th>, <td>).\n"
+            . "- Lists (bullet/numbered) are allowed but use sparingly, don't let them dominate the article.\n"
             . "- Keep the writing style natural and flowing (justified alignment).";
 
         $brandNames       = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
