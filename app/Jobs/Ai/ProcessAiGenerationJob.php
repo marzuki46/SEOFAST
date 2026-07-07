@@ -691,6 +691,23 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         Log::info("AI Phase 6 (Save) START | job={$job->id} | keyword={$keyword}");
 
+        // Strip "Informasi Artikel" info box that AI sometimes generates at the top
+        $finalBody = preg_replace(
+            '/<div[^>]*>\s*<strong>\s*Informasi\s+Artikel\s*<\/strong>.*?(?=<h[1-6]|$)/is',
+            '',
+            $finalBody
+        );
+        $finalBody = preg_replace(
+            '/<p>\s*<strong>\s*Informasi\s+Artikel\s*<\/strong>.*?(?=<h[1-6]|$)/is',
+            '',
+            $finalBody
+        );
+        $finalBody = preg_replace(
+            '/<table[^>]*>\s*<tr>\s*<td[^>]*>\s*Informasi\s+Artikel.*?<\/table>/is',
+            '',
+            $finalBody
+        );
+
         // Capitalize headings
         $finalBody = preg_replace_callback('/(<h[1-6][^>]*>)(.*?)(<\/h[1-6]>)/i', function ($matches) {
             $capitalized = preg_replace_callback('/\b([a-z])/u', function ($m) {

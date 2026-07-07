@@ -90,6 +90,34 @@
         border-radius: 0;
         font-size: 0.9rem;
     }
+    .prose table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.95rem;
+    }
+    .prose thead {
+        background-color: #f1f5f9;
+    }
+    .prose th {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #0f172a;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .prose td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        color: #475569;
+        vertical-align: top;
+    }
+    .prose tr:last-child td {
+        border-bottom: none;
+    }
+    .prose tr:hover td {
+        background-color: #f8fafc;
+    }
 </style>
 
 @endsection
