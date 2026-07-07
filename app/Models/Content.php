@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\TenantAwareTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -165,6 +166,15 @@ class Content extends Model
     public function isPillar(): bool
     {
         return $this->hierarchy_level === 'pillar';
+    }
+
+    public function scopeWhereSlug(Builder $query, string $slug): Builder
+    {
+        return $query->where(function($q) use ($slug) {
+            $q->where('slug', $slug)
+              ->orWhereRaw('JSON_UNQUOTE(JSON_EXTRACT(slug, "$.id")) = ?', [$slug])
+              ->orWhereRaw('JSON_UNQUOTE(JSON_EXTRACT(slug, "$.en")) = ?', [$slug]);
+        });
     }
 
     // --- TRANSPARENT JSON HANDLING ---

@@ -220,9 +220,7 @@ class SiloBlueprintController extends Controller
         // Ensure unique slug
         $baseSlug = $slug;
         $counter = 1;
-        while (\App\Models\Content::withoutGlobalScopes()->where(function($q) use ($slug) {
-            $q->where('slug', $slug)->orWhere('slug', 'LIKE', '%"id":"'.$slug.'"%');
-        })->exists()) {
+        while (\App\Models\Content::withoutGlobalScopes()->whereSlug($slug)->exists()) {
             $slug = $baseSlug . '-' . $counter++;
         }
         

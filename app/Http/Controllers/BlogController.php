@@ -66,12 +66,7 @@ class BlogController extends Controller
     public function show(string $slug): View
     {
         // Find the post by slug in the current locale
-        $query = Content::with('siloBlueprint', 'seoMeta')->where(function($q) use ($slug) {
-                $q->where('slug', $slug)
-                  ->orWhere('slug', 'LIKE', '%"id":"' . $slug . '"%')
-                  ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%')
-                  ->orWhere('slug', 'LIKE', '%' . $slug . '%'); // Fallback for double-encoded JSON slugs
-            });
+        $query = Content::with('siloBlueprint', 'seoMeta')->whereSlug($slug);
             
         if (auth()->check()) {
             // Admins can preview drafts and unpublished posts
@@ -125,12 +120,7 @@ class BlogController extends Controller
      */
     public function preview(string $slug): View
     {
-        $post = Content::with('siloBlueprint', 'seoMeta')->where(function($q) use ($slug) {
-                $q->where('slug', $slug)
-                  ->orWhere('slug', 'LIKE', '%"id":"' . $slug . '"%')
-                  ->orWhere('slug', 'LIKE', '%"en":"' . $slug . '"%')
-                  ->orWhere('slug', 'LIKE', '%' . $slug . '%'); // Fallback for double-encoded JSON slugs
-            })->first();
+        $post = Content::with('siloBlueprint', 'seoMeta')->whereSlug($slug)->first();
 
         if (!$post) {
             abort(404);

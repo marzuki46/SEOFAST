@@ -250,9 +250,7 @@ class SitemapController extends Controller
      */
     public function ghost(string $slug): \Illuminate\View\View|Response
     {
-        $content = Content::withoutGlobalScopes()
-            ->where('slug', $slug)
-            ->first();
+        $content = Content::withoutGlobalScopes()->whereSlug($slug)->first();
 
         if (!$content) {
             abort(404);

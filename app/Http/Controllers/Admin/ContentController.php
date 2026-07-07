@@ -97,9 +97,7 @@ class ContentController extends Controller
         $slug = Str::slug($request->target_keyword);
 
         // Check for duplicate slugs
-        $exists = Content::withoutGlobalScopes()->where(function($q) use ($slug) {
-            $q->where('slug', $slug)->orWhere('slug', 'LIKE', '%"id":"'.$slug.'"%');
-        })->exists();
+        $exists = Content::withoutGlobalScopes()->whereSlug($slug)->exists();
         if ($exists) {
             $slug .= '-' . rand(100, 999);
         }

@@ -1,0 +1,519 @@
+
+
+<?php $__env->startSection('header', 'Advanced SEO Settings'); ?>
+
+<?php $__env->startSection('admin_content'); ?>
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h1 class="text-2xl font-bold font-outfit text-slate-900 tracking-tight">Enterprise SEO Settings</h1>
+        <p class="text-sm text-slate-500 mt-1">Konfigurasi pusat untuk semua parameter SEO, Schema Markup, dan AI Pipeline SEOFAST.</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden" x-data="{ activeTab: '<?php echo e(session('active_tab', 'global')); ?>' }">
+    <!-- Tabs Header -->
+    <div class="border-b border-slate-200 bg-slate-50/50 flex overflow-x-auto no-scrollbar">
+        <?php
+            $tabs = [
+                'global' => 'Global SEO',
+                'multilingual' => 'Multilingual (Bilingual)',
+                'ai_pipeline' => 'AI Pipeline Configuration',
+                'ai_prompt' => 'AI Prompt Settings',
+                'schema' => 'Schema Markup',
+                'indexing' => 'Indexing & Crawler',
+                'redirect' => 'Redirects',
+                'advanced' => 'Advanced Tools',
+            ];
+        ?>
+
+        <?php $__currentLoopData = $tabs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <button @click="activeTab = '<?php echo e($key); ?>'" 
+                    :class="{'border-brand-indigo text-brand-indigo bg-white': activeTab === '<?php echo e($key); ?>', 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100': activeTab !== '<?php echo e($key); ?>'}"
+                    class="px-6 py-4 border-b-2 font-medium text-sm whitespace-nowrap transition-colors outline-none focus:outline-none">
+                <?php echo e($label); ?>
+
+            </button>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </div>
+
+    <!-- Tabs Content -->
+    <div class="p-6">
+        <?php $__currentLoopData = $tabs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <div x-show="activeTab === '<?php echo e($key); ?>'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+                <form action="<?php echo e(route('admin.seo.settings.update')); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="group" value="seo_<?php echo e($key); ?>">
+                    
+                    <div class="space-y-6 max-w-3xl">
+                        <?php if($key === 'global'): ?>
+                            
+                            <div class="border-b border-slate-100 pb-6">
+                                <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="text-brand-indigo">①</span> Site Identity</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Website Name <span class="text-red-500">*</span></label>
+                                        <input type="text" name="site_name" value="<?php echo e($settings['seo_global']['site_name'] ?? \App\Models\SystemSetting::get('site_name', config('app.name'))); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="SEOFAST">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Alternate Site Name</label>
+                                        <input type="text" name="site_alt_name" value="<?php echo e($settings['seo_global']['site_alt_name'] ?? \App\Models\SystemSetting::get('site_alt_name')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="SEO Operating System">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Tagline</label>
+                                        <input type="text" name="site_tagline" value="<?php echo e($settings['seo_global']['site_tagline'] ?? \App\Models\SystemSetting::get('site_tagline')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Platform AI Content SEO Terbaik">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Default Title Separator</label>
+                                        <select name="title_separator" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo text-sm px-4 py-2.5">
+                                            <?php $__currentLoopData = ['|' => 'Pipa |', '-' => 'Dash -', '•' => 'Bullet •', '»' => 'Arrow »', ':' => 'Colon :']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $val => $lbl): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($val); ?>" <?php echo e(($settings['seo_global']['title_separator'] ?? \App\Models\SystemSetting::get('title_separator', '|')) === $val ? 'selected' : ''); ?>><?php echo e($lbl); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Default Language</label>
+                                        <input type="text" name="site_language" value="<?php echo e($settings['seo_global']['site_language'] ?? \App\Models\SystemSetting::get('site_language', 'id-ID')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="id-ID">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Country Targeting</label>
+                                        <input type="text" name="site_country" value="<?php echo e($settings['seo_global']['site_country'] ?? \App\Models\SystemSetting::get('site_country', 'ID')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="ID">
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+                            <div class="border-b border-slate-100 pb-6">
+                                <h4 class="text-base font-bold text-slate-900 mb-2 flex items-center gap-2"><span class="text-brand-indigo">②</span> Dynamic Title Templates</h4>
+                                <p class="text-xs text-slate-500 mb-4">Gunakan variabel: <code class="bg-slate-100 px-1 rounded">{site_name}</code> <code class="bg-slate-100 px-1 rounded">{page_title}</code> <code class="bg-slate-100 px-1 rounded">{category_name}</code> <code class="bg-slate-100 px-1 rounded">{year}</code> <code class="bg-slate-100 px-1 rounded">{separator}</code></p>
+                                <div class="grid grid-cols-1 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Template Title Artikel</label>
+                                        <input type="text" name="title_template_post" value="<?php echo e($settings['seo_global']['title_template_post'] ?? \App\Models\SystemSetting::get('title_template_post', '{page_title} {separator} {site_name}')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Template Title Kategori</label>
+                                        <input type="text" name="title_template_category" value="<?php echo e($settings['seo_global']['title_template_category'] ?? \App\Models\SystemSetting::get('title_template_category', '{category_name} Articles {separator} {site_name}')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Template Title Halaman Statis</label>
+                                        <input type="text" name="title_template_page" value="<?php echo e($settings['seo_global']['title_template_page'] ?? \App\Models\SystemSetting::get('title_template_page', '{page_title} {separator} {site_name}')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5 font-mono">
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+                            <div class="border-b border-slate-100 pb-6">
+                                <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="text-brand-indigo">③</span> Homepage SEO</h4>
+                                <div class="grid grid-cols-1 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage Title</label>
+                                        <input type="text" name="seo_global_meta_title" value="<?php echo e($settings['seo_global']['seo_global_meta_title'] ?? \App\Models\SystemSetting::get('seo_global_meta_title')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="SEOFAST V3 — Platform SEO Terbaik Indonesia">
+                                        <p class="text-xs text-slate-400 mt-1">Kosongkan untuk menggunakan template: <em>{site_name}</em></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage H1 (Hero Headline)</label>
+                                        <input type="text" name="homepage_h1" value="<?php echo e($settings['seo_global']['homepage_h1'] ?? \App\Models\SystemSetting::get('homepage_h1')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Platform SEO Terbaik di Indonesia">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage Meta Description</label>
+                                        <textarea name="seo_global_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Deskripsi homepage Anda (150-160 karakter)..."><?php echo e($settings['seo_global']['seo_global_meta_description'] ?? \App\Models\SystemSetting::get('seo_global_meta_description')); ?></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage Meta Keywords <span class="text-slate-400 font-normal">(opsional)</span></label>
+                                        <input type="text" name="homepage_meta_keywords" value="<?php echo e($settings['seo_global']['homepage_meta_keywords'] ?? \App\Models\SystemSetting::get('homepage_meta_keywords')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="seo, cms, laravel, content marketing">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage OG Image</label>
+                                        <input type="url" name="seo_global_og_image" value="<?php echo e($settings['seo_global']['seo_global_og_image'] ?? \App\Models\SystemSetting::get('seo_global_og_image')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="https://domain.com/assets/og-default.jpg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage Canonical URL</label>
+                                        <input type="url" name="homepage_canonical" value="<?php echo e($settings['seo_global']['homepage_canonical'] ?? \App\Models\SystemSetting::get('homepage_canonical', url('/'))); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="<?php echo e(url('/')); ?>">
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+                            <div class="border-b border-slate-100 pb-6">
+                                <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="text-brand-indigo">④</span> Blog & Archive SEO</h4>
+                                <div class="grid grid-cols-1 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Blog Index Title</label>
+                                        <input type="text" name="blog_meta_title" value="<?php echo e(\App\Models\SystemSetting::get('blog_meta_title')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="SEOFAST Blog — Latest Insights in AI Content & SEO Automation">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Blog Index Meta Description</label>
+                                        <textarea name="blog_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Discover advanced SEO workflows..."><?php echo e(\App\Models\SystemSetting::get('blog_meta_description')); ?></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage Meta Title (fallback)</label>
+                                        <input type="text" name="home_meta_title" value="<?php echo e(\App\Models\SystemSetting::get('home_meta_title')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Fallback when seo_global_meta_title is empty">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage Meta Description (fallback)</label>
+                                        <textarea name="home_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Fallback when seo_global_meta_description is empty"><?php echo e(\App\Models\SystemSetting::get('home_meta_description')); ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="text-brand-indigo">⑤</span> Tracking & Verification</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Google Analytics ID</label>
+                                        <input type="text" name="seo_global_google_analytics_id" value="<?php echo e($settings['seo_global']['seo_global_google_analytics_id'] ?? \App\Models\SystemSetting::get('seo_global_google_analytics_id')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="G-XXXXXXXXXX">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Google Tag Manager ID</label>
+                                        <input type="text" name="seo_global_gtm_id" value="<?php echo e($settings['seo_global']['seo_global_gtm_id'] ?? \App\Models\SystemSetting::get('seo_global_gtm_id')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="GTM-XXXXXXX">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Google Site Verification</label>
+                                        <input type="text" name="seo_global_google_site_verification" value="<?php echo e($settings['seo_global']['seo_global_google_site_verification'] ?? \App\Models\SystemSetting::get('seo_global_google_site_verification')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="verification token">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Facebook Pixel ID</label>
+                                        <input type="text" name="seo_global_fb_pixel_id" value="<?php echo e($settings['seo_global']['seo_global_fb_pixel_id'] ?? \App\Models\SystemSetting::get('seo_global_fb_pixel_id')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="XXXXXXXXXXXXXX">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Bing Webmaster Verification</label>
+                                        <input type="text" name="seo_indexing_bing_verification" value="<?php echo e($settings['seo_global']['seo_indexing_bing_verification'] ?? \App\Models\SystemSetting::get('seo_indexing_bing_verification')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Bing verification code">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Favicon URL</label>
+                                        <input type="url" name="favicon_url" value="<?php echo e($settings['seo_global']['favicon_url'] ?? \App\Models\SystemSetting::get('favicon_url')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="https://domain.com/favicon.ico">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        <?php elseif($key === 'multilingual'): ?>
+                            <div class="border-b border-slate-100 pb-6">
+                                <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="text-brand-indigo">①</span> Bilingual Configuration</h4>
+                                <div class="grid grid-cols-1 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Enable Auto-Translate to English</label>
+                                        <select name="enable_auto_translate_en" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo text-sm px-4 py-2.5">
+                                            <option value="1" <?php echo e((\App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '1') ? 'selected' : ''); ?>>Yes, automatically translate AI generated content</option>
+                                            <option value="0" <?php echo e((\App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '0') ? 'selected' : ''); ?>>No, only use default language</option>
+                                        </select>
+                                        <p class="text-xs text-slate-500 mt-1">If enabled, Phase 6 of the AI generation process will translate all content (including metadata and slugs) to English.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Translation Prompt</label>
+                                        <textarea name="ai_prompt_translation" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="You are a professional Translator..."><?php echo e($settings['seo_multilingual']['ai_prompt_translation'] ?? \App\Models\SystemSetting::get('ai_prompt_translation', 'You are a professional Translator. Translate the following Indonesian text to English. Maintain the exact same formatting, markdown syntax, and tone. CRITICAL RULE: DO NOT translate any URLs inside href attributes or markdown links. Leave the URLs exactly as they are.')); ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        <?php elseif($key === 'ai_pipeline'): ?>
+                            <div class="space-y-6 w-full">
+                                <h3 class="text-lg font-bold border-b pb-2">AI Pipeline Configuration</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="md:col-span-2">
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Default AI Provider</label>
+                                        <select name="ai_provider" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <?php $__currentLoopData = ['openai', 'gemini', 'claude', 'custom']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provider): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($provider); ?>" <?php echo e(($settings['seo_ai_pipeline']['ai_provider'] ?? \App\Models\SystemSetting::get('ai_provider')) == $provider ? 'selected' : ''); ?>><?php echo e($provider === 'custom' ? 'Custom Endpoint (OpenAI Compatible)' : ucfirst($provider)); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 1: Entities & LSI Keywords</label>
+                                        <select name="ai_provider_1" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <?php $__currentLoopData = ['openai', 'gemini', 'claude', 'custom']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provider): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($provider); ?>" <?php echo e(($settings['seo_ai_pipeline']['ai_provider_1'] ?? \App\Models\SystemSetting::get('ai_provider_1')) == $provider ? 'selected' : ''); ?>><?php echo e($provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider)); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 2: Content Draft</label>
+                                        <select name="ai_provider_2" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <?php $__currentLoopData = ['openai', 'gemini', 'claude', 'custom']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provider): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($provider); ?>" <?php echo e(($settings['seo_ai_pipeline']['ai_provider_2'] ?? \App\Models\SystemSetting::get('ai_provider_2')) == $provider ? 'selected' : ''); ?>><?php echo e($provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider)); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 3: Critical Questions</label>
+                                        <select name="ai_provider_3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <?php $__currentLoopData = ['openai', 'gemini', 'claude', 'custom']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provider): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($provider); ?>" <?php echo e(($settings['seo_ai_pipeline']['ai_provider_3'] ?? \App\Models\SystemSetting::get('ai_provider_3')) == $provider ? 'selected' : ''); ?>><?php echo e($provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider)); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 4: Answer Questions</label>
+                                        <select name="ai_provider_4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <?php $__currentLoopData = ['openai', 'gemini', 'claude', 'custom']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provider): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($provider); ?>" <?php echo e(($settings['seo_ai_pipeline']['ai_provider_4'] ?? \App\Models\SystemSetting::get('ai_provider_4')) == $provider ? 'selected' : ''); ?>><?php echo e($provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider)); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 5: Combine & Extend Content</label>
+                                        <select name="ai_provider_5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <?php $__currentLoopData = ['openai', 'gemini', 'claude', 'custom']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provider): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($provider); ?>" <?php echo e(($settings['seo_ai_pipeline']['ai_provider_5'] ?? \App\Models\SystemSetting::get('ai_provider_5')) == $provider ? 'selected' : ''); ?>><?php echo e($provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider)); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 6: HTML Conversion</label>
+                                        <select name="ai_provider_6" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <?php $__currentLoopData = ['openai', 'gemini', 'claude', 'custom']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provider): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($provider); ?>" <?php echo e(($settings['seo_ai_pipeline']['ai_provider_6'] ?? \App\Models\SystemSetting::get('ai_provider_6')) == $provider ? 'selected' : ''); ?>><?php echo e($provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider)); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Phase 7: SEO Meta</label>
+                                        <select name="ai_provider_7" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <?php $__currentLoopData = ['openai', 'gemini', 'claude', 'custom']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provider): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($provider); ?>" <?php echo e(($settings['seo_ai_pipeline']['ai_provider_7'] ?? \App\Models\SystemSetting::get('ai_provider_7')) == $provider ? 'selected' : ''); ?>><?php echo e($provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider)); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Image Prompt Generator</label>
+                                        <select name="ai_provider_image_prompt" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <?php $__currentLoopData = ['openai', 'gemini', 'claude', 'custom']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $provider): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($provider); ?>" <?php echo e(($settings['seo_ai_pipeline']['ai_provider_image_prompt'] ?? \App\Models\SystemSetting::get('ai_provider_image_prompt')) == $provider ? 'selected' : ''); ?>><?php echo e($provider === 'custom' ? 'Custom Endpoint' : ucfirst($provider)); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Internal Linking Strategy</label>
+                                        <select name="internal_link_strategy" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <option value="deterministic" <?php echo e(($settings['seo_ai_pipeline']['internal_link_strategy'] ?? \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic')) == 'deterministic' ? 'selected' : ''); ?>>Deterministic (Blueprint Rules Only)</option>
+                                            <option value="semantic" <?php echo e(($settings['seo_ai_pipeline']['internal_link_strategy'] ?? \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic')) == 'semantic' ? 'selected' : ''); ?>>Semantic (AI Embeddings Only)</option>
+                                            <option value="both" <?php echo e(($settings['seo_ai_pipeline']['internal_link_strategy'] ?? \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic')) == 'both' ? 'selected' : ''); ?>>Both (Blueprint + AI Embeddings)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Semantic Link Threshold</label>
+                                        <input type="number" step="0.01" min="0.5" max="0.99" name="semantic_link_threshold" value="<?php echo e($settings['seo_ai_pipeline']['semantic_link_threshold'] ?? \App\Models\SystemSetting::get('semantic_link_threshold', '0.82')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Max Semantic Links</label>
+                                        <input type="number" min="1" max="10" name="semantic_max_links" value="<?php echo e($settings['seo_ai_pipeline']['semantic_max_links'] ?? \App\Models\SystemSetting::get('semantic_max_links', '3')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
+                                </div>
+                                <h3 class="text-lg font-bold border-b pb-2 mt-8">API Keys & Custom Endpoints</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">OpenAI API Key</label>
+                                        <input type="password" name="openai_api_key" value="<?php echo e($settings['seo_ai_pipeline']['openai_api_key'] ?? \App\Models\SystemSetting::get('openai_api_key')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="sk-...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Google Gemini API Key</label>
+                                        <input type="password" name="gemini_api_key" value="<?php echo e($settings['seo_ai_pipeline']['gemini_api_key'] ?? \App\Models\SystemSetting::get('gemini_api_key')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="AIza...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Anthropic Claude API Key</label>
+                                        <input type="password" name="claude_api_key" value="<?php echo e($settings['seo_ai_pipeline']['claude_api_key'] ?? \App\Models\SystemSetting::get('claude_api_key')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="sk-ant-...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">9Router API Key</label>
+                                        <input type="password" name="9router_api_key" value="<?php echo e($settings['seo_ai_pipeline']['9router_api_key'] ?? \App\Models\SystemSetting::get('9router_api_key')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="sk-or-...">
+                                    </div>
+                                    <div class="md:col-span-2 border-t border-slate-100 pt-4 mt-2">
+                                        <h4 class="text-sm font-bold text-slate-700 mb-3">Custom Endpoint Configuration (Local LLM / Proxy)</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-600 mb-1">Custom API Base URL</label>
+                                                <input type="text" name="custom_api_base" value="<?php echo e($settings['seo_ai_pipeline']['custom_api_base'] ?? \App\Models\SystemSetting::get('custom_api_base', 'http://localhost:20128/v1')); ?>" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="http://localhost:20128/v1">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-600 mb-1">Custom API Key (Optional)</label>
+                                                <input type="password" name="custom_api_key" value="<?php echo e($settings['seo_ai_pipeline']['custom_api_key'] ?? \App\Models\SystemSetting::get('custom_api_key')); ?>" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="kosongkan jika tidak ada">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-600 mb-1">Custom Model Name</label>
+                                                <input type="text" name="custom_model" value="<?php echo e($settings['seo_ai_pipeline']['custom_model'] ?? \App\Models\SystemSetting::get('custom_model', 'custom-model')); ?>" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-3 py-2" placeholder="contoh: gpt-5.4-mini, minimax-m2.7">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        <?php elseif($key === 'ai_prompt'): ?>
+                            <div class="grid grid-cols-1 gap-6">
+
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Brand Identity for AI Prompts</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+                                        <div>
+                                            <label class="block text-base font-semibold text-slate-800 mb-1.5">Brand Names (Aliases)</label>
+                                            <input type="text" name="ai_prompt_brand_names" value="<?php echo e($settings['seo_ai_prompt']['ai_prompt_brand_names'] ?? \App\Models\SystemSetting::get('ai_prompt_brand_names')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="e.g. Tokopedia, Tokped, Toko Ijo">
+                                            <p class="text-xs text-slate-500 mt-1">Shortcode: <code class="bg-slate-100 px-1 rounded">{brand_names}</code></p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-base font-semibold text-slate-800 mb-1.5">Brand Positioning / Narrative</label>
+                                            <textarea name="ai_prompt_brand_positioning" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="e.g. Platform e-commerce terbaik di Indonesia... Beli sekarang di aplikasi kami."><?php echo e($settings['seo_ai_prompt']['ai_prompt_brand_positioning'] ?? \App\Models\SystemSetting::get('ai_prompt_brand_positioning')); ?></textarea>
+                                            <p class="text-xs text-slate-500 mt-1">Shortcode: <code class="bg-slate-100 px-1 rounded">{brand_positioning}</code></p>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-slate-600 bg-blue-50 border border-blue-100 p-3 rounded-lg">
+                                        <strong>Tips:</strong> Sisipkan <code class="bg-white px-1 rounded">{brand_names}</code> dan <code class="bg-white px-1 rounded">{brand_positioning}</code> pada <strong>System Prompt Phase 5 atau Phase 6</strong> di bawah ini agar AI otomatis melakukan <em>soft selling</em> untuk bisnis Anda di akhir artikel.
+                                    </p>
+                                </div>
+
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 1: Entities & LSI Keywords</h4>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
+                                    <textarea name="ai_prompt_phase1_sys" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2"><?php echo e($settings['seo_ai_prompt']['ai_prompt_phase1_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase1_sys', "You are an Expert SEO Strategist. Generate a list of semantic entities and LSI keywords relevant to '{keyword}'. Return the list as a simple comma-separated string.")); ?></textarea>
+                                </div>
+                                
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 2: Content Draft</h4>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
+                                    <textarea name="ai_prompt_phase2_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2"><?php echo e($settings['seo_ai_prompt']['ai_prompt_phase2_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase2_sys', "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 800 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Return ONLY the article draft in Markdown.")); ?></textarea>
+                                </div>
+                                
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 3: Critical Questions</h4>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
+                                    <textarea name="ai_prompt_phase3_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2"><?php echo e($settings['seo_ai_prompt']['ai_prompt_phase3_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase3_sys', "You are a strict Senior SEO Content Auditor. Read the draft and generate a list of 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]")); ?></textarea>
+                                </div>
+                                
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 4: Answer Questions</h4>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
+                                    <textarea name="ai_prompt_phase4_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2"><?php echo e($settings['seo_ai_prompt']['ai_prompt_phase4_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase4_sys', "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions'. Return ONLY the answers in Markdown formatting.")); ?></textarea>
+                                </div>
+
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 5: Combine & Extend Content</h4>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
+                                    <textarea name="ai_prompt_phase5_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2"><?php echo e($settings['seo_ai_prompt']['ai_prompt_phase5_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase5_sys', "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown.")); ?></textarea>
+                                </div>
+
+                                <div class="border-b border-slate-200 pb-6">
+                                    <h4 class="text-lg font-bold mb-4">Phase 6: HTML Conversion</h4>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">System Prompt</label>
+                                    <textarea name="ai_prompt_phase6_sys" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2"><?php echo e($settings['seo_ai_prompt']['ai_prompt_phase6_sys'] ?? \App\Models\SystemSetting::get('ai_prompt_phase6_sys', "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body. Keep the comprehensive length.")); ?></textarea>
+                                </div>
+
+                                <div class="pt-2">
+                                    <h4 class="text-lg font-bold mb-4">Phase 7: SEO Meta</h4>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Title Prompt Template</label>
+                                        <textarea name="ai_prompt_meta_title" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Write a highly click-worthy SEO title..."><?php echo e($settings['seo_ai_prompt']['ai_prompt_meta_title'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_title', 'Write a highly click-worthy SEO title for "{keyword}". Max 60 chars. Return ONLY the title.')); ?></textarea>
+                                        <p class="text-xs text-slate-500 mt-1">Variables allowed: <code class="bg-slate-100 px-1 rounded">{keyword}</code>, <code class="bg-slate-100 px-1 rounded">{content_title}</code></p>
+                                    </div>
+                                    <div class="mt-4">
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Meta Description Prompt Template</label>
+                                        <textarea name="ai_prompt_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Write an engaging SEO meta description..."><?php echo e($settings['seo_ai_prompt']['ai_prompt_meta_description'] ?? \App\Models\SystemSetting::get('ai_prompt_meta_description', 'Write an engaging SEO meta description for "{keyword}". 150-160 chars with CTA. Return ONLY the description.')); ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php elseif($key === 'schema'): ?>
+                            <div class="grid grid-cols-1 gap-6">
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Default Schema Type</label>
+                                    <select name="seo_schema_default_type" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                        <option value="Article" <?php echo e(($settings['seo_schema']['seo_schema_default_type'] ?? '') === 'Article' ? 'selected' : ''); ?>>Article / BlogPosting</option>
+                                        <option value="LocalBusiness" <?php echo e(($settings['seo_schema']['seo_schema_default_type'] ?? '') === 'LocalBusiness' ? 'selected' : ''); ?>>Local Business</option>
+                                        <option value="Organization" <?php echo e(($settings['seo_schema']['seo_schema_default_type'] ?? '') === 'Organization' ? 'selected' : ''); ?>>Organization</option>
+                                        <option value="Product" <?php echo e(($settings['seo_schema']['seo_schema_default_type'] ?? '') === 'Product' ? 'selected' : ''); ?>>Product</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Publisher / Author Name (Default)</label>
+                                    <input type="text" name="seo_schema_author" value="<?php echo e($settings['seo_schema']['seo_schema_author'] ?? \App\Models\SystemSetting::get('seo_schema_author')); ?>" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Admin SEOFAST">
+                                </div>
+                            </div>
+                        <?php elseif($key === 'indexing'): ?>
+                            <div class="grid grid-cols-1 gap-6">
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Global Robots Meta</label>
+                                    <select name="seo_indexing_robots" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                        <option value="index, follow" <?php echo e(($settings['seo_indexing']['seo_indexing_robots'] ?? '') === 'index, follow' ? 'selected' : ''); ?>>Index, Follow (Recommended)</option>
+                                        <option value="noindex, nofollow" <?php echo e(($settings['seo_indexing']['seo_indexing_robots'] ?? '') === 'noindex, nofollow' ? 'selected' : ''); ?>>Noindex, Nofollow</option>
+                                    </select>
+                                </div>
+                                <div class="border-t border-slate-200 pt-6">
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Noindex Paths</label>
+                                    <textarea name="noindex_paths" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2" placeholder="/admin/*
+/buyer/*
+/ghost/*"><?php echo e($settings['seo_indexing']['noindex_paths'] ?? \App\Models\SystemSetting::get('noindex_paths')); ?></textarea>
+                                    <p class="text-xs text-slate-500 mt-1">Satu path per baris. Gunakan <code class="bg-slate-100 px-1 rounded">*</code> sebagai wildcard. Path yang cocok akan otomatis mendapat header <code class="bg-slate-100 px-1 rounded">X-Robots-Tag: noindex</code>.</p>
+                                </div>
+                                <div class="border-t border-slate-200 pt-6">
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Robots.txt Editor</label>
+                                    <?php
+                                        $defaultRobots = "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /admin/dashboard\nDisallow: /master/adminis-trator\nDisallow: /buyer/\nDisallow: /g/\n\nSitemap: " . url('/sitemap.xml') . "\n";
+                                    ?>
+                                    <textarea name="robots_txt_content" rows="8" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2"><?php echo e($settings['seo_indexing']['robots_txt_content'] ?? \App\Models\SystemSetting::get('robots_txt_content', $defaultRobots)); ?></textarea>
+                                    <p class="text-xs text-slate-500 mt-1">Kosongkan jika Anda ingin mengembalikan file <code class="bg-slate-100 px-1 rounded">robots.txt</code> ke versi default sistem.</p>
+                                </div>
+                            </div>
+                        <?php elseif($key === 'redirect'): ?>
+                            <div class="grid grid-cols-1 gap-6">
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">301 Redirect Rules (JSON)</label>
+                                    <textarea name="seo_redirect_rules" rows="6" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2" placeholder='{"/old-page": "/new-page"}'><?php echo e($settings['seo_redirect']['seo_redirect_rules'] ?? \App\Models\SystemSetting::get('seo_redirect_rules', '{}')); ?></textarea>
+                                    <p class="text-xs text-slate-500 mt-1">Format JSON key-value pair. Path awal menuju path tujuan.</p>
+                                </div>
+                            </div>
+                        <?php elseif($key === 'advanced'): ?>
+                            <div class="grid grid-cols-1 gap-6">
+                                <!-- DATABASE OPTIMIZATION PANEL -->
+                                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-4">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
+                                                <svg class="w-5 h-5 text-brand-indigo" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                                                Database Optimization (Garbage Collection)
+                                            </h4>
+                                            <p class="text-sm text-slate-500 mb-3">
+                                                Membersihkan data sementara (draft, LSI, pertanyaan mentah) dari job AI yang sudah <strong>Selesai (Completed)</strong>. Data ini tidak diperlukan lagi dan hanya memenuhi database.
+                                            </p>
+                                            <div class="flex items-center gap-4 text-sm">
+                                                <div class="px-3 py-1.5 bg-white border border-slate-200 rounded-md font-medium text-slate-700">
+                                                    Ukuran Sampah: <span class="text-rose-600 font-bold"><?php echo e($garbageSizeMB ?? 0); ?> MB</span>
+                                                </div>
+                                                <div class="px-3 py-1.5 bg-white border border-slate-200 rounded-md font-medium text-slate-700">
+                                                    Job Selesai: <span class="text-indigo-600 font-bold"><?php echo e($garbageCount ?? 0); ?></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button type="button" onclick="document.getElementById('formCleanGarbage').submit();" class="inline-flex items-center gap-2 bg-white border border-rose-200 hover:bg-rose-50 hover:border-rose-300 text-rose-600 px-4 py-2.5 rounded-lg text-sm font-bold shadow-sm transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                Bersihkan Sampah
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- END DATABASE OPTIMIZATION PANEL -->
+
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Custom Headers in &lt;head&gt;</label>
+                                    <textarea name="seo_advanced_head_code" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2" placeholder="<script>...</script>"><?php echo e($settings['seo_advanced']['seo_advanced_head_code'] ?? \App\Models\SystemSetting::get('seo_advanced_head_code')); ?></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Custom Code before &lt;/body&gt;</label>
+                                    <textarea name="seo_advanced_body_code" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2" placeholder="<script>...</script>"><?php echo e($settings['seo_advanced']['seo_advanced_body_code'] ?? \App\Models\SystemSetting::get('seo_advanced_body_code')); ?></textarea>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        <div class="pt-4 flex justify-end">
+                            <button type="submit" class="inline-flex items-center px-4 py-2.5 bg-brand-indigo text-white text-sm font-medium rounded-lg shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-indigo">
+                                Simpan Pengaturan
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </div>
+</div>
+
+<form id="formCleanGarbage" action="<?php echo e(route('admin.seo.settings.clean_garbage')); ?>" method="POST" style="display: none;">
+    <?php echo csrf_field(); ?>
+</form>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Program Marzuki\Projek Framework\SEOFAST\resources\views/admin/seo/settings.blade.php ENDPATH**/ ?>

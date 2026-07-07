@@ -111,8 +111,10 @@ class GoogleSearchConsoleService
 
             // Temukan content_id dari URL
             $slug      = $this->extractSlug($pageUrl);
+            $blogPrefix = \App\Models\SystemSetting::get('permalink_blog', 'blog');
+            $slug = preg_replace('#^(' . $blogPrefix . '|produk|projeku|en)/?#', '', $slug);
             $contentId = Content::where('tenant_id', $tenantId)
-                ->where('slug', $slug)
+                ->whereSlug($slug)
                 ->value('id');
 
             if (!$contentId) continue;
