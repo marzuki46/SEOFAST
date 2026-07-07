@@ -484,8 +484,9 @@ class ContentController extends Controller
                     ]);
                 }
 
-                // Reset stale data when starting from beginning
-                if (in_array($job->status, ['phase_1', 'phase_2'])) {
+                // Reset stale data ONLY when starting fresh from phase_1
+                // FASE 2 JANGAN DI-RESET karena butuh data dari phase_1 (phase_1_lsi)
+                if ($job->status === 'phase_1') {
                     $job->update([
                         'started_at'     => now(),
                         'phase_1_lsi'    => null,
