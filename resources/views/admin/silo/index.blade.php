@@ -133,6 +133,18 @@
                             </select>
                         </div>
                     </div>
+
+                    <div>
+                        <label for="content_framework" class="block text-sm font-semibold text-slate-700 mb-1">Content Framework</label>
+                        <select name="content_framework" id="content_framework" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 bg-white focus:border-indigo-500 outline-none">
+                            <option value="default">Default (AI Bebas)</option>
+                            <option value="aida">AIDA — Attention → Interest → Desire → Action</option>
+                            <option value="pas">PAS — Problem → Agitate → Solution</option>
+                            <option value="how_to">How-To — Panduan Langkah demi Langkah</option>
+                            <option value="listicle">Listicle — Daftar / Top X</option>
+                        </select>
+                        <p class="text-xs text-slate-400 mt-1.5">Menentukan struktur outline konten yang akan diikuti AI saat menulis.</p>
+                    </div>
                 </div>
                 <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button type="button" onclick="document.getElementById('createSiloModal').classList.add('hidden')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition">Cancel</button>

@@ -14,6 +14,7 @@ class SiloBlueprint extends Model
     protected $fillable = [
         'tenant_id',
         'silo_name',
+        'content_framework',
         'seed_keyword',
         'target_language',
         'target_country',
@@ -30,6 +31,29 @@ class SiloBlueprint extends Model
             'is_locked' => 'boolean',
             'total_contents' => 'integer',
             'published_contents' => 'integer',
+        ];
+    }
+
+    public function getFrameworkLabelAttribute(): string
+    {
+        $labels = [
+            'default' => 'Default (AI Bebas)',
+            'aida'    => 'AIDA (Attention → Interest → Desire → Action)',
+            'pas'     => 'PAS (Problem → Agitate → Solution)',
+            'how_to'  => 'How-To Guide (Step-by-Step)',
+            'listicle' => 'Listicle (Daftar / Top X)',
+        ];
+        return $labels[$this->content_framework] ?? $labels['default'];
+    }
+
+    public static function frameworkOptions(): array
+    {
+        return [
+            'default' => 'Default (AI Bebas)',
+            'aida'    => 'AIDA — Attention → Interest → Desire → Action',
+            'pas'     => 'PAS — Problem → Agitate → Solution',
+            'how_to'  => 'How-To — Panduan Langkah demi Langkah',
+            'listicle' => 'Listicle — Daftar / Top X',
         ];
     }
 

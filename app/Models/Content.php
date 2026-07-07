@@ -45,6 +45,7 @@ class Content extends Model
         'meta_title',
         'meta_description',
         'hierarchy_level',
+        'content_framework',
         'search_volume',
         'kgr_score',
         'cqi_score',

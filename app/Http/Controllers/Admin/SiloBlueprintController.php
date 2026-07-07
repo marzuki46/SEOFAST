@@ -34,6 +34,7 @@ class SiloBlueprintController extends Controller
             'seed_keyword' => 'required|string|max:255',
             'target_language' => 'required|string|size:2',
             'target_country' => 'required|string|size:2',
+            'content_framework' => 'nullable|string|in:default,aida,pas,how_to,listicle',
         ]);
 
         $silo = SiloBlueprint::create([
@@ -42,6 +43,7 @@ class SiloBlueprintController extends Controller
             'seed_keyword' => $request->seed_keyword,
             'target_language' => $request->target_language,
             'target_country' => $request->target_country,
+            'content_framework' => $request->input('content_framework', 'default'),
             'is_locked' => false,
             'total_contents' => 0,
             'published_contents' => 0,

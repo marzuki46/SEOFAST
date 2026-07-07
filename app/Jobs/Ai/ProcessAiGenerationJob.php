@@ -222,16 +222,65 @@ class ProcessAiGenerationJob implements ShouldQueue
             }
         }
 
+        // ── Content Framework & E-E-A-T ──
+        $framework = $content->content_framework ?? $content->siloBlueprint?->content_framework ?? 'default';
+        $frameworkMap = [
+            'aida' => [
+                'label' => 'AIDA Framework',
+                'outline' => "Struktur konten WAJIB mengikuti kerangka AIDA:\n"
+                    . "1. **Attention (A)** — Buka dengan hook kuat: fakta mengejutkan, pertanyaan provokatif, atau statistik impactful yang relevan dengan keyword.\n"
+                    . "2. **Interest (I)** — Bangkitkan minat: jelaskan mengapa topik ini penting, apa masalahnya, dan siapa yang terdampak. Gunakan storytelling atau data.\n"
+                    . "3. **Desire (D)** — Tanamkan keinginan: paparkan solusi, manfaat, bukti sosial, studi kasus, atau perbandingan. Tunjukkan mengapa ini adalah pendekatan terbaik.\n"
+                    . "4. **Action (A)** — Tutup dengan ajakan: langkah konkret yang harus dilakukan pembaca selanjutnya (CTA).",
+            ],
+            'pas' => [
+                'label' => 'PAS Framework (Problem — Agitate — Solution)',
+                'outline' => "Struktur konten WAJIB mengikuti kerangka PAS:\n"
+                    . "1. **Problem (P)** — Identifikasi masalah spesifik yang dialami target audiens terkait keyword. Jelaskan dengan jelas dan relatable.\n"
+                    . "2. **Agitate (A)** — Perkuat masalahnya: jelaskan konsekuensi, rasa sakit, dan urgensi jika masalah tidak segera diselesaikan.\n"
+                    . "3. **Solution (S)** — Berikan solusi lengkap: langkah-langkah praktis, strategi, tools, dan panduan yang menyelesaikan masalah.",
+            ],
+            'how_to' => [
+                'label' => 'How-To Guide Framework',
+                'outline' => "Struktur konten WAJIB mengikuti kerangka How-To Guide:\n"
+                    . "1. **Pendahuluan** — Jelaskan apa yang akan dicapai pembaca dan mengapa panduan ini penting.\n"
+                    . "2. **Prasyarat / Persiapan** — Apa saja yang dibutuhkan sebelum memulai (tools, pengetahuan, akun, dll).\n"
+                    . "3. **Langkah-langkah Detail** — Setiap langkah sebagai H2 terpisah, jelaskan dengan jelas. Sertakan tips, screenshot (deskripsikan), dan troubleshooting.\n"
+                    . "4. **Kesimpulan** — Ringkas hasil akhir dan berikan langkah selanjutnya.",
+            ],
+            'listicle' => [
+                'label' => 'Listicle Framework',
+                'outline' => "Struktur konten WAJIB mengikuti kerangka Listicle:\n"
+                    . "1. **Pendahuluan** — Konteks mengapa daftar ini relevan dan bermanfaat.\n"
+                    . "2. **Daftar Item** — Setiap item sebagai H2. Format: [Nomor]. [Judul Item]. Jelaskan secara detail, berikan data/contoh untuk setiap item.\n"
+                    . "3. **Kesimpulan** — Rekap dan rekomendasi item terbaik.",
+            ],
+        ];
+
+        $frameworkInstructions = '';
+        if (isset($frameworkMap[$framework])) {
+            $fw = $frameworkMap[$framework];
+            $frameworkInstructions = "\n\n### CONTENT FRAMEWORK: {$fw['label']}\n{$fw['outline']}";
+        }
+
+        $eeatInstructions = "\n\n### E-E-A-T REQUIREMENTS (Wajib dipenuhi):\n"
+            . "- **Experience (Pengalaman)** — Tunjukkan pengalaman praktis. Gunakan contoh nyata, studi kasus, anekdot personal yang relevan.\n"
+            . "- **Expertise (Keahlian)** — Tunjukkan otoritas. Gunakan terminologi yang tepat, referensi sumber kredibel, data/statistik terbaru.\n"
+            . "- **Authoritativeness (Otoritas)** — Bangun kredibilitas. Sertakan kutipan ahli, link ke sumber resmi, sertifikasi, atau penghargaan.\n"
+            . "- **Trustworthiness (Kepercayaan)** — Jaga akurasi. Cantumkan tanggal publikasi, author bio singkat, sumber data, dan hindari klaim berlebihan.";
+
+        $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals";
+
         $sysTemplate = \App\Models\SystemSetting::get(
             'ai_prompt_phase2_sys',
-            "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 800 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Also naturally integrate the Entity keywords throughout the content. Return ONLY the article draft."
+            "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 1000 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Also naturally integrate the Entity keywords throughout the content. Return ONLY the article draft."
         );
         $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country]);
         $userPrompt = "Keyword: **{$keyword}**\nSeed: {$seedKeyword}\nLSI Keywords: {$lsiText}\n";
         if ($entityText) {
             $userPrompt .= "Entity Keywords: {$entityText}\n";
         }
-        $userPrompt .= "\nRequirements:\n- Minimum 800 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n{$linkInstructions}";
+        $userPrompt .= "\n{$requirements}\n{$linkInstructions}{$frameworkInstructions}{$eeatInstructions}";
 
         // Inject retry improvements from failed CQI audit
         $improvementsHint = \App\Models\SystemSetting::get('_ai_retry_improvements_' . $this->jobId, '');
@@ -266,6 +315,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         $keyword = $content->target_keyword;
         $draft   = $job->phase_1_draft;
         $lang    = $content->siloBlueprint?->target_language ?? 'id';
+        $framework = $content->content_framework ?? $content->siloBlueprint?->content_framework ?? 'default';
 
         if (!$draft) {
             throw new \Exception('Phase 3 (Questions) FAILED: phase_1_draft is empty in DB.');
@@ -277,12 +327,16 @@ class ProcessAiGenerationJob implements ShouldQueue
             ? 'Tulis pertanyaan dalam Bahasa Indonesia.'
             : "Write questions in {$lang}.";
 
+        $frameworkHint = $framework !== 'default'
+            ? " Also audit whether the draft follows the {$framework} content framework structure correctly."
+            : '';
+
         $sysTemplate = \App\Models\SystemSetting::get(
             'ai_prompt_phase3_sys',
-            "You are a strict Senior SEO Content Auditor. Read the draft below and generate a list of at least 10 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Be thorough and cover depth, relevance, E-E-A-T, and practical implementation. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]"
+            "You are a strict Senior SEO Content Auditor. Read the draft below and generate a list of at least 10 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Be thorough and cover depth, relevance, E-E-A-T signals (Experience, Expertise, Authoritativeness, Trustworthiness), and practical implementation. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]"
         );
         $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword]);
-        $userPrompt = "Target keyword: {$keyword}\n{$langHint}\n\nDraft to audit:\n\n{$draft}";
+        $userPrompt = "Target keyword: {$keyword}\n{$langHint}{$frameworkHint}\n\nDraft to audit:\n\n{$draft}";
 
         $aiService = new AIService($content->tenant, 'default');
         $critique  = $aiService->generateJson($sysPrompt, $userPrompt);
@@ -383,10 +437,16 @@ class ProcessAiGenerationJob implements ShouldQueue
         $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
 
         // Step A: Combine draft + answers
+        $framework = $content->content_framework ?? $content->siloBlueprint?->content_framework ?? 'default';
+        $frameworkNote = $framework !== 'default'
+            ? " CRITICAL: Preserve the {$framework} content framework structure exactly as in the original draft."
+            : '';
+
         $sysP5 = \App\Models\SystemSetting::get(
             'ai_prompt_phase5_sys',
-            "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Return ONLY the improved Markdown."
+            "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Strengthen E-E-A-T signals (Experience, Expertise, Authoritativeness, Trustworthiness). Return ONLY the improved Markdown."
         );
+        $sysP5 .= $frameworkNote;
         $sysP5 = strtr($sysP5, [
             '{lang}'              => $lang,
             '{keyword}'           => $keyword,
@@ -450,7 +510,11 @@ class ProcessAiGenerationJob implements ShouldQueue
         $cqiThreshold = (int) \App\Models\SystemSetting::get('ai_cqi_threshold', 75);
         $retryCount   = (int) ($job->retry_count ?? 0);
 
-        $cqiSys = "You are a strict Senior SEO Content Auditor. Score the following HTML article on depth, relevance, readability, and E-E-A-T signals. Respond ONLY with valid JSON with this exact structure:\n{\"cqi_score\": <integer 0-100>, \"gaps\": [\"gap1\", \"gap2\"], \"improvements\": [\"improvement1\", \"improvement2\"]}";
+        $frameworkAudit = $framework !== 'default'
+            ? ", and whether the article follows the {$framework} content framework structure"
+            : '';
+
+        $cqiSys = "You are a strict Senior SEO Content Auditor. Score the following HTML article on depth, relevance, readability, E-E-A-T signals{$frameworkAudit}. Respond ONLY with valid JSON with this exact structure:\n{\"cqi_score\": <integer 0-100>, \"gaps\": [\"gap1\", \"gap2\"], \"improvements\": [\"improvement1\", \"improvement2\"]}";
         $cqiResult = $aiService->generateJson($cqiSys, "Target keyword: **{$keyword}**\n\nArticle HTML:\n{$finalBody}");
 
         if (!$cqiResult || !isset($cqiResult['cqi_score'])) {
