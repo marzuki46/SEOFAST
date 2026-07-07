@@ -171,8 +171,11 @@ class Content extends Model
 
     public function scopeWhereSlug(Builder $query, string $slug): Builder
     {
-        return $query->where(function($q) use ($slug) {
+        $escapedSlug = addslashes($slug);
+        return $query->where(function($q) use ($slug, $escapedSlug) {
             $q->where('slug', $slug)
+              ->orWhere('slug', 'like', '%"id":"' . $escapedSlug . '"%')
+              ->orWhere('slug', 'like', '%"id":"' . $escapedSlug . '"}%')
               ->orWhereRaw('JSON_UNQUOTE(JSON_EXTRACT(slug, "$.id")) = ?', [$slug])
               ->orWhereRaw('JSON_UNQUOTE(JSON_EXTRACT(slug, "$.en")) = ?', [$slug]);
         });
@@ -210,15 +213,17 @@ class Content extends Model
             return;
         }
 
-        // If it's already a JSON string from a previous process, decode it first to get the raw text
         if (is_string($value) && (str_starts_with(trim($value), '{') || str_starts_with(trim($value), '"{'))) {
             $decoded = json_decode(trim($value, '"'), true);
             if (is_array($decoded) && isset($decoded['id'])) {
                 $value = $decoded['id'];
             }
         }
-        
-        // Disable multi-language JSON storage. Just save as plain text.
+
+        while (is_array($value)) {
+            $value = $value['id'] ?? current($value);
+        }
+
         $this->attributes[$key] = $value;
     }
 
