@@ -393,7 +393,7 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         $sysTemplate = \App\Models\SystemSetting::get(
             'ai_prompt_phase4_sys',
-            "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions'. Return ONLY the answers in Markdown formatting."
+            "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions' in paragraph form. DO NOT generate code blocks, HTML, or technical implementations. Write in natural language only. Return ONLY the answers in Markdown formatting."
         );
         $sysPrompt  = strtr($sysTemplate, ['{lang}' => $lang, '{keyword}' => $keyword]);
         $userPrompt = "Topic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}";
@@ -492,6 +492,18 @@ class ProcessAiGenerationJob implements ShouldQueue
             } elseif (preg_match('/<(?:h[1-3]|p|div|section)[\s\S]*>/i', $finalBody, $matches)) {
                 $finalBody = $matches[0];
             }
+        }
+
+        // Cleanup: strip code blocks and AI hallucination artifacts
+        if ($finalBody) {
+            $finalBody = preg_replace('/```[\s\S]*?```/', '', $finalBody);
+            $finalBody = preg_replace('/<pre>[\s\S]*?<\/pre>/i', '', $finalBody);
+            $finalBody = preg_replace('/<code>[\s\S]*?<\/code>/i', '', $finalBody);
+            $finalBody = preg_replace('/^.*ponytail:.*$/m', '', $finalBody);
+            $finalBody = preg_replace('/^.*ponytail.*$/mi', '', $finalBody);
+            $finalBody = preg_replace('/^\[.*skipped:.*$/m', '', $finalBody);
+            $finalBody = preg_replace('/^(-->|->)\s.*$/m', '', $finalBody);
+            $finalBody = trim($finalBody);
         }
 
         if (!$finalBody || mb_strlen(trim($finalBody)) < 300) {
