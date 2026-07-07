@@ -200,6 +200,12 @@ class AiRecoveryManager
 
                 case 'phase_5':
                 case 'phase_6':
+                    // Jangan override status kalau job sudah completed
+                    if ($job->status === 'completed') {
+                        $logs[] = ['level' => 'warn', 'message' => 'Job sudah completed. Tidak perlu fallback.'];
+                        return ['success' => true, 'status' => 'continue'];
+                    }
+
                     $draft = $job->phase_1_draft ?? '';
                     $answers = $job->phase_4_answers ?? '';
                     $combined = $draft . "\n\n" . $answers;

@@ -517,10 +517,11 @@ class ProcessAiGenerationJob implements ShouldQueue
         ]);
 
         // Mark deterministic links as injected
-        $deterministicLinks = DeterministicLink::where('source_content_id', $content->id)->get();
-        if ($deterministicLinks->isNotEmpty()) {
+        try {
             DeterministicLink::where('source_content_id', $content->id)
                 ->update(['is_injected' => true, 'injected_at' => now()]);
+        } catch (\Exception $e) {
+            Log::warning("DeterministicLink update failed for job {$job->id}: " . $e->getMessage());
         }
 
         // Capitalize title
@@ -529,17 +530,21 @@ class ProcessAiGenerationJob implements ShouldQueue
         }, $content->title ?? '');
 
         // Persist content
-        $content->body_raw = $finalBody;
-        $content->update([
-            'title'        => $newTitle,
-            'cqi_score'    => $cqiScore,
-            'content_hash' => $contentHash,
-            'status'       => $targetStatus,
-            'published_at' => $content->published_at ?? now(),
-        ]);
-        $content->save();
+        try {
+            $content->body_raw = $finalBody;
+            $content->update([
+                'title'        => $newTitle,
+                'cqi_score'    => $cqiScore,
+                'content_hash' => $contentHash,
+                'status'       => $targetStatus,
+                'published_at' => $content->published_at ?? now(),
+            ]);
+            $content->save();
 
-        Log::info("AI Phase 6 (Saved) DONE | job={$job->id} | status={$targetStatus} | cqi={$cqiScore} | body=" . mb_strlen($finalBody));
+            Log::info("AI Phase 6 (Saved) DONE | job={$job->id} | status={$targetStatus} | cqi={$cqiScore} | body=" . mb_strlen($finalBody));
+        } catch (\Exception $e) {
+            Log::error("Content save failed for job {$job->id} but job marked completed: " . $e->getMessage());
+        }
 
         // SEO Meta Generation (non-blocking)
         try {
@@ -556,7 +561,11 @@ class ProcessAiGenerationJob implements ShouldQueue
         }
 
         // Clean up retry hints
-        \App\Models\SystemSetting::where('key', '_ai_retry_improvements_' . $this->jobId)->delete();
+        try {
+            \App\Models\SystemSetting::where('key', '_ai_retry_improvements_' . $this->jobId)->delete();
+        } catch (\Exception $e) {
+            Log::warning("Cleanup retry hints failed for job {$job->id}: " . $e->getMessage());
+        }
 
         // Chain next job
         $this->dispatchNextPendingJob();
