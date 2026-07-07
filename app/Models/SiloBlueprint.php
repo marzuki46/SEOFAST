@@ -15,6 +15,7 @@ class SiloBlueprint extends Model
         'tenant_id',
         'silo_name',
         'content_framework',
+        'content_tone',
         'seed_keyword',
         'target_language',
         'target_country',
@@ -44,6 +45,17 @@ class SiloBlueprint extends Model
             'listicle' => 'Listicle (Daftar / Top X)',
         ];
         return $labels[$this->content_framework] ?? $labels['default'];
+    }
+
+    public static function toneOptions(): array
+    {
+        return [
+            'formal'         => 'Formal — Profesional & Berwibawa',
+            'friendly'       => 'Friendly — Ramah & Hangat',
+            'persuasive'     => 'Persuasif — Meyakinkan & Menggugah',
+            'authoritative'  => 'Otoritatif — Tegas & Berbasis Data',
+            'conversational' => 'Conversational — Natural & Mengalir',
+        ];
     }
 
     public static function frameworkOptions(): array

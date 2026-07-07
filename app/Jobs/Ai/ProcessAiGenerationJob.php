@@ -115,7 +115,8 @@ class ProcessAiGenerationJob implements ShouldQueue
             'ai_prompt_phase1_sys',
             'You are an Expert SEO Strategist. Generate LSI keywords, semantic entities, and anchor keywords (anchor texts for internal links) relevant to "{keyword}". Return ONLY a valid JSON object with exactly this structure: {"lsi": ["keyword1", "keyword2", "keyword3"], "entities": ["entity1", "entity2", "entity3"], "anchors": ["anchor text 1", "anchor text 2", "anchor text 3"]}. NO MARKDOWN, NO EXTRA TEXT.'
         );
-        $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country]);
+        $tone      = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
+        $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country, '{tone}' => $tone]);
         if ($brandNames || $brandPositioning) {
             $sysPrompt .= "\n\nRelevant brand context (use when appropriate):\n";
             if ($brandNames) $sysPrompt .= "Brand names: {$brandNames}\n";
@@ -184,20 +185,38 @@ class ProcessAiGenerationJob implements ShouldQueue
     // PHASE 2 — Initial Draft + Internal Links
     // -------------------------------------------------------------------------
 
-    private function styleInstructions(string $lang): string
+    private function styleInstructions(string $lang, string $tone = 'formal'): string
     {
+        $toneMap = $lang === 'id'
+            ? [
+                'formal'         => 'Gunakan gaya bahasa FORMAL, profesional, dan berwibawa. Hindari bahasa slang atau informal.',
+                'friendly'       => 'Gunakan gaya bahasa RAMAH, hangat, dan mudah dicerna. Seperti mengobrol dengan teman.',
+                'persuasive'     => 'Gunakan gaya bahasa PERSUASIF dan meyakinkan. Dorong pembaca untuk mengambil tindakan.',
+                'authoritative'  => 'Gunakan gaya bahasa OTORITATIF dan tegas. Tampilkan data, statistik, dan fakta kuat.',
+                'conversational' => 'Gunakan gaya bahasa PERCAKAPAN natural. Seperti seorang ahli yang sedang menjelaskan dengan santai.',
+            ]
+            : [
+                'formal'         => 'Use a FORMAL, professional, and authoritative tone. Avoid slang or informal language.',
+                'friendly'       => 'Use a FRIENDLY, warm, and approachable tone. Like chatting with a friend.',
+                'persuasive'     => 'Use a PERSUASIVE and convincing tone. Encourage the reader to take action.',
+                'authoritative'  => 'Use an AUTHORITATIVE and firm tone. Back claims with data, stats, and strong facts.',
+                'conversational' => 'Use a CONVERSATIONAL, natural tone. Like an expert explaining casually.',
+            ];
+
+        $toneInstruction = $toneMap[$tone] ?? $toneMap['formal'];
+
         $base = $lang === 'id'
-            ? "### FORMAT PENULISAN:\n"
+            ? "### FORMAT & TONE PENULISAN:\n"
+            . "- {$toneInstruction}\n"
             . "- Setiap paragraf 3–5 kalimat dengan variasi acak (jangan semua paragraf sama panjangnya).\n"
             . "- Gunakan kata transisi (sehingga, oleh karena itu, selain itu, dengan demikian, sebagai contoh) untuk menghubungkan antar paragraf agar mengalir natural sebagai satu kesatuan.\n"
-            . "- Apabila menampilkan data, perbandingan, atau informasi terstruktur — GUNAKAN TABEL HTML (<table> dengan <thead>, <tbody>, <th>, <td>).\n"
-            . "- Boleh menggunakan bullet list atau numbered list, tapi secukupnya saja, jangan dominasi artikel.\n"
-            . "- Jaga gaya bahasa formal Indonesia yang enak dibaca (rata kiri-kanan / justify)."
-            : "- Each paragraph should have 3–5 sentences with random variation (not all same length).\n"
+            . "- Apabila menampilkan data, perbandingan, atau informasi terstruktur — GUNAKAN TABEL.\n"
+            . "- Boleh menggunakan bullet list atau numbered list, tapi secukupnya saja, jangan dominasi artikel."
+            : "- {$toneInstruction}\n"
+            . "- Each paragraph should have 3–5 sentences with random variation (not all same length).\n"
             . "- Use transition words (therefore, moreover, consequently, for example, additionally) to connect paragraphs into one cohesive flow.\n"
-            . "- When displaying data, comparisons, or structured information — use HTML TABLES (<table> with <thead>, <tbody>, <th>, <td>).\n"
-            . "- Lists (bullet/numbered) are allowed but use sparingly, don't let them dominate the article.\n"
-            . "- Keep the writing style natural and flowing (justified alignment).";
+            . "- When displaying data, comparisons, or structured information — use TABLES.\n"
+            . "- Lists (bullet/numbered) are allowed but use sparingly, don't let them dominate the article.";
 
         $brandNames       = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
         $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
@@ -334,7 +353,8 @@ class ProcessAiGenerationJob implements ShouldQueue
             . "- **Authoritativeness (Otoritas)** — Bangun kredibilitas. Sertakan kutipan ahli, link ke sumber resmi, sertifikasi, atau penghargaan.\n"
             . "- **Trustworthiness (Kepercayaan)** — Jaga akurasi. Cantumkan tanggal publikasi, author bio singkat, sumber data, dan hindari klaim berlebihan.";
 
-        $styleReq = $this->styleInstructions($lang);
+        $tone    = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
+        $styleReq = $this->styleInstructions($lang, $tone);
 
         $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n{$styleReq}";
 
@@ -342,7 +362,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             'ai_prompt_phase2_sys',
             "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 1000 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Also naturally integrate the Entity keywords throughout the content. Return ONLY the article draft."
         );
-        $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country]);
+        $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country, '{tone}' => $tone]);
         $userPrompt = "{$li}\n\nKeyword: **{$keyword}**\nSeed: {$seedKeyword}\nLSI Keywords: {$lsiText}\n";
         if ($entityText) {
             $userPrompt .= "Entity Keywords: {$entityText}\n";
@@ -460,13 +480,14 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         $criticalQs = implode("\n- ", $questions);
 
-        $styleReq = $this->styleInstructions($lang);
+        $tone    = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
+        $styleReq = $this->styleInstructions($lang, $tone);
 
         $sysTemplate = \App\Models\SystemSetting::get(
             'ai_prompt_phase4_sys',
             "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions' in paragraph form. DO NOT generate code blocks, HTML, or technical implementations. Write in natural language only. Return ONLY the answers in Markdown formatting."
         );
-        $sysPrompt  = strtr($sysTemplate, ['{lang}' => $lang, '{keyword}' => $keyword]);
+        $sysPrompt  = strtr($sysTemplate, ['{lang}' => $lang, '{keyword}' => $keyword, '{tone}' => $tone]);
         $userPrompt = "{$li}\n\nTopic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}\n\n{$styleReq}";
 
         $aiService = new AIService($content->tenant, 'default');
@@ -514,7 +535,8 @@ class ProcessAiGenerationJob implements ShouldQueue
             ? " CRITICAL: Preserve the {$framework} content framework structure exactly as in the original draft."
             : '';
 
-        $styleReq = $this->styleInstructions($lang);
+        $tone    = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
+        $styleReq = $this->styleInstructions($lang, $tone);
 
         $sysP5 = \App\Models\SystemSetting::get(
             'ai_prompt_phase5_sys',
@@ -524,6 +546,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         $sysP5 = strtr($sysP5, [
             '{lang}'              => $lang,
             '{keyword}'           => $keyword,
+            '{tone}'              => $tone,
             '{brand_names}'       => $brandNames,
             '{brand_positioning}' => $brandPositioning,
         ]);
@@ -543,7 +566,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         // Step B: Convert to HTML
         Log::info("AI Phase 5 (HTML) START | job={$job->id}");
 
-        $styleReq = $this->styleInstructions($lang);
+        $styleReq = $this->styleInstructions($lang, $tone);
 
         $sysP6 = \App\Models\SystemSetting::get(
             'ai_prompt_phase6_sys',
@@ -552,6 +575,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         $sysP6 = strtr($sysP6, [
             '{lang}'              => $lang,
             '{keyword}'           => $keyword,
+            '{tone}'              => $tone,
             '{brand_names}'       => $brandNames,
             '{brand_positioning}' => $brandPositioning,
         ]);

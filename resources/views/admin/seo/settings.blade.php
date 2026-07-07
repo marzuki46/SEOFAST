@@ -354,7 +354,27 @@
                                         </div>
                                     </div>
                                     <p class="text-sm text-slate-600 bg-blue-50 border border-blue-100 p-3 rounded-lg">
-                                        <strong>Tips:</strong> Sisipkan <code class="bg-white px-1 rounded">{brand_names}</code> dan <code class="bg-white px-1 rounded">{brand_positioning}</code> pada <strong>System Prompt Phase 5 atau Phase 6</strong> di bawah ini agar AI otomatis melakukan <em>soft selling</em> untuk bisnis Anda di akhir artikel.
+                                        <strong>Tips:</strong> Gunakan <code class="bg-white px-1 rounded">{brand_names}</code>, <code class="bg-white px-1 rounded">{brand_positioning}</code>, <code class="bg-white px-1 rounded">{tone}</code>, <code class="bg-white px-1 rounded">{keyword}</code>, <code class="bg-white px-1 rounded">{lang}</code>, dan <code class="bg-white px-1 rounded">{country}</code> di prompt di bawah. Seluruh variable otomatis di-replace dengan nilai terkait saat pipeline berjalan.
+                                    </p>
+                                </div>
+
+                                <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mb-6">
+                                    <h4 class="font-bold text-sm text-indigo-800 mb-2">Available Variables for All Prompts</h4>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                        <code class="bg-white px-2 py-1 rounded border border-indigo-100">{keyword}</code>
+                                        <code class="bg-white px-2 py-1 rounded border border-indigo-100">{lang}</code>
+                                        <code class="bg-white px-2 py-1 rounded border border-indigo-100">{country}</code>
+                                        <code class="bg-white px-2 py-1 rounded border border-indigo-100">{tone}</code>
+                                        <code class="bg-white px-2 py-1 rounded border border-indigo-100">{brand_names}</code>
+                                        <code class="bg-white px-2 py-1 rounded border border-indigo-100">{brand_positioning}</code>
+                                    </div>
+                                    <p class="text-xs text-indigo-600 mt-2">
+                                        <strong>{keyword}</strong> = Target keyword &middot;
+                                        <strong>{lang}</strong> = Bahasa (id/en) &middot;
+                                        <strong>{country}</strong> = Negara target &middot;
+                                        <strong>{tone}</strong> = Tone konten (formal/friendly/persuasive/authoritative/conversational) &middot;
+                                        <strong>{brand_names}</strong> = Nama brand &middot;
+                                        <strong>{brand_positioning}</strong> = Positioning brand
                                     </p>
                                 </div>
 

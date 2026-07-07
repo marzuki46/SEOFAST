@@ -145,6 +145,18 @@
                         </select>
                         <p class="text-xs text-slate-400 mt-1.5">Menentukan struktur outline konten yang akan diikuti AI saat menulis.</p>
                     </div>
+
+                    <div>
+                        <label for="content_tone" class="block text-sm font-semibold text-slate-700 mb-1">Content Tone</label>
+                        <select name="content_tone" id="content_tone" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 bg-white focus:border-indigo-500 outline-none">
+                            <option value="formal">Formal — Profesional & Berwibawa</option>
+                            <option value="friendly">Friendly — Ramah & Hangat</option>
+                            <option value="persuasive">Persuasif — Meyakinkan & Menggugah</option>
+                            <option value="authoritative">Otoritatif — Tegas & Berbasis Data</option>
+                            <option value="conversational">Conversational — Natural & Mengalir</option>
+                        </select>
+                        <p class="text-xs text-slate-400 mt-1.5">Menentukan gaya bahasa yang digunakan AI saat menulis artikel.</p>
+                    </div>
                 </div>
                 <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button type="button" onclick="document.getElementById('createSiloModal').classList.add('hidden')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition">Cancel</button>
