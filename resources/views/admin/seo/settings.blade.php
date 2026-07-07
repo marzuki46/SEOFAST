@@ -184,6 +184,22 @@
                                         <input type="url" name="favicon_url" value="{{ $settings['seo_global']['favicon_url'] ?? \App\Models\SystemSetting::get('favicon_url') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="https://domain.com/favicon.ico">
                                     </div>
                                 </div>
+
+                                <div class="border-t border-slate-100 pt-6 mt-6">
+                                    <h4 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2"><span class="text-brand-indigo">✍</span> Author Profile (Artikel Blog)</h4>
+                                    <div class="grid grid-cols-1 gap-5">
+                                        <div>
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">Author Name</label>
+                                            <input type="text" name="author_name" value="{{ \App\Models\SystemSetting::get('author_name', 'SEOFAST Intelligence Engine') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="SEOFAST Intelligence Engine">
+                                            <p class="text-xs text-slate-400 mt-1">Nama penulis yang tampil di setiap artikel blog.</p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">Author Bio</label>
+                                            <textarea name="author_bio" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Bio penulis...">{{ \App\Models\SystemSetting::get('author_bio', 'This article was generated and optimized using the SEOFAST content engine, utilizing semantic keyword planning, structural silo logic, and automated GSC inspection verification.') }}</textarea>
+                                            <p class="text-xs text-slate-400 mt-1">Bio singkat yang tampil di bawah nama penulis.</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
                         @elseif($key === 'multilingual')

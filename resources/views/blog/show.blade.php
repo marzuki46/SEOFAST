@@ -181,12 +181,12 @@
                 <!-- Author Bio Card -->
                 <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm mt-12 flex gap-4 items-start">
                     <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-indigo to-brand-purple flex items-center justify-center font-outfit font-extrabold text-white text-md shadow-lg shadow-brand-indigo/10">
-                        SF
+                        {{ strtoupper(substr(\App\Models\SystemSetting::get('author_name', 'SEOFAST Intelligence Engine'), 0, 1)) }}
                     </div>
                     <div>
-                        <h4 class="font-outfit font-bold text-slate-900 text-base">Written by SEOFAST Intelligence Engine</h4>
+                        <h4 class="font-outfit font-bold text-slate-900 text-base">Written by {{ \App\Models\SystemSetting::get('author_name', 'SEOFAST Intelligence Engine') }}</h4>
                         <p class="text-slate-600 text-sm mt-1 leading-relaxed">
-                            This article was generated and optimized using the SEOFAST content engine, utilizing semantic keyword planning, structural silo logic, and automated GSC inspection verification.
+                            {{ \App\Models\SystemSetting::get('author_bio', 'This article was generated and optimized using the SEOFAST content engine, utilizing semantic keyword planning, structural silo logic, and automated GSC inspection verification.') }}
                         </p>
                     </div>
                 </div>
