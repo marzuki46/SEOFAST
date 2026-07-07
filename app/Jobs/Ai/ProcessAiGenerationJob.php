@@ -108,11 +108,19 @@ class ProcessAiGenerationJob implements ShouldQueue
         $aiService = new AIService($content->tenant, 'default');
 
         // METHOD 1: Generate structured JSON with LSI, Entities, and Anchor keywords
+        $brandNames       = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
+        $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
+
         $sysTemplate = \App\Models\SystemSetting::get(
             'ai_prompt_phase1_sys',
             'You are an Expert SEO Strategist. Generate LSI keywords, semantic entities, and anchor keywords (anchor texts for internal links) relevant to "{keyword}". Return ONLY a valid JSON object with exactly this structure: {"lsi": ["keyword1", "keyword2", "keyword3"], "entities": ["entity1", "entity2", "entity3"], "anchors": ["anchor text 1", "anchor text 2", "anchor text 3"]}. NO MARKDOWN, NO EXTRA TEXT.'
         );
         $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country]);
+        if ($brandNames || $brandPositioning) {
+            $sysPrompt .= "\n\nRelevant brand context (use when appropriate):\n";
+            if ($brandNames) $sysPrompt .= "Brand names: {$brandNames}\n";
+            if ($brandPositioning) $sysPrompt .= "Brand positioning: {$brandPositioning}\n";
+        }
         $langPh1    = $lang === 'id' ? "BUAT LSI, ENTITIES, DAN ANCHOR KEYWORD DALAM BAHASA INDONESIA.\n" : '';
         $userPrompt = "{$langPh1}Topic: {$keyword}\nLanguage: {$lang}\nCountry: {$country}";
 
@@ -175,6 +183,41 @@ class ProcessAiGenerationJob implements ShouldQueue
     // -------------------------------------------------------------------------
     // PHASE 2 — Initial Draft + Internal Links
     // -------------------------------------------------------------------------
+
+    private function styleInstructions(string $lang): string
+    {
+        $base = $lang === 'id'
+            ? "### FORMAT PENULISAN (WAJIB):\n"
+            . "- DILARANG menggunakan bullet list, numbered list, atau format daftar apapun.\n"
+            . "- Setiap paragraf WAJIB terdiri dari 3–5 kalimat yang padat dan informatif.\n"
+            . "- Gunakan kata transisi (sehingga, oleh karena itu, selain itu, dengan demikian, sebagai contoh) untuk menghubungkan antar paragraf agar mengalir natural sebagai satu kesatuan.\n"
+            . "- Apabila perlu menampilkan data, perbandingan, fitur, atau informasi terstruktur — GUNAKAN TABEL HTML (<table> dengan <thead>, <tbody>, <th>, <td>) JANGAN gunakan daftar.\n"
+            . "- Jaga gaya bahasa formal Indonesia yang enak dibaca (rata kiri-kanan / justify)."
+            : "- DO NOT use bullet points, numbered lists, or any list format.\n"
+            . "- Every paragraph MUST have 3–5 sentences.\n"
+            . "- Use transition words (therefore, moreover, consequently, for example, additionally) to connect paragraphs into one cohesive flow.\n"
+            . "- When displaying data, comparisons, features, or structured information — use HTML TABLES (<table> with <thead>, <tbody>, <th>, <td>) DO NOT use lists.\n"
+            . "- Keep the writing style natural and flowing (justified alignment).";
+
+        $brandNames       = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
+        $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
+        if ($brandNames || $brandPositioning) {
+            $brands = [];
+            if ($brandNames) {
+                $brands[] = $lang === 'id'
+                    ? "Nama brand yang harus disebutkan secara natural dalam konten: {$brandNames}."
+                    : "Brand names to mention naturally in the content: {$brandNames}.";
+            }
+            if ($brandPositioning) {
+                $brands[] = $lang === 'id'
+                    ? "Positioning brand yang harus diintegrasikan: {$brandPositioning}."
+                    : "Brand positioning to integrate: {$brandPositioning}.";
+            }
+            $base .= "\n\n### BRAND INTEGRATION:\n" . implode("\n", $brands);
+        }
+
+        return $base;
+    }
 
     private function runPhase2(Content $content, AiGenerationJob $job): void
     {
@@ -291,7 +334,9 @@ class ProcessAiGenerationJob implements ShouldQueue
             . "- **Authoritativeness (Otoritas)** — Bangun kredibilitas. Sertakan kutipan ahli, link ke sumber resmi, sertifikasi, atau penghargaan.\n"
             . "- **Trustworthiness (Kepercayaan)** — Jaga akurasi. Cantumkan tanggal publikasi, author bio singkat, sumber data, dan hindari klaim berlebihan.";
 
-        $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals";
+        $styleReq = $this->styleInstructions($lang);
+
+        $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n{$styleReq}";
 
         $sysTemplate = \App\Models\SystemSetting::get(
             'ai_prompt_phase2_sys',
@@ -415,12 +460,14 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         $criticalQs = implode("\n- ", $questions);
 
+        $styleReq = $this->styleInstructions($lang);
+
         $sysTemplate = \App\Models\SystemSetting::get(
             'ai_prompt_phase4_sys',
             "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions' in paragraph form. DO NOT generate code blocks, HTML, or technical implementations. Write in natural language only. Return ONLY the answers in Markdown formatting."
         );
         $sysPrompt  = strtr($sysTemplate, ['{lang}' => $lang, '{keyword}' => $keyword]);
-        $userPrompt = "{$li}\n\nTopic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}";
+        $userPrompt = "{$li}\n\nTopic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}\n\n{$styleReq}";
 
         $aiService = new AIService($content->tenant, 'default');
         $answers   = $aiService->generate($sysPrompt, $userPrompt);
@@ -467,6 +514,8 @@ class ProcessAiGenerationJob implements ShouldQueue
             ? " CRITICAL: Preserve the {$framework} content framework structure exactly as in the original draft."
             : '';
 
+        $styleReq = $this->styleInstructions($lang);
+
         $sysP5 = \App\Models\SystemSetting::get(
             'ai_prompt_phase5_sys',
             "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Strengthen E-E-A-T signals (Experience, Expertise, Authoritativeness, Trustworthiness). Return ONLY the improved Markdown."
@@ -478,7 +527,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             '{brand_names}'       => $brandNames,
             '{brand_positioning}' => $brandPositioning,
         ]);
-        $userP5 = "{$li}\n\nKeyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}";
+        $userP5 = "{$li}\n\nKeyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}\n\n{$styleReq}";
 
         $aiService = new AIService($content->tenant, 'default');
         $combined  = $aiService->generate($sysP5, $userP5);
@@ -494,9 +543,11 @@ class ProcessAiGenerationJob implements ShouldQueue
         // Step B: Convert to HTML
         Log::info("AI Phase 5 (HTML) START | job={$job->id}");
 
+        $styleReq = $this->styleInstructions($lang);
+
         $sysP6 = \App\Models\SystemSetting::get(
             'ai_prompt_phase6_sys',
-            "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body."
+            "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, <table>, <thead>, <tbody>, <th>, <td>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body."
         );
         $sysP6 = strtr($sysP6, [
             '{lang}'              => $lang,
@@ -504,6 +555,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             '{brand_names}'       => $brandNames,
             '{brand_positioning}' => $brandPositioning,
         ]);
+        $sysP6 .= "\n\n{$styleReq}";
         $sysP6 .= "\n\nCRITICAL: Wrap your ENTIRE final HTML output inside <article_body> and </article_body> tags. Do not include any text outside these tags.";
         $userP6 = "{$li}\n\nKeyword: **{$keyword}**\n\nArticle:\n{$combined}";
 
