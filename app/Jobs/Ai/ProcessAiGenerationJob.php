@@ -87,12 +87,20 @@ class ProcessAiGenerationJob implements ShouldQueue
     // PHASE 1 — LSI / Entity Keywords
     // -------------------------------------------------------------------------
 
+    private function langInstruct(string $lang): string
+    {
+        return $lang === 'id'
+            ? 'TULIS DALAM BAHASA INDONESIA. Gunakan gaya bahasa formal Indonesia yang natural dan mudah dipahami.'
+            : "Write in {$lang}. Use natural, fluent language.";
+    }
+
     private function runPhase1(Content $content, AiGenerationJob $job): void
     {
         $keyword     = $content->target_keyword;
         $seedKeyword = $content->siloBlueprint?->seed_keyword ?? $keyword;
         $lang        = $content->siloBlueprint?->target_language ?? 'id';
         $country     = $content->siloBlueprint?->target_country ?? 'ID';
+        $li          = $this->langInstruct($lang);
 
         Log::info("AI Phase 1 (LSI + Entities) START | job={$job->id} | keyword={$keyword}");
 
@@ -104,7 +112,8 @@ class ProcessAiGenerationJob implements ShouldQueue
             'You are an Expert SEO Strategist. Generate LSI keywords and semantic entities relevant to "{keyword}". Return ONLY a valid JSON object with exactly this structure: {"lsi": ["keyword1", "keyword2", "keyword3"], "entities": ["entity1", "entity2", "entity3"]}. NO MARKDOWN, NO EXTRA TEXT.'
         );
         $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country]);
-        $userPrompt = "Topic: {$keyword}\nLanguage: {$lang}\nCountry: {$country}";
+        $langPh1    = $lang === 'id' ? "BUAT LSI DAN ENTITIES DALAM BAHASA INDONESIA.\n" : '';
+        $userPrompt = "{$langPh1}Topic: {$keyword}\nLanguage: {$lang}\nCountry: {$country}";
 
         $result = $aiService->generateJson($sysPrompt, $userPrompt);
 
@@ -161,6 +170,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         $seedKeyword = $content->siloBlueprint?->seed_keyword ?? $keyword;
         $lang        = $content->siloBlueprint?->target_language ?? 'id';
         $country     = $content->siloBlueprint?->target_country ?? 'ID';
+        $li          = $this->langInstruct($lang);
         $rawLsi     = $job->phase_1_lsi;
 
         if (!$rawLsi) {
@@ -276,7 +286,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 1000 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Also naturally integrate the Entity keywords throughout the content. Return ONLY the article draft."
         );
         $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country]);
-        $userPrompt = "Keyword: **{$keyword}**\nSeed: {$seedKeyword}\nLSI Keywords: {$lsiText}\n";
+        $userPrompt = "{$li}\n\nKeyword: **{$keyword}**\nSeed: {$seedKeyword}\nLSI Keywords: {$lsiText}\n";
         if ($entityText) {
             $userPrompt .= "Entity Keywords: {$entityText}\n";
         }
@@ -315,6 +325,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         $keyword = $content->target_keyword;
         $draft   = $job->phase_1_draft;
         $lang    = $content->siloBlueprint?->target_language ?? 'id';
+        $li      = $this->langInstruct($lang);
         $framework = $content->content_framework ?? $content->siloBlueprint?->content_framework ?? 'default';
 
         if (!$draft) {
@@ -377,6 +388,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         $draft    = $job->phase_1_draft;
         $critique = $job->phase_2_critique;
         $lang     = $content->siloBlueprint?->target_language ?? 'id';
+        $li       = $this->langInstruct($lang);
 
         if (!$draft || !$critique) {
             throw new \Exception('Phase 4 (Answers) FAILED: missing draft or critique from DB.');
@@ -396,7 +408,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions' in paragraph form. DO NOT generate code blocks, HTML, or technical implementations. Write in natural language only. Return ONLY the answers in Markdown formatting."
         );
         $sysPrompt  = strtr($sysTemplate, ['{lang}' => $lang, '{keyword}' => $keyword]);
-        $userPrompt = "Topic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}";
+        $userPrompt = "{$li}\n\nTopic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}";
 
         $aiService = new AIService($content->tenant, 'default');
         $answers   = $aiService->generate($sysPrompt, $userPrompt);
@@ -426,6 +438,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         $draft    = $job->phase_1_draft;
         $answers  = $job->phase_4_answers;
         $lang     = $content->siloBlueprint?->target_language ?? 'id';
+        $li       = $this->langInstruct($lang);
 
         if (!$draft || !$answers) {
             throw new \Exception('Phase 5 (Combine+HTML) FAILED: missing draft or answers from DB.');
@@ -453,7 +466,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             '{brand_names}'       => $brandNames,
             '{brand_positioning}' => $brandPositioning,
         ]);
-        $userP5 = "Keyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}";
+        $userP5 = "{$li}\n\nKeyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}";
 
         $aiService = new AIService($content->tenant, 'default');
         $combined  = $aiService->generate($sysP5, $userP5);
@@ -480,7 +493,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             '{brand_positioning}' => $brandPositioning,
         ]);
         $sysP6 .= "\n\nCRITICAL: Wrap your ENTIRE final HTML output inside <article_body> and </article_body> tags. Do not include any text outside these tags.";
-        $userP6 = "Keyword: **{$keyword}**\n\nArticle:\n{$combined}";
+        $userP6 = "{$li}\n\nKeyword: **{$keyword}**\n\nArticle:\n{$combined}";
 
         $finalBody = $aiService->generate($sysP6, $userP6);
 
