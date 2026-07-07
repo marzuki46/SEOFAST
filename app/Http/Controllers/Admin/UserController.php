@@ -11,8 +11,11 @@ class UserController extends Controller
     /**
      * Tampilkan semua User Pembantu.
      */
-    public function index()
+    public function index(Request $request)
     {
+        if ($request->hasSession()) {
+            $request->session()->save();
+        }
         $users = User::where('role', 'user')->latest()->paginate(20);
         return view('admin.users.index', compact('users'));
     }
