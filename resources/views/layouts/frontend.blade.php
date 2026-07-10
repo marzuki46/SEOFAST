@@ -305,7 +305,9 @@
                         @endforeach
                     @else
                         <a href="{{ route('home') }}" class="hover:text-slate-900 transition-colors {{ request()->routeIs('home') ? 'text-slate-900 font-semibold' : '' }}">Home</a>
+                        <a href="{{ route('products.catalog') }}" class="hover:text-slate-900 transition-colors {{ request()->routeIs('products.*') ? 'text-slate-900 font-semibold' : '' }}">Produk</a>
                         <a href="{{ route('blog.index') }}" class="hover:text-slate-900 transition-colors {{ request()->routeIs('blog.*') ? 'text-slate-900 font-semibold' : '' }}">Blog</a>
+                        <a href="{{ route('contact.show') }}" class="hover:text-slate-900 transition-colors {{ request()->routeIs('contact.*') ? 'text-slate-900 font-semibold' : '' }}">Kontak</a>
                     @endif
                 </div>
             </div>
@@ -400,7 +402,9 @@
                     @endforeach
                 @else
                     <a href="{{ route('home') }}" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-brand-indigo rounded-lg transition-colors">Home</a>
+                    <a href="{{ route('products.catalog') }}" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-brand-indigo rounded-lg transition-colors">Produk</a>
                     <a href="{{ route('blog.index') }}" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-brand-indigo rounded-lg transition-colors">Blog</a>
+                    <a href="{{ route('contact.show') }}" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-brand-indigo rounded-lg transition-colors">Kontak</a>
                 @endif
                 
                 <div class="pt-6 mt-6 border-t border-slate-200/60 flex flex-col gap-3">
@@ -503,6 +507,7 @@
                     &copy; {{ date('Y') }} {{ $brandName }} Inc. All rights reserved. Made for speed & high performance.
                 </p>
                 <div class="flex gap-6 text-xs text-slate-500">
+                    <a href="{{ route('contact.show') }}" class="hover:text-slate-900 transition-colors">Kontak</a>
                     <a href="{{ url('/privacy-policy') }}" class="hover:text-slate-900 transition-colors">Privacy Policy</a>
                     <a href="{{ url('/terms-of-service') }}" class="hover:text-slate-900 transition-colors">Terms of Service</a>
                     <a href="{{ url('/sitemap.xml') }}" class="hover:text-slate-900 transition-colors" target="_blank">Sitemap</a>

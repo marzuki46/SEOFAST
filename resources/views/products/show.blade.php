@@ -3,7 +3,7 @@
 @php
     use App\Models\SystemSetting;
     $siteName = SystemSetting::get('site_name', config('app.name'));
-    $sections = $product->display_sections ?? ['description', 'features', 'specifications'];
+    $sections = $product->display_sections ?? ['description', 'features', 'specifications', 'faq', 'changelog', 'documentation'];
 @endphp
 @section('title', $product->name . ' — ' . $siteName)
 @section('meta_description', strip_tags($product->description))

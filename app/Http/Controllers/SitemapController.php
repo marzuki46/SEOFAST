@@ -81,6 +81,9 @@ class SitemapController extends Controller
         // Homepage
         $xml .= '  <url><loc>' . url('/') . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>1.0</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
 
+        // Contact
+        $xml .= '  <url><loc>' . url('/contact') . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>' . PHP_EOL;
+
         // Blog Index
         $xml .= '  <url><loc>' . url('/' . $blogPrefix) . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.9</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
 
@@ -164,6 +167,7 @@ class SitemapController extends Controller
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 
         $xml .= '  <url><loc>' . url('/en') . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>1.0</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
+        $xml .= '  <url><loc>' . url('/en/contact') . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>' . PHP_EOL;
         $xml .= '  <url><loc>' . url('/en/' . $blogPrefix) . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.9</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
 
         foreach ($categories as $category) {
