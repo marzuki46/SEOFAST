@@ -47,6 +47,7 @@ use App\Models\SystemSetting;
 // Public Blog Routes
 $blogRoutes = function() {
     Route::get('/', [BlogController::class, 'index'])->name('index');
+    Route::get('/tag/{slug}', [BlogController::class, 'tag'])->name('tag');
     Route::get('/category/{slug}', [BlogController::class, 'category'])->name('category');
     Route::get('/preview/{slug}', [BlogController::class, 'preview'])->name('preview');
     Route::get('/{slug}', [BlogController::class, 'show'])->name('show');
@@ -75,6 +76,7 @@ $productRoutes = function() {
     Route::get('/', [\App\Http\Controllers\ProductSalesController::class, 'index'])->name('catalog');
     Route::get('/{slug}', [\App\Http\Controllers\ProductSalesController::class, 'show'])->name('show');
     Route::post('/{product}/order', [\App\Http\Controllers\ProductSalesController::class, 'order'])->name('order');
+    Route::post('/{product}/pre-order', [\App\Http\Controllers\PreOrderController::class, 'store'])->name('pre-order');
 };
 
 $productPrefix = SystemSetting::get('permalink_product', 'produk');
@@ -110,6 +112,14 @@ Route::prefix('en')->group(function() use ($projectPrefix, $projectRoutes) {
         Route::prefix($projectPrefix)->name('en.projects.')->group($projectRoutes);
     }
 });
+
+// Midtrans Payment Routes
+use App\Http\Controllers\CompetitorAnalysisController;
+use App\Http\Controllers\PaymentController;
+Route::post('/payment/notification', [PaymentController::class, 'notification'])->name('payment.notification');
+Route::get('/payment/finish', [PaymentController::class, 'finish'])->name('payment.finish');
+Route::get('/payment/pending', [PaymentController::class, 'pending'])->name('payment.pending');
+Route::get('/payment/error', [PaymentController::class, 'error'])->name('payment.error');
 
 // Authentication Routes (Admin)
 Route::middleware('guest')->group(function () {
@@ -193,6 +203,21 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{product}', [\App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('destroy');
         });
 
+        // Pre-Orders
+        Route::get('/pre-orders', [\App\Http\Controllers\Admin\PreOrderController::class, 'global'])->name('admin.pre-orders.global');
+        Route::prefix('products/{product}/pre-orders')->name('admin.pre-orders.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\PreOrderController::class, 'index'])->name('index');
+            Route::post('/launch', [\App\Http\Controllers\Admin\PreOrderController::class, 'launch'])->name('launch');
+        });
+
+        // Product Categories
+        Route::prefix('product-categories')->name('admin.product-categories.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ProductCategoryController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Admin\ProductCategoryController::class, 'store'])->name('store');
+            Route::put('/{productCategory}', [\App\Http\Controllers\Admin\ProductCategoryController::class, 'update'])->name('update');
+            Route::delete('/{productCategory}', [\App\Http\Controllers\Admin\ProductCategoryController::class, 'destroy'])->name('destroy');
+        });
+
         // Media Library
         Route::prefix('media')->name('admin.media.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('index');
@@ -220,12 +245,22 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{content}/images/select', [\App\Http\Controllers\Admin\ImageSearchController::class, 'select'])->name('images.select');
             Route::post('/{content}/images/ai-generate', [\App\Http\Controllers\Admin\ImageSearchController::class, 'generateAiIllustration'])->name('images.ai-generate');
             
+            Route::get('/trash', [\App\Http\Controllers\Admin\ContentController::class, 'trash'])->name('trash');
+            Route::post('/{content}/restore', [\App\Http\Controllers\Admin\ContentController::class, 'restore'])->name('restore')->withTrashed();
+            Route::delete('/{content}/force-delete', [\App\Http\Controllers\Admin\ContentController::class, 'forceDelete'])->name('force_delete')->withTrashed();
             Route::get('/{content}', [\App\Http\Controllers\Admin\ContentController::class, 'show'])->name('show');
             Route::get('/{content}/edit', [\App\Http\Controllers\Admin\ContentController::class, 'edit'])->name('edit');
             Route::put('/{content}', [\App\Http\Controllers\Admin\ContentController::class, 'update'])->name('update');
             Route::post('/{content}/generate', [\App\Http\Controllers\Admin\ContentController::class, 'generateAi'])->name('generate');
             Route::post('/bulk-publish', [\App\Http\Controllers\Admin\ContentController::class, 'bulkPublish'])->name('bulk_publish');
             Route::delete('/{content}', [\App\Http\Controllers\Admin\ContentController::class, 'destroy'])->name('destroy');
+        });
+
+        // WordPress Import / Export
+        Route::prefix('wordpress')->name('admin.wordpress.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\WordPressController::class, 'index'])->name('index');
+            Route::post('/import', [\App\Http\Controllers\Admin\WordPressController::class, 'import'])->name('import');
+            Route::get('/export', [\App\Http\Controllers\Admin\WordPressController::class, 'export'])->name('export');
         });
 
         // Billing & Invoices (Legacy / Tenant)
@@ -254,6 +289,21 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{order}', [\App\Http\Controllers\Admin\OrderManagementController::class, 'show'])->name('show');
             Route::post('/{order}/verify', [\App\Http\Controllers\Admin\OrderManagementController::class, 'verify'])->name('verify');
             Route::post('/{order}/reject', [\App\Http\Controllers\Admin\OrderManagementController::class, 'reject'])->name('reject');
+        });
+
+        // Support Tickets (Super Admin)
+        Route::prefix('tickets')->name('admin.tickets.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\TicketManagementController::class, 'index'])->name('index');
+            Route::get('/{ticket}', [\App\Http\Controllers\Admin\TicketManagementController::class, 'show'])->name('show');
+            Route::post('/{ticket}/reply', [\App\Http\Controllers\Admin\TicketManagementController::class, 'reply'])->name('reply');
+            Route::post('/{ticket}/status', [\App\Http\Controllers\Admin\TicketManagementController::class, 'updateStatus'])->name('status');
+        });
+
+        // Contact Inquiries (Super Admin)
+        Route::prefix('inquiries')->name('admin.inquiries.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\InquiryController::class, 'index'])->name('index');
+            Route::get('/{inquiry}', [\App\Http\Controllers\Admin\InquiryController::class, 'show'])->name('show');
+            Route::post('/{inquiry}/replied', [\App\Http\Controllers\Admin\InquiryController::class, 'markReplied'])->name('replied');
         });
 
         // Static Pages & Page Builder
@@ -349,6 +399,14 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\SerpRankController::class, 'index'])->name('index');
             Route::post('/sample', [\App\Http\Controllers\Admin\SerpRankController::class, 'generateSample'])->name('sample');
         });
+
+        // Competitor Analysis
+        Route::prefix('competitor-analysis')->name('admin.competitor-analysis.')->controller(CompetitorAnalysisController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{analysis}', 'show')->name('show');
+            Route::delete('/{analysis}', 'destroy')->name('destroy');
+        });
     });
 });
 
@@ -356,7 +414,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
-Route::get('/force-migrate', function () {
+Route::middleware(['auth', 'auth.admin'])->get('/force-migrate', function () {
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     return 'Database migrated successfully! Artisan output: ' . \Illuminate\Support\Facades\Artisan::output();
 });
@@ -390,10 +448,23 @@ Route::prefix('buyer')->name('buyer.')->group(function () {
         Route::post('/orders/{order}/upload-proof', [\App\Http\Controllers\Buyer\BuyerOrderController::class, 'uploadProof'])->name('orders.upload_proof');
         Route::get('/products', [\App\Http\Controllers\Buyer\BuyerProductController::class, 'index'])->name('products.index');
         Route::get('/products/{access}', [\App\Http\Controllers\Buyer\BuyerProductController::class, 'access'])->name('products.access');
-        // Route::get('/profile', [\App\Http\Controllers\Buyer\BuyerProfileController::class, 'index'])->name('profile');
-        // Route::put('/profile', [\App\Http\Controllers\Buyer\BuyerProfileController::class, 'update'])->name('profile.update');
+
+        // Support Tickets
+        Route::get('/tickets', [\App\Http\Controllers\Buyer\BuyerTicketController::class, 'index'])->name('tickets.index');
+        Route::get('/tickets/create', [\App\Http\Controllers\Buyer\BuyerTicketController::class, 'create'])->name('tickets.create');
+        Route::post('/tickets', [\App\Http\Controllers\Buyer\BuyerTicketController::class, 'store'])->middleware('throttle:5,3')->name('tickets.store');
+        Route::get('/tickets/{ticket}', [\App\Http\Controllers\Buyer\BuyerTicketController::class, 'show'])->name('tickets.show');
+        Route::post('/tickets/{ticket}/reply', [\App\Http\Controllers\Buyer\BuyerTicketController::class, 'reply'])->middleware('throttle:10,3')->name('tickets.reply');
     });
 });
+// Contact / Inquiry
+Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'show'])->name('contact.show');
+Route::get('/contact-us', function () { return redirect()->route('contact.show'); });
+Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'submit'])->middleware('throttle:3,5')->name('contact.submit');
+
+// Global Search
+Route::get('/search', [\App\Http\Controllers\SearchController::class, 'index'])->name('search');
+
 // English Locale (EN) — Home & Pages
 Route::get('/en', [\App\Http\Controllers\PageController::class, 'home'])->name('en.home');
 Route::get('/en/{slug}', [\App\Http\Controllers\PageController::class, 'show'])->where('slug', '.*')->name('en.page.show');

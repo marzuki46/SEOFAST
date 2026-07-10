@@ -4,14 +4,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', config('app.name', 'SEOFAST V3'))</title>
+    <title>@yield('title', config('app.name'))</title>
 
     @fonts
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @else
-        <script src="https://cdn.tailwindcss.com"></script>
-    @endif
+    @php
+        $manifestPath = public_path('build/manifest.json');
+        $manifest = file_exists($manifestPath) ? json_decode(file_get_contents($manifestPath), true) : [];
+        $cssFile = $manifest['resources/css/app.css']['file'] ?? null;
+        $jsFile = $manifest['resources/js/app.js']['file'] ?? null;
+    @endphp
+    @if($cssFile)<link rel="stylesheet" href="{{ asset('build/'.$cssFile) }}">@endif
+    @if($jsFile)<script type="module" src="{{ asset('build/'.$jsFile) }}"></script>@endif
 </head>
 <body class="h-full font-sans antialiased">
     @yield('content')

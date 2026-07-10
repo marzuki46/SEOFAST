@@ -20,7 +20,7 @@
             $seoTitle = SeoHelper::homepageTitle();
         }
 
-        $siteName    = SystemSetting::get('site_name', config('app.name', 'SEOFAST'));
+        $siteName    = SystemSetting::get('site_name', config('app.name'));
         $siteVerif   = SystemSetting::get('seo_global_google_site_verification');
         $bingVerif   = SystemSetting::get('seo_indexing_bing_verification');
         $keywords    = SystemSetting::get('homepage_meta_keywords');
@@ -127,10 +127,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Compiled CSS & JS (Vite) — Alpine.js bundled -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Compiled CSS & JS -->
+    @php
+        $manifestPath = public_path('build/manifest.json');
+        $manifest = file_exists($manifestPath) ? json_decode(file_get_contents($manifestPath), true) : [];
+        $cssFile = $manifest['resources/css/app.css']['file'] ?? null;
+        $jsFile = $manifest['resources/js/app.js']['file'] ?? null;
+    @endphp
+    @if($cssFile)<link rel="stylesheet" href="{{ asset('build/'.$cssFile) }}">@endif
+    @if($jsFile)<script type="module" src="{{ asset('build/'.$jsFile) }}"></script>@endif
 
     <style>
+        [x-cloak] { display: none !important; }
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc; /* slate-50 */
@@ -210,7 +218,7 @@
             "@@type": "SearchAction",
             "target": {
                 "@@type": "EntryPoint",
-                "urlTemplate": "{{ url(SystemSetting::get('permalink_blog', 'blog')) }}?q={search_term_string}"
+                "urlTemplate": "{{ route('search', ['q' => '{search_term_string}']) }}"
             },
             "query-input": "required name=search_term_string"
         }
@@ -303,6 +311,22 @@
             </div>
 
             <div class="hidden md:flex items-center gap-4">
+                <!-- Search Toggle -->
+                <div x-data="{ searchOpen: false }" class="relative" @click.away="searchOpen = false">
+                    <button @click="searchOpen = !searchOpen" aria-label="Search" class="flex items-center justify-center w-10 h-10 text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 rounded-xl transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </button>
+                    <div x-show="searchOpen" x-transition class="absolute right-0 mt-2 w-96" style="display:none;">
+                        <form method="GET" action="{{ route('search') }}" class="bg-white border border-slate-200 rounded-xl shadow-lg p-3">
+                            <div class="relative">
+                                <input type="text" name="q" placeholder="Search everything..." autofocus
+                                       class="w-full rounded-lg border border-slate-300 pl-10 pr-4 py-2.5 text-sm focus:border-brand-indigo focus:ring-1 focus:ring-brand-indigo outline-none">
+                                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 @if(\App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '1' && $hasEnVersion)
                     <div class="relative" x-data="{ langOpen: false }" @click.away="langOpen = false">
                         <button @click="langOpen = !langOpen" aria-label="Toggle Language" aria-expanded="false" :aria-expanded="langOpen.toString()" class="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors bg-white/50 px-2 py-1.5 rounded-lg border border-slate-200 shadow-sm">

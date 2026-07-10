@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin Dashboard - SEOFAST V3')</title>
+    <title>@yield('title', 'Admin Dashboard - ' . config('app.name'))</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -92,7 +92,7 @@
                     </a>
                     
                     <!-- GROUP: Content Production -->
-                    <div x-data="{ open: {{ request()->routeIs('admin.silo.*', 'admin.links.*', 'admin.content.*') ? 'true' : 'false' }} }" class="pt-2">
+                    <div x-data="{ open: {{ request()->routeIs('admin.silo.*', 'admin.links.*', 'admin.content.*', 'admin.wordpress.*') ? 'true' : 'false' }} }" class="pt-2">
                         <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-300 transition-colors">
                             <span>Content Pipeline</span>
                             <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -119,6 +119,14 @@
                             <a href="{{ route('admin.content.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content.index') || request()->routeIs('admin.content.show') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 7. All Posts
                             </a>
+                            <a href="{{ route('admin.content.trash') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content.trash') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                Trash
+                            </a>
+                            <a href="{{ route('admin.wordpress.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.wordpress.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                                WP Import / Export
+                            </a>
                         </div>
                     </div>
 
@@ -143,17 +151,31 @@
                     </div>
 
                     <!-- GROUP: Sales & Products -->
-                    <div x-data="{ open: {{ request()->routeIs('admin.products.*', 'admin.orders.*', 'admin.billing.*') ? 'true' : 'false' }} }" class="pt-2">
+                    <div x-data="{ open: {{ request()->routeIs('admin.products.*', 'admin.product-categories.*', 'admin.orders.*', 'admin.tickets.*', 'admin.inquiries.*', 'admin.billing.*', 'admin.pre-orders.*') ? 'true' : 'false' }} }" class="pt-2">
                         <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-300 transition-colors">
                             <span>Commerce</span>
                             <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
                         <div x-show="open" x-collapse class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
-                            <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.products.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                            <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.products.*') && !request()->routeIs('admin.product-categories.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 Digital Products
+                            </a>
+                            <a href="{{ route('admin.product-categories.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.product-categories.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                Product Categories
                             </a>
                             <a href="{{ route('admin.orders.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.orders.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 Customer Orders
+                            </a>
+                            <a href="{{ route('admin.tickets.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.tickets.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                                Support Tickets
+                            </a>
+                            <a href="{{ route('admin.inquiries.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.inquiries.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                Contact Inquiries
+                            </a>
+                            <a href="{{ route('admin.pre-orders.global') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.pre-orders.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                Pre-Orders
                             </a>
                             <a href="{{ route('admin.billing.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.billing.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 Billing Stats
@@ -162,7 +184,7 @@
                     </div>
 
                     <!-- GROUP: Configuration & Tools -->
-                    <div x-data="{ open: {{ request()->routeIs('admin.settings.*', 'admin.seo.settings.*', 'admin.users.*', 'admin.gsc.*', 'admin.infrastructure.*', 'admin.redirects.*', 'admin.errors.*', 'admin.broken-links.*', 'admin.duplicates.*', 'admin.readability.*', 'admin.url-audit.*', 'admin.serp-rank.*') ? 'true' : 'false' }} }" class="pt-2">
+                    <div x-data="{ open: {{ request()->routeIs('admin.settings.*', 'admin.seo.settings.*', 'admin.users.*', 'admin.gsc.*', 'admin.infrastructure.*', 'admin.redirects.*', 'admin.errors.*', 'admin.broken-links.*', 'admin.duplicates.*', 'admin.readability.*', 'admin.url-audit.*', 'admin.serp-rank.*', 'admin.competitor-analysis.*') ? 'true' : 'false' }} }" class="pt-2">
                         <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-300 transition-colors">
                             <span>System Admin</span>
                             <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -203,6 +225,10 @@
                             <a href="{{ route('admin.serp-rank.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.serp-rank.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
                                 SERP Rank
+                            </a>
+                            <a href="{{ route('admin.competitor-analysis.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.competitor-analysis.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5"/></svg>
+                                Competitor Analysis
                             </a>
                             <a href="{{ route('admin.redirects.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.redirects.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
