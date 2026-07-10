@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Silo Blueprints & Keywords - SEOFAST')
+@section('title', 'Silo Blueprints & Keywords - ' . config('app.name'))
 @section('page_title', 'Topical Maps & Keywords')
 
 @section('admin_content')

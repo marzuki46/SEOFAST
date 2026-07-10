@@ -1,7 +1,7 @@
 @extends('layouts.frontend')
 
-@section('title', 'Portofolio Proyek — ' . \App\Models\SystemSetting::get('site_name', 'SEOFAST'))
-@section('meta_description', 'Jelajahi portofolio proyek SEOFAST: studi kasus nyata tentang implementasi SEO, konten AI, dan otomasi pemasaran digital.')
+@section('title', 'Portofolio Proyek — ' . \App\Models\SystemSetting::get('site_name', config('app.name')))
+@section('meta_description', 'Jelajahi portofolio proyek ' . \App\Models\SystemSetting::get('site_name', config('app.name')) . ': studi kasus nyata tentang implementasi SEO, konten AI, dan otomasi pemasaran digital.')
 @section('canonical_url', url()->current())
 
 @section('content')

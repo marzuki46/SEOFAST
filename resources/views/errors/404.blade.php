@@ -1,6 +1,6 @@
 @extends('layouts.frontend')
 
-@section('title', '404 - Halaman Tidak Ditemukan | SEOFAST')
+@section('title', '404 - Halaman Tidak Ditemukan | ' . config('app.name'))
 @section('meta_description', 'Maaf, halaman yang Anda cari tidak ditemukan atau telah dipindahkan.')
 
 @section('content')

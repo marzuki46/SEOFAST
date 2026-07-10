@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'SEOFAST') }} - Buyer Portal</title>
+    <title>{{ config('app.name') }} - Buyer Portal</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -29,6 +29,7 @@
                             <a href="{{ route('buyer.dashboard') }}" class="inline-flex items-center border-b-2 {{ request()->routeIs('buyer.dashboard') ? 'border-brand-indigo text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' }} px-1 pt-1 text-sm font-medium">Dashboard</a>
                             <a href="{{ route('buyer.products.index') }}" class="inline-flex items-center border-b-2 {{ request()->routeIs('buyer.products.*') ? 'border-brand-indigo text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' }} px-1 pt-1 text-sm font-medium">Produk Saya</a>
                             <a href="{{ route('buyer.orders.index') }}" class="inline-flex items-center border-b-2 {{ request()->routeIs('buyer.orders.*') ? 'border-brand-indigo text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' }} px-1 pt-1 text-sm font-medium">Riwayat Transaksi</a>
+                            <a href="{{ route('buyer.tickets.index') }}" class="inline-flex items-center border-b-2 {{ request()->routeIs('buyer.tickets.*') ? 'border-brand-indigo text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' }} px-1 pt-1 text-sm font-medium">Customer Service</a>
                         </div>
                     </div>
                     <div class="hidden sm:ml-6 sm:flex sm:items-center">
@@ -95,5 +96,7 @@
             </div>
         </main>
     </div>
+
+    @stack('scripts')
 </body>
 </html>

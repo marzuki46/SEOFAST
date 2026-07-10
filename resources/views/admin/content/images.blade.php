@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Phase 4: Select Image - SEOFAST')
+@section('title', 'Phase 4: Select Image - ' . config('app.name'))
 @section('page_title', 'Phase 4: Image Processing & Selection')
 
 @section('admin_content')

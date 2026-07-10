@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Internal Link Mapping - SEOFAST')
+@section('title', 'Internal Link Mapping - ' . config('app.name'))
 @section('page_title', 'Rekayasa Internal Link (Deterministic)')
 
 @section('admin_content')

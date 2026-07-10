@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Redirect Manager - SEOFAST')
+@section('title', 'Redirect Manager - ' . config('app.name'))
 @section('page_title', 'Redirect Manager')
 
 @section('admin_content')

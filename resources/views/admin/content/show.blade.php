@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', $content->title . ' - SEOFAST')
+@section('title', $content->title . ' - ' . config('app.name'))
 @section('page_title', 'Post Details')
 
 @section('admin_content')

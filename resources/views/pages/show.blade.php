@@ -11,7 +11,7 @@
 @section('schema_markup')
 @php
     $schemaType = $page->seoMeta?->schema['@'.'type'] ?? \App\Models\SystemSetting::get('seo_schema_default_type', 'Organization');
-    $orgName = \App\Models\SystemSetting::get('site_name', config('app.name', 'SEOFAST'));
+    $orgName = \App\Models\SystemSetting::get('site_name', config('app.name'));
     $orgLogo = \App\Models\SystemSetting::get('logo_url', asset('favicon.ico'));
     $authorName = \App\Models\SystemSetting::get('seo_schema_author', 'Admin SEOFAST');
 @endphp

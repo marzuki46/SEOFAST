@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Tambah User - SEOFAST')
+@section('title', 'Tambah User - ' . config('app.name'))
 @section('page_title', 'Tambah User Pembantu')
 
 @section('admin_content')

@@ -1,5 +1,5 @@
 <!-- Hero Bold CTA -->
-<section class="relative overflow-hidden @if($page->hero_bg_color) style=&quot;background-color: {{ $page->hero_bg_color }};&quot; @else bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 @endif">
+<section class="relative overflow-hidden @if(!$page->hero_bg_color) bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 @endif" @if($page->hero_bg_color) style="background-color: {{ $page->hero_bg_color }};" @endif>
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(168,85,247,0.15),transparent_50%)]"></div>
     <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center">
         <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-sm text-white/80 mb-8">

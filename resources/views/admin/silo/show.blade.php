@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', $silo->silo_name . ' - Silo Map - SEOFAST')
+@section('title', $silo->silo_name . ' - Silo Map - ' . config('app.name'))
 @section('page_title', 'Topical Map: ' . $silo->silo_name)
 
 @section('admin_content')

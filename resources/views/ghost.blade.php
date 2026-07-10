@@ -1,4 +1,3 @@
-@php header('X-Robots-Tag: noindex, nofollow'); @endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>

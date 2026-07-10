@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Proses Antrean AI - SEOFAST')
+@section('title', 'Proses Antrean AI - ' . config('app.name'))
 @section('page_title', 'Proses Antrean AI')
 
 @section('admin_content')

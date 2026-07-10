@@ -160,6 +160,11 @@ class Content extends Model
         return $this->hasMany(BrokenLink::class);
     }
 
+    public function tags(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+
     public function isPublished(): bool
     {
         return $this->status === 'published';

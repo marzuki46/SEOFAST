@@ -5,8 +5,10 @@
     $page = request('page', 1);
     $titleSuffix = $page > 1 ? " - Halaman {$page}" : "";
     $canonicalUrl = url()->current() . ($page > 1 ? '?page=' . $page : '');
-    $blogTitle = SystemSetting::get('blog_meta_title', 'SEOFAST Blog — Latest Insights in AI Content & SEO Automation');
+    $blogTitle = SystemSetting::get('blog_meta_title', config('app.name') . ' Blog — Latest Insights in AI Content & SEO Automation');
     $blogDesc = SystemSetting::get('blog_meta_description', 'Discover advanced technical SEO workflows, AI-driven content generation, and closed-loop Google Search Console sync strategies.');
+    $blogHeading = SystemSetting::get('blog_index_heading', 'The ' . config('app.name') . ' Blog');
+    $blogTagline = SystemSetting::get('blog_index_tagline', 'Practical strategies, technical tutorials, and case studies on how to scale organic search traffic using advanced automated pipelines.');
 @endphp
 @section('title', $blogTitle . $titleSuffix)
 @section('meta_description', $blogDesc)
@@ -30,10 +32,10 @@
 <section class="relative pt-24 pb-12 border-b border-slate-200 bg-slate-100/30">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <h1 class="font-outfit font-extrabold text-4xl md:text-6xl text-slate-900 mb-6">
-            The SEOFAST <span class="bg-gradient-to-r from-brand-indigo to-brand-purple bg-clip-text text-transparent">Blog</span>
+            {!! nl2br(e($blogHeading)) !!}
         </h1>
         <p class="text-slate-600 text-base md:text-lg max-w-2xl mx-auto">
-            Practical strategies, technical tutorials, and case studies on how to scale organic search traffic using advanced automated pipelines.
+            {{ $blogTagline }}
         </p>
     </div>
 </section>

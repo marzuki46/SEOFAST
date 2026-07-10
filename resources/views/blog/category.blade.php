@@ -1,12 +1,15 @@
 @extends('layouts.frontend')
 
 @php
+    use App\Models\SystemSetting;
+    use App\Services\SeoHelper;
+    $siteName = SystemSetting::get('site_name', config('app.name'));
     $page = request('page', 1);
     $titleSuffix = $page > 1 ? " - Halaman {$page}" : "";
     $canonicalUrl = url()->current() . ($page > 1 ? '?page=' . $page : '');
 @endphp
-@section('title', 'Category: ' . $category->silo_name . ' — SEOFAST Blog' . $titleSuffix)
-@section('meta_description', 'Read high-performance articles about ' . $category->silo_name . ' optimized with the SEOFAST topical silo engine.')
+@section('title', SeoHelper::categoryTitle($category->silo_name) . $titleSuffix)
+@section('meta_description', 'Baca artikel ' . $category->silo_name . ' di ' . $siteName . ' untuk optimasi SEO, konten AI, dan strategi pemasaran digital.')
 @section('canonical_url', $canonicalUrl)
 
 @section('schema_markup')

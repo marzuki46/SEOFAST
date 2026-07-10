@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Verifikasi Email - SEOFAST')
+@section('title', 'Verifikasi Email - ' . config('app.name'))
 
 @section('content')
 <div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">

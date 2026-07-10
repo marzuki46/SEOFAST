@@ -176,6 +176,13 @@
                                 {{ $category->silo_name }}
                             </a>
                         @endif
+                        @if($post->relationLoaded('tags') && $post->tags->count() > 0)
+                            @foreach($post->tags as $tag)
+                                <a href="{{ route('blog.tag', $tag->slug) }}" class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold text-xs hover:bg-slate-200 transition">
+                                    #{{ $tag->name }}
+                                </a>
+                            @endforeach
+                        @endif
                         <span class="text-slate-300">•</span>
                         <span class="text-slate-600 font-medium">Last Updated: {{ $post->updated_at ? $post->updated_at->format('F d, Y') : ($post->published_at ? $post->published_at->format('F d, Y') : '') }}</span>
                     </div>
@@ -209,10 +216,10 @@
                 <!-- Author Bio Card -->
                 <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm mt-12 flex gap-4 items-start">
                     <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-indigo to-brand-purple flex items-center justify-center font-outfit font-extrabold text-white text-md shadow-lg shadow-brand-indigo/10">
-                        {{ strtoupper(substr(\App\Models\SystemSetting::get('author_name', 'SEOFAST Intelligence Engine'), 0, 1)) }}
+                        {{ strtoupper(substr(\App\Models\SystemSetting::get('author_name', config('app.name') . ' Intelligence Engine'), 0, 1)) }}
                     </div>
                     <div>
-                        <h4 class="font-outfit font-bold text-slate-900 text-base">Written by {{ \App\Models\SystemSetting::get('author_name', 'SEOFAST Intelligence Engine') }}</h4>
+                        <h4 class="font-outfit font-bold text-slate-900 text-base">Written by {{ \App\Models\SystemSetting::get('author_name', config('app.name') . ' Intelligence Engine') }}</h4>
                         <p class="text-slate-600 text-sm mt-1 leading-relaxed">
                             {{ \App\Models\SystemSetting::get('author_bio', 'This article was generated and optimized using the SEOFAST content engine, utilizing semantic keyword planning, structural silo logic, and automated GSC inspection verification.') }}
                         </p>

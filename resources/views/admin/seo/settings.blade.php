@@ -145,6 +145,16 @@
                                         <textarea name="blog_meta_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Discover advanced SEO workflows...">{{ \App\Models\SystemSetting::get('blog_meta_description') }}</textarea>
                                     </div>
                                     <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Blog Index Heading (H1)</label>
+                                        <input type="text" name="blog_index_heading" value="{{ \App\Models\SystemSetting::get('blog_index_heading') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="The {{ config('app.name') }} Blog">
+                                        <p class="text-xs text-slate-500 mt-1">Heading utama di halaman blog. Biarkan kosong untuk menggunakan default "The {{ config('app.name') }} Blog".</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Blog Index Tagline</label>
+                                        <textarea name="blog_index_tagline" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Practical strategies, technical tutorials...">{{ \App\Models\SystemSetting::get('blog_index_tagline') }}</textarea>
+                                        <p class="text-xs text-slate-500 mt-1">Deskripsi di bawah heading halaman blog.</p>
+                                    </div>
+                                    <div>
                                         <label class="block text-sm font-semibold text-slate-700 mb-1">Homepage Meta Title (fallback)</label>
                                         <input type="text" name="home_meta_title" value="{{ \App\Models\SystemSetting::get('home_meta_title') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="Fallback when seo_global_meta_title is empty">
                                     </div>
@@ -190,7 +200,7 @@
                                     <div class="grid grid-cols-1 gap-5">
                                         <div>
                                             <label class="block text-sm font-semibold text-slate-700 mb-1">Author Name</label>
-                                            <input type="text" name="author_name" value="{{ \App\Models\SystemSetting::get('author_name', 'SEOFAST Intelligence Engine') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="SEOFAST Intelligence Engine">
+                                            <input type="text" name="author_name" value="{{ \App\Models\SystemSetting::get('author_name', config('app.name') . ' Intelligence Engine') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="{{ config('app.name') }} Intelligence Engine">
                                             <p class="text-xs text-slate-400 mt-1">Nama penulis yang tampil di setiap artikel blog.</p>
                                         </div>
                                         <div>

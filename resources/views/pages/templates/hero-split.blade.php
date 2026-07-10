@@ -1,5 +1,5 @@
 <!-- Hero Split (text left, image right) -->
-<section class="relative overflow-hidden @if($page->hero_bg_color) style=&quot;background-color: {{ $page->hero_bg_color }};&quot; @else bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 @endif">
+<section class="relative overflow-hidden @if(!$page->hero_bg_color) bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 @endif" @if($page->hero_bg_color) style="background-color: {{ $page->hero_bg_color }};" @endif>
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(99,102,241,0.12),transparent_50%)]"></div>
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
         <div class="grid md:grid-cols-2 gap-12 items-center">

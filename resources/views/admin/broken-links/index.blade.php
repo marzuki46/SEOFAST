@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Broken Link Checker - SEOFAST')
+@section('title', 'Broken Link Checker - ' . config('app.name'))
 @section('page_title', 'Broken Link Checker')
 
 @section('admin_content')
@@ -28,7 +28,7 @@
 
 @if(session('success'))
     <div class="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm">
-        {!! session('success') !!}
+        {{ session('success') }}
     </div>
 @endif
 

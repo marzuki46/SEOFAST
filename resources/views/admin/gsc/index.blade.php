@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Google Search Console - SEOFAST V3')
+@section('title', 'Google Search Console - ' . config('app.name'))
 @section('page_title', 'Google Search Console')
 
 @section('admin_content')

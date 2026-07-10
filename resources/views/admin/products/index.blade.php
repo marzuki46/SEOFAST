@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Products & Midtrans Checkout - SEOFAST')
+@section('title', 'Products & Midtrans Checkout - ' . config('app.name'))
 @section('page_title', 'Products & Checkout Shortcodes')
 
 @section('admin_content')
@@ -52,6 +52,14 @@
                 <p class="text-3xl font-bold text-slate-900 tracking-tight">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
                 <p class="text-sm text-slate-500 mt-1">{{ $product->description ?? 'One-time payment' }}</p>
             </div>
+
+            @if($product->categories->isNotEmpty())
+            <div class="flex flex-wrap gap-1.5 mb-3">
+                @foreach($product->categories as $cat)
+                    <span class="inline-flex px-2 py-0.5 text-xs font-medium bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100">{{ $cat->name }}</span>
+                @endforeach
+            </div>
+            @endif
 
             <div class="flex-1 space-y-2 mb-6">
                 @if($product->features)
@@ -139,6 +147,18 @@
                         <textarea name="features" id="features" rows="3" placeholder="e.g. Full Course Access, Private Community, Monthly Q&A"
                                   class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"></textarea>
                         <p class="text-xs text-slate-400 mt-1.5">Separate each feature with a comma (,)</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Categories</label>
+                        <div class="flex flex-wrap gap-3">
+                            @foreach(\App\Models\ProductCategory::active()->orderBy('order')->orderBy('name')->get() as $cat)
+                            <label class="inline-flex items-center gap-1.5 text-sm text-slate-700">
+                                <input type="checkbox" name="categories[]" value="{{ $cat->id }}" class="rounded border-slate-300 text-indigo-600">
+                                {{ $cat->name }}
+                            </label>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
                 <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-100">

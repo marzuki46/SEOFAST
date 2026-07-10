@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Content;
 use App\Models\SiloBlueprint;
 use App\Models\AiGenerationJob;
+use App\Models\Tag;
 use App\Jobs\Ai\ProcessAiGenerationJob;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ class ContentController extends Controller
     {
         $contents = Content::withoutGlobalScopes()
             ->where('status', 'published')
+            ->whereNull('deleted_at')
             ->with(['siloBlueprint', 'latestUrlInspection'])
             ->latest()
             ->paginate(50);
@@ -35,6 +37,7 @@ class ContentController extends Controller
         // Show blueprint status so user can generate blueprints
         $contents = Content::withoutGlobalScopes()
             ->whereIn('status', ['blueprint', 'failed_cqi'])
+            ->whereNull('deleted_at')
             ->with(['siloBlueprint'])
             ->latest()
             ->paginate(50);
@@ -49,11 +52,60 @@ class ContentController extends Controller
     {
         $contents = Content::withoutGlobalScopes()
             ->whereIn('status', ['draft', 'needs_reoptimize'])
+            ->whereNull('deleted_at')
             ->with(['siloBlueprint'])
             ->latest()
             ->paginate(50);
 
         return view('admin.content.drafts', compact('contents'));
+    }
+
+    /**
+     * Display trashed (soft deleted) contents.
+     */
+    public function trash()
+    {
+        $contents = Content::withoutGlobalScopes()
+            ->onlyTrashed()
+            ->with(['siloBlueprint'])
+            ->latest('deleted_at')
+            ->paginate(50);
+
+        return view('admin.content.trash', compact('contents'));
+    }
+
+    /**
+     * Restore a trashed content.
+     */
+    public function restore(Content $content)
+    {
+        $content->restore();
+
+        return redirect()->route('admin.content.trash')
+            ->with('success', 'Post restored successfully.');
+    }
+
+    /**
+     * Permanently delete a trashed content.
+     */
+    public function forceDelete(Content $content)
+    {
+        $content->tags()->detach();
+        $content->forceDelete();
+
+        return redirect()->route('admin.content.trash')
+            ->with('success', 'Post permanently deleted.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Content $content)
+    {
+        $content->delete();
+
+        return redirect()->route('admin.content.index')
+            ->with('success', 'Post moved to trash. You can restore it from the Trash page.');
     }
 
     /**
@@ -170,6 +222,8 @@ class ContentController extends Controller
     {
         $siloBlueprints = SiloBlueprint::withoutGlobalScopes()->get();
 
+        $content->load('tags');
+
         return view('admin.content.edit', compact('content', 'siloBlueprints'));
     }
 
@@ -228,6 +282,24 @@ class ContentController extends Controller
         }
 
         $content->update($updateData);
+
+        // Sync tags
+        if ($request->filled('tags')) {
+            $tagNames = array_map('trim', explode(',', $request->tags));
+            $tagIds = [];
+            foreach ($tagNames as $name) {
+                if (empty($name)) continue;
+                $slug = \Illuminate\Support\Str::slug($name);
+                $tag = Tag::firstOrCreate(
+                    ['slug' => $slug],
+                    ['name' => $name]
+                );
+                $tagIds[] = $tag->id;
+            }
+            $content->tags()->sync($tagIds);
+        } else {
+            $content->tags()->detach();
+        }
 
         // Build schema
         $schema = null;
@@ -831,17 +903,5 @@ class ContentController extends Controller
             'weeks', 'month', 'year', 'startOfMonth',
             'prevMonth', 'nextMonth', 'postsByDate'
         ));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Content $content)
-    {
-
-        $content->delete();
-
-        return redirect()->route('admin.content.index')
-            ->with('success', 'Post successfully deleted.');
     }
 }

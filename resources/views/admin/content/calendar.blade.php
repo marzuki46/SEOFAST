@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Content Calendar - SEOFAST')
+@section('title', 'Content Calendar - ' . config('app.name'))
 @section('page_title', 'Content Calendar')
 
 @section('admin_content')

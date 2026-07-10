@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'SERP Rank Tracker - SEOFAST')
+@section('title', 'SERP Rank Tracker - ' . config('app.name'))
 @section('page_title', 'SERP Rank Tracker')
 
 @section('admin_content')
@@ -22,7 +22,7 @@
 </div>
 
 @if(session('success'))
-    <div class="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm">{!! session('success') !!}</div>
+    <div class="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm">{{ session('success') }}</div>
 @endif
 
 @if($stats['ranked_keywords'] == 0 && $stats['no_data'] > 0)

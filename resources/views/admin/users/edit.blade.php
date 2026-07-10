@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit User - SEOFAST')
+@section('title', 'Edit User - ' . config('app.name'))
 @section('page_title', 'Edit User: ' . $user->name)
 
 @section('admin_content')

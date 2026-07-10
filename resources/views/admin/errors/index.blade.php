@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', '404 Error Tracker - SEOFAST')
+@section('title', '404 Error Tracker - ' . config('app.name'))
 @section('page_title', '404 Error Tracker')
 
 @section('admin_content')

@@ -46,6 +46,11 @@ class Buyer extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(BuyerProductAccess::class);
     }
 
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
+
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'buyer_product_accesses')

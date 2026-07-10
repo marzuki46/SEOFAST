@@ -82,6 +82,26 @@
                                     <p class="text-xs text-slate-500 mt-1">Masukkan URL gambar untuk icon tab browser (Favicon).</p>
                                 </div>
                             </div>
+                            <div class="border-t border-slate-200 pt-6 mt-6">
+                                <h4 class="text-md font-bold text-slate-900 mb-4">Contact / Inquiry Settings</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Inquiry Email Tujuan</label>
+                                        <input type="email" name="contact_inquiry_email" value="{{ $settings['general']['contact_inquiry_email'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="hello@domain.com">
+                                        <p class="text-xs text-slate-500 mt-1">Email tujuan saat ada inquiry masuk dari form Contact Us.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Inquiry WhatsApp Number</label>
+                                        <input type="text" name="contact_inquiry_whatsapp" value="{{ $settings['general']['contact_inquiry_whatsapp'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="6282213028718">
+                                        <p class="text-xs text-slate-500 mt-1">Nomor WhatsApp (dengan kode negara, tanpa +) untuk menerima notifikasi inquiry.</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Alamat (Contact Page)</label>
+                                    <input type="text" name="contact_address" value="{{ $settings['general']['contact_address'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Parangjoro, Grogol, Sukoharjo">
+                                    <p class="text-xs text-slate-500 mt-1">Alamat yang ditampilkan di halaman Contact Us.</p>
+                                </div>
+                            </div>
                         @elseif($key === 'permalinks')
                             <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-4 mb-6 text-sm">
                                 <strong>Penting:</strong> Setelah mengubah permalink, Anda mungkin perlu melakukan "Clear System Cache" agar rute baru terbaca oleh sistem. Jangan gunakan spasi atau karakter khusus.

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Billing & Upgrades - SEOFAST')
+@section('title', 'Billing & Upgrades - ' . config('app.name'))
 @section('page_title', 'Billing & Subscriptions')
 
 @section('admin_content')

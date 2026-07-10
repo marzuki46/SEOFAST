@@ -91,6 +91,9 @@ class SitemapController extends Controller
             $xml .= '  <url><loc>' . url('/' . $blogPrefix . '/category/' . $catSlug) . '</loc><lastmod>' . $catLastmod . '</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>' . PHP_EOL;
         }
 
+        // Product Catalog Index
+        $xml .= '  <url><loc>' . url('/' . $productPrefix) . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.9</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
+
         // Products
         foreach ($products as $product) {
             $prodSlug = $product->slug;
@@ -170,6 +173,9 @@ class SitemapController extends Controller
         }
 
         $products = \App\Models\Product::withoutGlobalScopes()->where('is_active', true)->get(['slug', 'updated_at']);
+        // Product Catalog Index
+        $xml .= '  <url><loc>' . url('/en/' . $productPrefix) . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.9</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
+
         foreach ($products as $product) {
             $prodSlug = $product->slug;
             $prodLastmod = $product->updated_at?->toAtomString() ?? $lastAtom;
@@ -267,6 +273,7 @@ class SitemapController extends Controller
         }
 
         // Ghost publish placeholder — noindex
-        return view('ghost', compact('content'));
+        return response()->view('ghost', compact('content'))
+            ->header('X-Robots-Tag', 'noindex, nofollow');
     }
 }

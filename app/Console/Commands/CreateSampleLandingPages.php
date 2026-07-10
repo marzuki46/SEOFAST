@@ -17,29 +17,29 @@ class CreateSampleLandingPages extends Command
 
         $siteName = SystemSetting::get('site_name', 'SEOFAST');
 
-        // ─── 1. Project Page: Plugin ───
+        // ─── 1. Project Page: SEOFAST Framework ───
         $projectPage = Page::firstOrCreate(
-            ['slug' => 'projects/seofast-ai-plugin'],
+            ['slug' => 'projects/seofast-laravel-framework'],
             [
-                'title' => 'SEOFAST AI Plugin',
+                'title' => 'SEOFAST — Laravel SEO Automation Framework',
                 'template' => 'hero-split',
-                'hero_headline' => 'SEOFAST AI Plugin — Akselerasi Konten SEO dengan Kecerdasan Buatan',
-                'hero_subheadline' => 'Plugin WordPress yang mengintegrasikan AI content generation, analisis SEO real-time, dan ranking tracker langsung dari dashboard WordPress Anda.',
-                'hero_cta_text' => 'Download Gratis',
-                'hero_cta_url' => '#download',
-                'hero_cta_text_2' => 'Lihat Demo',
-                'hero_cta_url_2' => '#demo',
+                'hero_headline' => 'SEOFAST — SEO Automation Framework Berbasis Laravel',
+                'hero_subheadline' => 'Framework Laravel untuk SEO automation: silo builder, AI content pipeline multi-agent, rank tracker terintegrasi GSC, dan audit tools — semua dalam satu ekosistem.',
+                'hero_cta_text' => 'Pelajari Lebih Lanjut',
+                'hero_cta_url' => '#learn',
+                'hero_cta_text_2' => 'Lihat Dokumentasi',
+                'hero_cta_url_2' => '#docs',
                 'hero_image' => 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80',
                 'hero_features' => [
-                    'Integrasi AI ChatGPT & Gemini',
-                    'Auto-optimasi CQI Score',
-                    'Ranking Tracker GSC',
-                    'Multi-bahasa (ID/EN)',
-                    'Support 24/7',
+                    'Laravel Native',
+                    'AI Content Pipeline',
+                    'Silo Builder',
+                    'GSC Integration',
+                    'Rank Tracker',
                 ],
                 'hero_bg_color' => '#0f172a',
-                'meta_title' => 'SEOFAST AI Plugin - WordPress SEO Plugin dengan AI',
-                'meta_description' => 'Plugin WordPress all-in-one untuk content generation AI, SEO audit, rank tracking. Cocok untuk blogger, agency, dan enterprise.',
+                'meta_title' => 'SEOFAST — Laravel SEO Automation Framework',
+                'meta_description' => 'SEOFAST adalah framework Laravel untuk SEO automation: AI content pipeline, silo builder, rank tracker, dan audit tools. Cocok untuk developer dan agency.',
                 'is_published' => true,
             ]
         );
@@ -99,7 +99,7 @@ class CreateSampleLandingPages extends Command
         <div class="text-center mb-12">
             <span class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wider mb-4">Features</span>
             <h2 class="text-3xl md:text-4xl font-bold font-outfit text-slate-900">Semua yang Anda Butuhkan untuk SEO</h2>
-            <p class="mt-3 text-slate-500 max-w-2xl mx-auto">Dari content generation hingga ranking tracker — satu plugin untuk menguasai SEO.</p>
+            <p class="mt-3 text-slate-500 max-w-2xl mx-auto">Dari content generation hingga ranking tracker — satu framework untuk menguasai SEO.</p>
         </div>
         <div class="grid md:grid-cols-3 gap-6">
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition">
@@ -180,7 +180,7 @@ class CreateSampleLandingPages extends Command
                 <div class="flex items-center gap-1 mb-3">
                     <span class="text-amber-400">★</span><span class="text-amber-400">★</span><span class="text-amber-400">★</span><span class="text-amber-400">★</span><span class="text-amber-400">★</span>
                 </div>
-                <p class="text-sm text-slate-600 mb-4">"Sejak pake plugin ini, traffic blog saya naik 5x lipat dalam 3 bulan. Fitur AI content generation-nya luar biasa!"</p>
+                <p class="text-sm text-slate-600 mb-4">"Sejak pake SEOFAST, traffic blog saya naik 5x lipat dalam 3 bulan. Fitur AI content generation-nya luar biasa!"</p>
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">A</div>
                     <div>
@@ -206,7 +206,7 @@ class CreateSampleLandingPages extends Command
                 <div class="flex items-center gap-1 mb-3">
                     <span class="text-amber-400">★</span><span class="text-amber-400">★</span><span class="text-amber-400">★</span><span class="text-amber-400">★</span><span class="text-amber-400">★</span>
                 </div>
-                <p class="text-sm text-slate-600 mb-4">"Agency saya handle 20+ client. Plugin ini bikin workflow content production jauh lebih efisien. Highly recommended!"</p>
+                <p class="text-sm text-slate-600 mb-4">"Agency saya handle 20+ client. SEOFAST bikin workflow content production jauh lebih efisien. Highly recommended!"</p>
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold">D</div>
                     <div>
@@ -237,7 +237,7 @@ class CreateSampleLandingPages extends Command
                         <li class="flex items-start gap-2">+ CQI Score engine update — akurasi optimal 40% lebih baik</li>
                         <li class="flex items-start gap-2">+ Broken link checker sekarang support internal links</li>
                         <li class="flex items-start gap-2">* Fix: hreflang tag untuk homepage bilingual</li>
-                        <li class="flex items-start gap-2">* Fix: compatibility dengan WordPress 6.8</li>
+                        <li class="flex items-start gap-2">* Fix: compatibility dengan Laravel 12</li>
                     </ul>
                 </div>
             </div>
@@ -279,7 +279,7 @@ class CreateSampleLandingPages extends Command
     <!-- CTA -->
     <section class="mb-20 bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 md:p-12 text-center">
         <h2 class="text-3xl md:text-4xl font-bold font-outfit text-white">Siap Menguasai SEO?</h2>
-        <p class="mt-3 text-slate-400 max-w-xl mx-auto">Download plugin sekarang dan dapatkan 30 hari trial gratis. Tanpa kartu kredit.</p>
+            <p class="mt-3 text-slate-400 max-w-xl mx-auto">Mulai pakai SEOFAST sekarang dan dapatkan 30 hari trial gratis. Tanpa kartu kredit.</p>
         <div class="mt-8 flex items-center justify-center gap-4">
             <a href="#download" class="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition">
                 Download Gratis

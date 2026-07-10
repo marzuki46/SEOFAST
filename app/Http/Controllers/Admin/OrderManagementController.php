@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OrderVerified;
 use App\Models\BuyerOrder;
 use App\Models\BuyerProductAccess;
 use App\Models\Buyer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class OrderManagementController extends Controller
 {
@@ -58,7 +60,11 @@ class OrderManagementController extends Controller
             ]
         );
 
-        // TODO: Send email notification to buyer
+        try {
+            Mail::to($order->buyer->email)->send(new OrderVerified($order));
+        } catch (\Exception $e) {
+            // Silent fail — email is a bonus, not blocking
+        }
 
         return back()->with('success', "Order #{$order->order_number} berhasil diverifikasi. Akses produk telah diberikan.");
     }

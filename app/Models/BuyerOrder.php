@@ -11,6 +11,7 @@ class BuyerOrder extends Model
         'buyer_id', 'product_id', 'order_number', 'unique_code',
         'amount', 'unique_amount', 'status', 'payment_proof',
         'payment_method', 'admin_note', 'paid_at', 'verified_at', 'verified_by',
+        'snap_token', 'transaction_id', 'payment_type', 'midtrans_response',
     ];
 
     protected function casts(): array
@@ -20,6 +21,7 @@ class BuyerOrder extends Model
             'unique_amount' => 'decimal:2',
             'paid_at' => 'datetime',
             'verified_at' => 'datetime',
+            'midtrans_response' => 'array',
         ];
     }
 

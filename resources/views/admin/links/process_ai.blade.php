@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Processing AI Anchors - SEOFAST')
+@section('title', 'Processing AI Anchors - ' . config('app.name'))
 @section('page_title', 'Generating High-CTR Anchors')
 
 @section('admin_content')

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Infrastructure - SEOFAST V3')
+@section('title', 'Infrastructure - ' . config('app.name'))
 @section('page_title', 'Infrastructure Settings')
 
 @section('admin_content')

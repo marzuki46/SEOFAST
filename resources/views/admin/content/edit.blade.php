@@ -1,10 +1,10 @@
 @extends('layouts.admin')
 
 @php
-    $siteName = \App\Models\SystemSetting::get('site_name', 'SEOFAST');
+    $siteName = \App\Models\SystemSetting::get('site_name', config('app.name'));
 @endphp
 
-@section('title', 'Edit Content: ' . $content->target_keyword . ' - SEOFAST')
+@section('title', 'Edit Content: ' . $content->target_keyword . ' - ' . config('app.name'))
 @section('page_title', 'Edit Content Manually')
 
 @section('admin_content')
@@ -60,6 +60,14 @@
                         </option>
                     @endforeach
                 </select>
+            </div>
+
+            <div>
+                <label for="tags" class="block text-sm font-semibold text-slate-700 mb-1">Tags (pisahkan dengan koma)</label>
+                <input type="text" name="tags" id="tags" value="{{ old('tags', $content->tags->pluck('name')->implode(', ')) }}"
+                       class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                       placeholder="misal: SEO, Content Marketing, Tutorial">
+                <p class="text-xs text-slate-500 mt-1">Tag yang belum ada akan otomatis dibuat. Gunakan koma sebagai pemisah.</p>
             </div>
 
             <div>

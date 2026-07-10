@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Content;
 use App\Models\SiloBlueprint;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -34,7 +35,7 @@ class BlogController extends Controller
             });
         }
 
-        $posts = $query->with('siloBlueprint')->paginate(6);
+        $posts = $query->with('siloBlueprint', 'tags')->paginate(6);
 
         $categories = SiloBlueprint::withCount(['contents' => function ($query) {
             $query->where('status', 'published')
@@ -66,7 +67,7 @@ class BlogController extends Controller
     public function show(string $slug): View
     {
         // Find the post by slug in the current locale
-        $query = Content::with('siloBlueprint', 'seoMeta')->whereSlug($slug);
+        $query = Content::with('siloBlueprint', 'seoMeta', 'tags')->whereSlug($slug);
             
         if (auth()->check()) {
             // Admins can preview drafts and unpublished posts
@@ -120,7 +121,7 @@ class BlogController extends Controller
      */
     public function preview(string $slug): View
     {
-        $post = Content::with('siloBlueprint', 'seoMeta')->whereSlug($slug)->first();
+        $post = Content::with('siloBlueprint', 'seoMeta', 'tags')->whereSlug($slug)->first();
 
         if (!$post) {
             abort(404);
@@ -158,7 +159,7 @@ class BlogController extends Controller
             abort(404, 'Category not found');
         }
 
-        $posts = Content::with('siloBlueprint')
+        $posts = Content::with('siloBlueprint', 'tags')
             ->where('silo_blueprint_id', $category->id)
             ->where('status', 'published')
             ->where('published_at', '<=', now())
@@ -180,5 +181,29 @@ class BlogController extends Controller
             ->get();
 
         return view('blog.category', compact('category', 'posts', 'categories', 'recentPosts'));
+    }
+
+    public function tag(string $slug): View
+    {
+        $tag = Tag::where('slug', $slug)->firstOrFail();
+
+        $posts = $tag->contents()->with('siloBlueprint', 'tags')
+            ->where('status', 'published')
+            ->whereNotNull('body_raw')
+            ->where('published_at', '<=', now())
+            ->where(function($q) {
+                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
+                  ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
+            })
+            ->orderBy('published_at', 'desc')
+            ->paginate(6);
+
+        $categories = SiloBlueprint::withCount(['contents' => fn($q) => $q->where('status', 'published')])->get();
+        $recentPosts = Content::where('status', 'published')
+            ->orderBy('published_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('blog.tag', compact('tag', 'posts', 'categories', 'recentPosts'));
     }
 }

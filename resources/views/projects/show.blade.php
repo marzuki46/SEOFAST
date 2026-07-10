@@ -1,7 +1,7 @@
 @extends('layouts.frontend')
 
-@section('title', 'Detail Proyek — ' . \App\Models\SystemSetting::get('site_name', 'SEOFAST'))
-@section('meta_description', 'Pelajari detail proyek SEO dan konten AI yang telah dikerjakan oleh tim SEOFAST.')
+@section('title', 'Detail Proyek — ' . \App\Models\SystemSetting::get('site_name', config('app.name')))
+@section('meta_description', 'Pelajari detail proyek SEO dan konten AI yang telah dikerjakan oleh ' . \App\Models\SystemSetting::get('site_name', config('app.name')) . '.')
 @section('canonical_url', url()->current())
 
 @section('content')

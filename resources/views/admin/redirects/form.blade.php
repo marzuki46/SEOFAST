@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', $redirect ? 'Edit Redirect - SEOFAST' : 'Add Redirect - SEOFAST')
+@section('title', $redirect ? 'Edit Redirect - ' . config('app.name') : 'Add Redirect - ' . config('app.name'))
 @section('page_title', $redirect ? 'Edit Redirect' : 'Add Redirect')
 
 @section('admin_content')
