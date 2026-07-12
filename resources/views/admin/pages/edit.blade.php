@@ -2,6 +2,14 @@
 
 @section('page_title', 'Edit Page Settings')
 
+@push('styles')
+<style>
+.tox-tinymce { border-radius: 12px !important; border: 1px solid #cbd5e1 !important; }
+.tox .tox-toolbar__group { border: none !important; }
+.tox .tox-edit-area::before { border: none !important; }
+</style>
+@endpush
+
 @section('admin_content')
 <div class="mb-6 flex items-center justify-between">
     <div>
@@ -11,7 +19,7 @@
     <a href="{{ route('admin.pages.index') }}" class="text-sm text-indigo-600 font-semibold hover:underline">&larr; Back to Pages</a>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border p-6 max-w-4xl">
+<div class="bg-white rounded-xl shadow-sm border p-6 max-w-5xl">
     <form action="{{ route('admin.pages.update', $page->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @method('PUT')
@@ -123,11 +131,23 @@
                 </div>
             </div>
 
-            <!-- Hero Features -->
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-2">Feature List (one per line)</label>
                 <textarea name="hero_features" rows="4" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" placeholder="Fast Performance&#10;SEO Optimized&#10;Easy to Use&#10;24/7 Support">{{ old('hero_features', is_array($page->hero_features) ? implode("\n", $page->hero_features) : $page->hero_features) }}</textarea>
                 <p class="text-xs text-slate-400 mt-1">Displayed as checkmark list in the hero section (templates: centered, split, cta).</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6">
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Page Content (HTML)</label>
+                <textarea name="html_content" id="html_content" rows="20" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('html_content', $page->html_content) }}</textarea>
+                <p class="text-xs text-slate-400 mt-1">Edit dengan visual editor atau langsung HTML. Support paste dari Microsoft Word.</p>
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Custom CSS</label>
+                <textarea name="css_content" id="css_content" rows="6" class="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">{{ old('css_content', $page->css_content) }}</textarea>
             </div>
         </div>
 
@@ -176,7 +196,74 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
+    // Initialize TinyMCE
+    tinymce.init({
+        selector: '#html_content',
+        height: 600,
+        menubar: true,
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount', 'codesample'
+        ],
+        toolbar: 'undo redo | blocks | ' +
+            'bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | ' +
+            'bullist numlist outdent indent | ' +
+            'removeformat | code | fullscreen | help',
+        content_style: `
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                font-size: 15px;
+                line-height: 1.7;
+                color: #1e293b;
+                padding: 12px 16px;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+            h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; font-weight: 700; line-height: 1.3; }
+            h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+            h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+            h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+            p { margin-bottom: 1rem; }
+            img { max-width: 100%; height: auto; border-radius: 8px; }
+            blockquote {
+                border-left: 4px solid #6366f1;
+                padding-left: 1rem;
+                margin-left: 0;
+                color: #64748b;
+                font-style: italic;
+            }
+            pre {
+                background: #f1f5f9;
+                border-radius: 8px;
+                padding: 1rem;
+                font-size: 13px;
+                overflow-x: auto;
+            }
+            table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
+            th, td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; }
+            th { background: #f8fafc; font-weight: 600; }
+            ul, ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+        `,
+        valid_elements: '*[*]',
+        extended_valid_elements: 'script[src|type|async|defer],link[href|rel|type]',
+        paste_data_images: true,
+        paste_as_text: false,
+        paste_webkit_styles: 'all',
+        paste_merge_formats: true,
+        paste_remove_styles_if_webkit: false,
+        image_advtab: true,
+        image_title: true,
+        automatic_uploads: false,
+        setup: function(editor) {
+            editor.on('init', function() {
+                // Ensure content loads properly
+            });
+        }
+    });
+
     function generateSlug() {
         const title = document.getElementById('title').value;
         const parent = document.getElementById('parent_slug').value;
@@ -193,7 +280,6 @@
         document.getElementById('slug').value = slug;
     }
 
-    // Template selector: show/hide hero fields and image/video fields
     document.querySelectorAll('input[name="template"]').forEach(radio => {
         radio.addEventListener('change', function() {
             const heroFields = document.getElementById('hero-fields');

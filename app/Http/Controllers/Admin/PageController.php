@@ -82,6 +82,8 @@ class PageController extends Controller
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'is_published' => 'nullable|boolean',
+            'html_content' => 'nullable|string',
+            'css_content' => 'nullable|string',
             'featured_image_upload' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
@@ -92,6 +94,7 @@ class PageController extends Controller
             'hero_cta_text_2', 'hero_cta_url_2',
             'hero_image', 'hero_video_url',
             'hero_bg_color', 'meta_title', 'meta_description',
+            'html_content', 'css_content',
         ]);
         $data['is_published'] = $request->has('is_published');
 
