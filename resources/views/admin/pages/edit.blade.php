@@ -224,77 +224,78 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ckeditor4/4.25.0-lts/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/4.22.0/standard/ckeditor.js"></script>
 <script>
-    let ckeditor = null;
+    document.addEventListener('DOMContentLoaded', function () {
+        let ckeditor = null;
+        var ta = document.getElementById('html_content');
+        if (!ta) { console.error('CKEditor: #html_content not found'); return; }
 
-    CKEDITOR.replace('html_content', {
-        height: 500,
-        entities: false,
-        basicEntities: false,
-        enterMode: CKEDITOR.ENTER_P,
-        shiftEnterMode: CKEDITOR.ENTER_BR,
-        allowedContent: true,
-        extraAllowedContent: '*(*);*{*}',
-        pasteFromWordRemoveStyles: false,
-        pasteFromWordRemoveFontStyles: false,
-        removePlugins: 'contextmenu,liststyle,tabletools',
-        toolbar: [
-            { name: 'document', items: ['Source', 'Preview'] },
-            { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'] },
-            '/',
-            { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
-            { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight'] },
-            { name: 'links', items: ['Link', 'Unlink'] },
-            { name: 'insert', items: ['Image', 'Table', 'HorizontalRule'] },
-            '/',
-            { name: 'styles', items: ['Format', 'FontSize'] },
-            { name: 'colors', items: ['TextColor', 'BGColor'] },
-            { name: 'tools', items: ['Maximize'] }
-        ],
-        format_tags: 'p;h2;h3;h4;pre',
-        contentsCss: [
-            'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@400;700&display=swap'
-        ],
-        bodyClass: 'cke_editable',
-        stylesSet: false,
-    });
+        try {
+            CKEDITOR.replace('html_content', {
+                height: 500,
+                entities: false,
+                basicEntities: false,
+                enterMode: CKEDITOR.ENTER_P,
+                shiftEnterMode: CKEDITOR.ENTER_BR,
+                allowedContent: true,
+                extraAllowedContent: '*(*);*{*}',
+                pasteFromWordRemoveStyles: false,
+                pasteFromWordRemoveFontStyles: false,
+                removePlugins: 'liststyle',
+                toolbar: [
+                    { name: 'document', items: ['Source', 'Preview'] },
+                    { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'] },
+                    '/',
+                    { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
+                    { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight'] },
+                    { name: 'links', items: ['Link', 'Unlink'] },
+                    { name: 'insert', items: ['Image', 'Table', 'HorizontalRule'] },
+                    '/',
+                    { name: 'styles', items: ['Format', 'FontSize'] },
+                    { name: 'colors', items: ['TextColor', 'BGColor'] },
+                    { name: 'tools', items: ['Maximize'] }
+                ],
+                format_tags: 'p;h2;h3;h4;pre',
+                contentsCss: [
+                    'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@400;700&display=swap'
+                ],
+                bodyClass: 'cke_editable',
+                stylesSet: false,
+            });
 
-    CKEDITOR.on('instanceReady', function(e) {
-        ckeditor = e.editor;
-    });
-
-    document.querySelector('form').addEventListener('submit', function() {
-        if (ckeditor) {
-            ckeditor.updateElement();
+            CKEDITOR.on('instanceReady', function(e) {
+                ckeditor = e.editor;
+                console.log('CKEditor ready');
+            });
+        } catch(e) {
+            console.error('CKEditor init error:', e);
         }
+
+        document.querySelector('form').addEventListener('submit', function() {
+            if (ckeditor) ckeditor.updateElement();
+        });
+
+        document.querySelectorAll('input[name="template"]').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                var heroFields = document.getElementById('hero-fields');
+                var isDefault = this.value === 'default';
+                heroFields.classList.toggle('hidden', isDefault);
+                document.getElementById('hero-image-field').classList.toggle('hidden', this.value === 'hero-video');
+                document.getElementById('hero-video-field').classList.toggle('hidden', this.value !== 'hero-video');
+            });
+        });
     });
 
     function generateSlug() {
-        const title = document.getElementById('title').value;
-        const parent = document.getElementById('parent_slug').value;
-
-        let slug = title.toLowerCase()
+        var title = document.getElementById('title').value;
+        var parent = document.getElementById('parent_slug').value;
+        var slug = title.toLowerCase()
             .replace(/[^\w\s-]/g, '')
             .replace(/\s+/g, '-')
             .replace(/-+/g, '-');
-
-        if (parent) {
-            slug = parent + '/' + slug;
-        }
-
+        if (parent) slug = parent + '/' + slug;
         document.getElementById('slug').value = slug;
     }
-
-    document.querySelectorAll('input[name="template"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            const heroFields = document.getElementById('hero-fields');
-            const isDefault = this.value === 'default';
-            heroFields.classList.toggle('hidden', isDefault);
-
-            document.getElementById('hero-image-field').classList.toggle('hidden', this.value === 'hero-video');
-            document.getElementById('hero-video-field').classList.toggle('hidden', this.value !== 'hero-video');
-        });
-    });
 </script>
 @endpush
