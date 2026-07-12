@@ -4,37 +4,37 @@
 
 @section('styles')
 <style>
-.ck-editor__editable {
-    min-height: 400px;
-    max-height: 600px;
-}
-.ck-content {
+.cke { border-radius: 12px !important; border: 1px solid #cbd5e1 !important; }
+.cke_top { border-radius: 12px 12px 0 0 !important; }
+.cke_bottom { border-radius: 0 0 12px 12px !important; }
+.cke_editable {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     font-size: 15px !important;
     line-height: 1.7 !important;
     color: #1e293b !important;
+    padding: 12px 16px !important;
 }
-.ck-content h2 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem; }
-.ck-content h3 { font-size: 1.25rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }
-.ck-content h4 { font-size: 1.1rem; font-weight: 700; margin: 0.5rem 0 0.25rem; }
-.ck-content p { margin-bottom: 0.75rem; }
-.ck-content blockquote {
+.cke_editable h2 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem; font-family: 'Outfit', sans-serif; }
+.cke_editable h3 { font-size: 1.25rem; font-weight: 700; margin: 0.75rem 0 0.5rem; font-family: 'Outfit', sans-serif; }
+.cke_editable h4 { font-size: 1.1rem; font-weight: 700; margin: 0.5rem 0 0.25rem; font-family: 'Outfit', sans-serif; }
+.cke_editable p { margin-bottom: 0.75rem; }
+.cke_editable blockquote {
     border-left: 4px solid #6366f1;
     padding-left: 1rem;
     margin-left: 0;
     color: #64748b;
     font-style: italic;
 }
-.ck-content pre {
+.cke_editable pre {
     background: #f1f5f9;
     border-radius: 8px;
     padding: 1rem;
     font-size: 13px;
     overflow-x: auto;
 }
-.ck-content table { border-collapse: collapse; width: 100%; }
-.ck-content th, .ck-content td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; }
-.ck-content th { background: #f8fafc; font-weight: 600; }
+.cke_editable table { border-collapse: collapse; width: 100%; }
+.cke_editable th, .cke_editable td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; }
+.cke_editable th { background: #f8fafc; font-weight: 600; }
 </style>
 @endsection
 
@@ -224,54 +224,49 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic@latest/build/ckeditor.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ckeditor4/4.25.0-lts/ckeditor.js"></script>
 <script>
-    let ckeditorInstance = null;
+    let ckeditor = null;
 
-    ClassicEditor
-        .create(document.querySelector('#html_content'), {
-            toolbar: {
-                items: [
-                    'undo', 'redo', '|',
-                    'heading', '|',
-                    'bold', 'italic', 'underline', 'strikethrough', '|',
-                    'bulletedList', 'numberedList', '|',
-                    'alignment', 'outdent', 'indent', '|',
-                    'link', 'insertTable', 'blockQuote', '|',
-                    'sourceEditing', 'fullscreen', '|',
-                    'removeFormat', 'selectAll'
-                ]
-            },
-            heading: {
-                options: [
-                    { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-                    { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
-                    { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
-                    { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
-                ]
-            },
-            table: {
-                contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
-            },
-            link: {
-                addTargetToExternalLinks: true
-            },
-            pasteFromOffice: {
-                removeGooglDocsStyles: true,
-                removeStyles: false
-            },
-            removePlugins: ['Markdown']
-        })
-        .then(editor => {
-            ckeditorInstance = editor;
-        })
-        .catch(error => {
-            console.error('CKEditor error:', error);
-        });
+    CKEDITOR.replace('html_content', {
+        height: 500,
+        entities: false,
+        basicEntities: false,
+        enterMode: CKEDITOR.ENTER_P,
+        shiftEnterMode: CKEDITOR.ENTER_BR,
+        allowedContent: true,
+        extraAllowedContent: '*(*);*{*}',
+        pasteFromWordRemoveStyles: false,
+        pasteFromWordRemoveFontStyles: false,
+        removePlugins: 'contextmenu,liststyle,tabletools',
+        toolbar: [
+            { name: 'document', items: ['Source', 'Preview'] },
+            { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'] },
+            '/',
+            { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
+            { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight'] },
+            { name: 'links', items: ['Link', 'Unlink'] },
+            { name: 'insert', items: ['Image', 'Table', 'HorizontalRule'] },
+            '/',
+            { name: 'styles', items: ['Format', 'FontSize'] },
+            { name: 'colors', items: ['TextColor', 'BGColor'] },
+            { name: 'tools', items: ['Maximize'] }
+        ],
+        format_tags: 'p;h2;h3;h4;pre',
+        contentsCss: [
+            'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@400;700&display=swap'
+        ],
+        bodyClass: 'cke_editable',
+        stylesSet: false,
+    });
+
+    CKEDITOR.on('instanceReady', function(e) {
+        ckeditor = e.editor;
+    });
 
     document.querySelector('form').addEventListener('submit', function() {
-        if (ckeditorInstance) {
-            document.querySelector('#html_content').value = ckeditorInstance.getData();
+        if (ckeditor) {
+            ckeditor.updateElement();
         }
     });
 
