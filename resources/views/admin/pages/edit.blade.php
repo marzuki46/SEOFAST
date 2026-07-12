@@ -4,9 +4,37 @@
 
 @push('styles')
 <style>
-.tox-tinymce { border-radius: 12px !important; border: 1px solid #cbd5e1 !important; }
-.tox .tox-toolbar__group { border: none !important; }
-.tox .tox-edit-area::before { border: none !important; }
+.ck-editor__editable {
+    min-height: 400px;
+    max-height: 600px;
+}
+.ck-content {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-size: 15px !important;
+    line-height: 1.7 !important;
+    color: #1e293b !important;
+}
+.ck-content h2 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem; }
+.ck-content h3 { font-size: 1.25rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }
+.ck-content h4 { font-size: 1.1rem; font-weight: 700; margin: 0.5rem 0 0.25rem; }
+.ck-content p { margin-bottom: 0.75rem; }
+.ck-content blockquote {
+    border-left: 4px solid #6366f1;
+    padding-left: 1rem;
+    margin-left: 0;
+    color: #64748b;
+    font-style: italic;
+}
+.ck-content pre {
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 13px;
+    overflow-x: auto;
+}
+.ck-content table { border-collapse: collapse; width: 100%; }
+.ck-content th, .ck-content td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; }
+.ck-content th { background: #f8fafc; font-weight: 600; }
 </style>
 @endpush
 
