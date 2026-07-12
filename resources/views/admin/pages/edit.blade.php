@@ -2,7 +2,7 @@
 
 @section('page_title', 'Edit Page Settings')
 
-@push('styles')
+@section('styles')
 <style>
 .ck-editor__editable {
     min-height: 400px;
@@ -36,7 +36,7 @@
 .ck-content th, .ck-content td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; }
 .ck-content th { background: #f8fafc; font-weight: 600; }
 </style>
-@endpush
+@endsection
 
 @section('admin_content')
 <div class="mb-6 flex items-center justify-between">
@@ -224,7 +224,7 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.ckeditor.com/ckeditor5/44.1.0/classic/ckeditor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic@latest/build/ckeditor.js"></script>
 <script>
     let ckeditorInstance = null;
 
