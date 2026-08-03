@@ -15,7 +15,7 @@ class BlogController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Content::where('status', 'published')
+        $baseQuery = Content::where('status', 'published')
             ->whereNotNull('body_raw')
             ->where('published_at', '<=', now())
             ->where('body_raw', '!=', '{"id":""}')
@@ -23,8 +23,9 @@ class BlogController extends Controller
             ->where(function($q) {
                 $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
                   ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
-            })
-            ->orderBy('published_at', 'desc');
+            });
+
+        $query = (clone $baseQuery)->orderBy('published_at', 'desc');
 
         if ($request->filled('q')) {
             $search = $request->input('q');
@@ -46,15 +47,7 @@ class BlogController extends Controller
                   });
         }])->having('contents_count', '>', 0)->get();
 
-        $recentPosts = Content::with('siloBlueprint')
-            ->where('status', 'published')
-            ->whereNotNull('body_raw')
-            ->where('published_at', '<=', now())
-            ->where(function($q) {
-                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
-                  ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
-            })
-            ->orderBy('published_at', 'desc')
+        $recentPosts = (clone $baseQuery)->orderBy('published_at', 'desc')
             ->take(5)
             ->get();
 
@@ -67,7 +60,7 @@ class BlogController extends Controller
     public function show(string $slug): View
     {
         // Find the post by slug in the current locale
-        $query = Content::with('siloBlueprint', 'seoMeta', 'tags')->whereSlug($slug);
+        $query = Content::with('siloBlueprint', 'seoMeta', 'tags', 'parent')->whereSlug($slug);
             
         if (auth()->check()) {
             // Admins can preview drafts and unpublished posts

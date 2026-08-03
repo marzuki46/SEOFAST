@@ -2,14 +2,13 @@
 
 @php
     use App\Models\SystemSetting;
-    use App\Services\SeoHelper;
     $siteName = SystemSetting::get('site_name', config('app.name'));
     $page = request('page', 1);
     $titleSuffix = $page > 1 ? " - Halaman {$page}" : "";
     $canonicalUrl = url()->current() . ($page > 1 ? '?page=' . $page : '');
 @endphp
 @section('title', SeoHelper::categoryTitle($category->silo_name) . $titleSuffix)
-@section('meta_description', 'Baca artikel ' . $category->silo_name . ' di ' . $siteName . ' untuk optimasi SEO, konten AI, dan strategi pemasaran digital.')
+@section('meta_description', 'Baca artikel tentang ' . $category->silo_name . ' di ' . $siteName . '. Temukan panduan lengkap, strategi SEO, dan insight terbaru seputar ' . $category->seed_keyword . '.')
 @section('canonical_url', $canonicalUrl)
 
 @section('schema_markup')
@@ -19,8 +18,23 @@
         ['name' => 'Blog',   'url' => route('blog.index')],
         ['name' => $category->silo_name, 'url' => request()->url()],
     ];
+    
+    // CollectionPage schema for category archive
+    $schema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => $category->silo_name . ' Articles',
+        'description' => 'Kumpulan artikel tentang ' . $category->silo_name . '.',
+        'url' => request()->url(),
+        'isPartOf' => [
+            '@type' => 'WebSite',
+            'name' => $siteName,
+            'url' => url('/'),
+        ],
+    ];
 @endphp
-{!! \App\Services\SeoHelper::breadcrumbSchema($crumbs) !!}
+{!! \\App\\Services\\SeoHelper::breadcrumbSchema($crumbs) !!}
+<script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endsection
 
 @section('content')
