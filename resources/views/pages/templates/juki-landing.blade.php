@@ -16,6 +16,7 @@
 @section('twitter_description', 'Transformasi bisnis Anda dengan website profesional, sistem custom, dan AI automation dari expert Solo.')
 
 @section('styles')
+@verbatim
 <style>
     /* Custom Animations */
     @keyframes fadeInUp {
@@ -134,15 +135,18 @@
         60% {transform: translateY(5px);}
     }
 </style>
+@endverbatim
+
 @endsection
 
 @section('schema_markup')
+@verbatim
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   "name": "Juki Website Developer Solo",
-  "url": "{{ config('app.url') }}",
+  "url": "https://juki.eu.org",
   "description": "Jasa pembuatan website company profile, toko online, sistem informasi ERP/CRM, AI automation chatbot, dan SEO backlink profesional di Solo, Surakarta, Jawa Tengah",
   "telephone": "+62-xxx-xxxx-xxxx",
   "address": {
@@ -227,7 +231,7 @@
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
   "name": "Juki Website Developer Solo",
-  "image": "{{ asset('assets/og-default.jpg') }}",
+  "image": "https://juki.eu.org/assets/og-default.jpg",
   "description": "Layanan profesional web developer, programmer, dan SEO specialist di Solo dengan pengalaman bertahun-tahun",
   "offers": [
     {
@@ -282,7 +286,7 @@
       "@type": "ListItem",
       "position": 1,
       "name": "Home",
-      "item": "{{ config('app.url') }}"
+      "item": "https://juki.eu.org"
     },
     {
       "@type": "ListItem",
@@ -292,6 +296,8 @@
   ]
 }
 </script>
+@endverbatim
+
 @endsection
 
 @section('content')
