@@ -94,25 +94,6 @@
         box-shadow: 0 25px 50px -20px rgba(0, 0, 0, 0.35);
     }
 
-    /* ===== Marquee ===== */
-    .juki-marquee {
-        overflow: hidden;
-        white-space: nowrap;
-        -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-        mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-    }
-    .juki-marquee-track {
-        display: inline-flex;
-        align-items: center;
-        animation: juki-marquee 30s linear infinite;
-        will-change: transform;
-    }
-    .juki-marquee:hover .juki-marquee-track { animation-play-state: paused; }
-    @keyframes juki-marquee {
-        from { transform: translateX(0); }
-        to { transform: translateX(-50%); }
-    }
-
     /* ===== Animated gradient text ===== */
     .juki-gradient-text {
         background: linear-gradient(120deg, #15253F 0%, #CE9A45 45%, #9A6B16 55%, #15253F 100%);
@@ -137,9 +118,14 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .juki-marquee-track { animation: none; }
         .juki-gradient-text { animation: none; }
         .juki-mockup { animation: none; }
+    }
+
+    /* ===== Lazy render per section ===== */
+    .juki-landing > section {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 500px;
     }
 </style>
 @endverbatim
@@ -497,23 +483,6 @@
                     <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light juki-counter" data-count="100" data-suffix="%">100%</p>
                     <p class="mt-1 text-sm text-blue-100">Garansi Support WhatsApp</p>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    {{-- ============ TECH MARQUEE ============ --}}
-    <section class="bg-brand-navy-deep border-t border-white/10 py-5" aria-label="Teknologi dan keahlian">
-        <div class="juki-marquee">
-            <div class="juki-marquee-track">
-                @php
-                    $marqueeItems = ['Laravel', 'CodeIgniter', 'WordPress', 'Tailwind CSS', 'Vue.js', 'Alpine.js', 'MySQL', 'PHP', 'JavaScript', 'SEO Optimization', 'UI/UX Design', 'Mobile-Friendly'];
-                @endphp
-                @foreach (array_merge($marqueeItems, $marqueeItems) as $mi)
-                <span class="inline-flex items-center gap-3 mx-6 text-brand-gold-light text-sm sm:text-base font-semibold whitespace-nowrap">
-                    <svg class="w-4 h-4 text-brand-gold" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    {{ $mi }}
-                </span>
-                @endforeach
             </div>
         </div>
     </section>

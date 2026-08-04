@@ -49,6 +49,13 @@ class PageController extends Controller
             $template = 'default';
         }
 
+        // Full-page templates (they extend the layout themselves) must be
+        // rendered standalone; partial templates are included via pages.show.
+        $templatePath = resource_path('views/pages/templates/' . $template . '.blade.php');
+        if (file_exists($templatePath) && str_contains((string) file_get_contents($templatePath), "@extends('layouts")) {
+            return view('pages.templates.' . $template, compact('page'));
+        }
+
         return view('pages.show', compact('page', 'template'));
     }
 }
