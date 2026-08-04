@@ -32,4 +32,9 @@ Thumbs.db
 # Laravel specific
 storage/
 bootstrap/cache/
+
+# Random temp files
+toJson()
+update_css.php
+storage/page_html_content.html
 ```
