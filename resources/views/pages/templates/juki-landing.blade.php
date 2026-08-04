@@ -93,6 +93,54 @@
         overflow: hidden;
         box-shadow: 0 25px 50px -20px rgba(0, 0, 0, 0.35);
     }
+
+    /* ===== Marquee ===== */
+    .juki-marquee {
+        overflow: hidden;
+        white-space: nowrap;
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    }
+    .juki-marquee-track {
+        display: inline-flex;
+        align-items: center;
+        animation: juki-marquee 30s linear infinite;
+        will-change: transform;
+    }
+    .juki-marquee:hover .juki-marquee-track { animation-play-state: paused; }
+    @keyframes juki-marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+
+    /* ===== Animated gradient text ===== */
+    .juki-gradient-text {
+        background: linear-gradient(120deg, #15253F 0%, #CE9A45 45%, #9A6B16 55%, #15253F 100%);
+        background-size: 220% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: juki-text-shine 5s linear infinite;
+    }
+    @keyframes juki-text-shine {
+        to { background-position: 220% center; }
+    }
+
+    /* ===== Hero mockup entrance ===== */
+    .juki-mockup {
+        transform-origin: center bottom;
+        animation: juki-rise 0.9s cubic-bezier(.22, .61, .36, 1) both;
+    }
+    @keyframes juki-rise {
+        from { opacity: 0; transform: translateY(40px) scale(0.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .juki-marquee-track { animation: none; }
+        .juki-gradient-text { animation: none; }
+        .juki-mockup { animation: none; }
+    }
 </style>
 @endverbatim
 @endsection
@@ -316,7 +364,7 @@
             </div>
 
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight text-[#0F172A] mb-6 reveal" data-delay="80">
-                Web Developer Solo: Jasa Pembuatan Website <span class="text-brand-gold-dark">Profesional</span>
+                Web Developer Solo: Jasa Pembuatan Website <span class="juki-gradient-text">Profesional</span>
             </h1>
 
             <p class="text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed reveal" data-delay="160">
@@ -351,6 +399,77 @@
                     SEO-Friendly &amp; Responsive
                 </span>
             </div>
+
+            {{-- ============ HERO VISUAL ============ --}}
+            <div class="relative mt-16 sm:mt-20 max-w-3xl mx-auto reveal" data-delay="400">
+                <div class="absolute -inset-8 bg-brand-gold/10 blur-3xl rounded-full"></div>
+                <div class="relative">
+                    <div class="juki-mockup rounded-2xl bg-white border border-[#E2E8F0] shadow-2xl shadow-brand-navy/10 overflow-hidden text-left">
+                        <div class="flex items-center gap-2 px-5 py-3 bg-[#F1F5F9] border-b border-[#E2E8F0]">
+                            <span class="w-3 h-3 rounded-full bg-red-400"></span>
+                            <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                            <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+                            <div class="flex-1 ml-3 h-6 bg-white border border-[#E2E8F0] rounded-md text-[11px] text-slate-400 flex items-center px-3">
+                                <svg class="w-3 h-3 mr-1.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                juki.eu.org
+                            </div>
+                        </div>
+                        <div class="bg-[#F8FAFC] p-6 sm:p-8">
+                            <div class="grid grid-cols-1 sm:grid-cols-5 gap-6 items-center">
+                                <div class="sm:col-span-2">
+                                    @if($brandLogo)
+                                    <img src="{{ $brandLogo }}" alt="{{ $brandLogoAlt }}" class="h-7 w-auto mb-4" loading="eager" decoding="async">
+                                    @endif
+                                    <div class="h-3 w-24 bg-brand-navy rounded mb-2"></div>
+                                    <div class="h-3 w-32 bg-slate-200 rounded mb-3"></div>
+                                    <p class="text-xs text-slate-400 leading-relaxed mb-4">Website cepat, SEO-friendly, mobile-first. Selesai maksimal 2 minggu.</p>
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-gold text-brand-navy text-xs font-bold shadow-lg shadow-brand-gold/25">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1 15v-4H7v-2h4V7h2v4h4v2h-4v4h-2z"/></svg>
+                                        Mulai Rp 2,5 Jt
+                                    </div>
+                                </div>
+                                <div class="sm:col-span-3 bg-white border border-[#E2E8F0] rounded-xl p-4 shadow-sm">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="h-3 w-20 bg-brand-navy rounded"></div>
+                                        <div class="w-8 h-8 rounded-full bg-brand-gold/20"></div>
+                                    </div>
+                                    <div class="space-y-2.5">
+                                        <div class="h-2 bg-slate-100 rounded w-full"></div>
+                                        <div class="h-2 bg-slate-100 rounded w-5/6"></div>
+                                        <div class="h-2 bg-slate-100 rounded w-2/3"></div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2 mt-4">
+                                        <div class="h-10 rounded-lg bg-brand-navy/5"></div>
+                                        <div class="h-10 rounded-lg bg-brand-gold/15"></div>
+                                        <div class="h-10 rounded-lg bg-brand-navy/10"></div>
+                                    </div>
+                                    <div class="h-8 bg-brand-navy rounded-lg mt-4"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="absolute -top-6 -left-3 sm:-left-10 bg-white border border-[#E2E8F0] rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3 juki-float">
+                        <div class="w-10 h-10 rounded-xl bg-brand-gold/15 text-brand-gold-dark flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.363-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-sm font-bold text-[#0F172A] leading-none">Rating 5.0</p>
+                            <p class="text-[11px] text-slate-500 mt-1">Ulasan pelanggan Solo</p>
+                        </div>
+                    </div>
+
+                    <div class="absolute -bottom-6 -right-3 sm:-right-10 bg-white border border-[#E2E8F0] rounded-2xl shadow-xl px-4 py-3 flex items-center gap-3 juki-float" style="animation-delay: 1.2s;">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-sm font-bold text-[#0F172A] leading-none">Garansi Support</p>
+                            <p class="text-[11px] text-slate-500 mt-1">Respon cepat via WhatsApp</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="juki-scroll-hint absolute bottom-6 left-1/2 -translate-x-1/2 text-brand-navy/40">
@@ -363,21 +482,38 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
                 <div class="reveal">
-                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light">2 Minggu</p>
+                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light juki-counter" data-count="2" data-suffix=" Minggu">2 Minggu</p>
                     <p class="mt-1 text-sm text-blue-100">Pengerjaan Website Maksimal</p>
                 </div>
                 <div class="reveal" data-delay="80">
-                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light">1 Bulan</p>
+                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light juki-counter" data-count="1" data-suffix=" Bulan">1 Bulan</p>
                     <p class="mt-1 text-sm text-blue-100">Sistem Modular + Training</p>
                 </div>
                 <div class="reveal" data-delay="160">
-                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light">3+ Teknologi</p>
+                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light juki-counter" data-count="3" data-suffix="+ Teknologi">3+ Teknologi</p>
                     <p class="mt-1 text-sm text-blue-100">Laravel, CodeIgniter, WordPress</p>
                 </div>
                 <div class="reveal" data-delay="240">
-                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light">100%</p>
+                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light juki-counter" data-count="100" data-suffix="%">100%</p>
                     <p class="mt-1 text-sm text-blue-100">Garansi Support WhatsApp</p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- ============ TECH MARQUEE ============ --}}
+    <section class="bg-brand-navy-deep border-t border-white/10 py-5" aria-label="Teknologi dan keahlian">
+        <div class="juki-marquee">
+            <div class="juki-marquee-track">
+                @php
+                    $marqueeItems = ['Laravel', 'CodeIgniter', 'WordPress', 'Tailwind CSS', 'Vue.js', 'Alpine.js', 'MySQL', 'PHP', 'JavaScript', 'SEO Optimization', 'UI/UX Design', 'Mobile-Friendly'];
+                @endphp
+                @foreach (array_merge($marqueeItems, $marqueeItems) as $mi)
+                <span class="inline-flex items-center gap-3 mx-6 text-brand-gold-light text-sm sm:text-base font-semibold whitespace-nowrap">
+                    <svg class="w-4 h-4 text-brand-gold" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    {{ $mi }}
+                </span>
+                @endforeach
             </div>
         </div>
     </section>
@@ -662,7 +798,7 @@
                 @foreach($recentPosts as $post)
                 <article class="juki-card group bg-white border border-[#E2E8F0] rounded-3xl overflow-hidden flex flex-col reveal">
                     <a href="{{ route('blog.show', $post->slug) }}" class="block overflow-hidden bg-slate-100">
-                        <img src="{{ $post->featured_image_url ?: asset('images/seofast-placeholder.svg') }}" alt="{{ $post->featured_image_alt ?? $post->title }}" loading="lazy" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                        <img src="{{ $post->featured_image_url ?: asset('assets/seofast-placeholder.svg') }}" alt="{{ $post->featured_image_alt ?? $post->title }}" loading="lazy" decoding="async" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
                     </a>
                     <div class="p-6 flex flex-col flex-1">
                         @if($post->published_at)
@@ -672,7 +808,7 @@
                             <a href="{{ route('blog.show', $post->slug) }}" class="hover:text-brand-gold-dark transition-colors">{{ $post->title }}</a>
                         </h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-5 line-clamp-3 flex-1">{{ $post->excerpt }}</p>
-                        <a href="{{ route('blog.show', $post->slug) }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Baca Selengkapnya <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                        <a href="{{ route('blog.show', $post->slug) }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Baca Selengkapnya <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                     </div>
                 </article>
                 @endforeach
@@ -945,6 +1081,33 @@
         items.forEach(function (el) {
             observer.observe(el);
         });
+
+        var counters = document.querySelectorAll('.juki-landing .juki-counter');
+        if (counters.length) {
+            var countObserver = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        var el = entry.target;
+                        var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+                        var suffix = el.getAttribute('data-suffix') || '';
+                        var duration = 1400;
+                        var start = null;
+                        function step(ts) {
+                            if (!start) start = ts;
+                            var p = Math.min((ts - start) / duration, 1);
+                            var eased = 1 - Math.pow(1 - p, 3);
+                            el.textContent = Math.round(eased * target) + suffix;
+                            if (p < 1) requestAnimationFrame(step);
+                        }
+                        requestAnimationFrame(step);
+                        countObserver.unobserve(el);
+                    }
+                });
+            }, { threshold: 0.5 });
+            counters.forEach(function (el) {
+                countObserver.observe(el);
+            });
+        }
     })();
 </script>
 @endsection
