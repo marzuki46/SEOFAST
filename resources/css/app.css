@@ -13,8 +13,17 @@
     --color-dark-900: #090d16;
     --color-dark-950: #030712;
 
-    --color-brand-purple: #8b5cf6;
-    --color-brand-blue: #3b82f6;
-    --color-brand-indigo: #6366f1;
-    --color-brand-violet: #a78bfa;
+    /* ===== Brand Palette (Juki Website Developer Solo logo) ===== */
+    --color-brand-navy: #15253F;
+    --color-brand-navy-deep: #0E1B2E;
+    --color-brand-navy-mid: #2B4A73;
+    --color-brand-gold: #CE9A45;
+    --color-brand-gold-dark: #9A6B16;
+    --color-brand-gold-light: #F0C878;
+
+    /* Legacy brand token aliases (re-mapped to the new brand palette) */
+    --color-brand-purple: #CE9A45;
+    --color-brand-blue: #2B4A73;
+    --color-brand-indigo: #15253F;
+    --color-brand-violet: #E9C377;
 }

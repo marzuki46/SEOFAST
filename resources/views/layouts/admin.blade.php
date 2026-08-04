@@ -33,10 +33,10 @@
                             950: '#030712',
                         },
                         brand: {
-                            purple: '#8b5cf6',
-                            blue: '#3b82f6',
-                            indigo: '#6366f1',
-                            violet: '#a78bfa',
+                            purple: '#CE9A45',
+                            blue: '#2B4A73',
+                            indigo: '#15253F',
+                            violet: '#E9C377',
                         }
                     }
                 }
@@ -310,7 +310,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-12L21 9m0 0l-4.5 4.5M21 9H7.5" />
                         </svg>
                     </button>
-                    <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-[10px] md:text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">Admin Panel</span>
+                    <span class="inline-flex items-center rounded-md bg-brand-gold/10 px-2 py-1 text-[10px] md:text-xs font-semibold text-brand-gold-dark ring-1 ring-inset ring-brand-gold-dark/20">Admin Panel</span>
                 </div>
             </header>
 

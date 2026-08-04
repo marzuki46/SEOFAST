@@ -294,7 +294,7 @@
                                         <div class="mt-4 pt-4 border-t border-slate-100">
                                             <form action="{{ route('admin.silo.process_cluster', [$silo->id, $cluster->id]) }}" method="POST">
                                                 @csrf
-                                                <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-violet hover:bg-brand-violet/90 text-white font-bold text-sm rounded-xl transition shadow-md">
+                                                <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-indigo hover:bg-brand-navy-deep text-white font-bold text-sm rounded-xl transition shadow-md">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                                     Proses Cluster Ini
                                                 </button>

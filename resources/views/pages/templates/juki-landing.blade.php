@@ -69,7 +69,7 @@
     }
     .juki-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 20px 45px -18px rgba(30, 58, 95, 0.22);
+        box-shadow: 0 20px 45px -18px rgba(21, 37, 63, 0.22);
     }
 
     .juki-badge {
@@ -292,37 +292,46 @@
 @endsection
 
 @section('content')
+@php
+    $brandLogo = \App\Models\SystemSetting::get('logo_url');
+    $brandLogoAlt = \App\Models\SystemSetting::get('logo_alt', 'Juki Website Developer Solo');
+@endphp
 <div class="juki-landing bg-[#F8FAFC] text-[#0F172A] overflow-x-hidden">
 
     {{-- ============ HERO ============ --}}
     <section id="home" class="relative overflow-hidden bg-gradient-to-br from-white via-[#F4F7FB] to-[#E8EEF6]">
-        <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#1E3A5F]/5 blur-3xl juki-float"></div>
-        <div class="absolute bottom-10 left-0 w-72 h-72 rounded-full bg-[#A16207]/10 blur-3xl juki-float" style="animation-delay: 1.5s;"></div>
-        <div class="absolute inset-0 bg-[linear-gradient(rgba(30,58,95,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(30,58,95,0.03)_1px,transparent_1px)] bg-[size:56px_56px]"></div>
+        <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-brand-navy/5 blur-3xl juki-float"></div>
+        <div class="absolute bottom-10 left-0 w-72 h-72 rounded-full bg-brand-gold/10 blur-3xl juki-float" style="animation-delay: 1.5s;"></div>
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(21,37,63,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(21,37,63,0.04)_1px,transparent_1px)] bg-[size:56px_56px]"></div>
 
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 lg:pt-32 lg:pb-24 text-center">
-            <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-[#E2E8F0] shadow-sm text-sm font-semibold text-[#1E3A5F] mb-8 reveal">
-                <svg class="w-4 h-4 text-[#A16207]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd"/></svg>
+            @if($brandLogo)
+            <div class="flex justify-center mb-10 reveal">
+                <img src="{{ $brandLogo }}" alt="{{ $brandLogoAlt }}" class="h-16 sm:h-20 w-auto drop-shadow-xl" loading="eager">
+            </div>
+            @endif
+            <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-[#E2E8F0] shadow-sm text-sm font-semibold text-brand-navy mb-8 reveal">
+                <svg class="w-4 h-4 text-brand-gold-dark" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd"/></svg>
                 Web Developer &amp; Web Designer Solo — Surakarta, Jawa Tengah
             </div>
 
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight text-[#0F172A] mb-6 reveal" data-delay="80">
-                Web Developer Solo: Jasa Pembuatan Website <span class="text-[#A16207]">Profesional</span>
+                Web Developer Solo: Jasa Pembuatan Website <span class="text-brand-gold-dark">Profesional</span>
             </h1>
 
             <p class="text-lg lg:text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed reveal" data-delay="160">
                 Jasa web design &amp; pembuatan website di Solo dan Surakarta — company profile, toko online,
                 landing page, sistem informasi, hingga AI automation. Dibangun dengan
-                <strong class="text-[#1E3A5F]">Laravel</strong>, <strong class="text-[#1E3A5F]">CodeIgniter</strong>,
-                dan <strong class="text-[#1E3A5F]">CMS WordPress</strong>. Pengerjaan website maksimal 2 minggu.
+                <strong class="text-brand-navy">Laravel</strong>, <strong class="text-brand-navy">CodeIgniter</strong>,
+                dan <strong class="text-brand-navy">CMS WordPress</strong>. Pengerjaan website maksimal 2 minggu.
             </p>
 
             <div class="flex flex-col sm:flex-row justify-center gap-4 mb-10 reveal" data-delay="240">
-                <a href="https://wa.me/6282213028718?text=Halo%20Juki%20Website%20Developer%20Solo%2C%20saya%20ingin%20konsultasi%20pembuatan%20website" target="_blank" rel="noopener" class="juki-badge inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-[#A16207] hover:bg-[#B4750C] text-white font-bold text-lg shadow-xl shadow-[#A16207]/25 transition-all hover:-translate-y-0.5 active:translate-y-0">
+                <a href="https://wa.me/6282213028718?text=Halo%20Juki%20Website%20Developer%20Solo%2C%20saya%20ingin%20konsultasi%20pembuatan%20website" target="_blank" rel="noopener" class="juki-badge inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold text-lg shadow-xl shadow-brand-gold/25 transition-all hover:-translate-y-0.5 active:translate-y-0">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
                     Konsultasi Gratis via WhatsApp
                 </a>
-                <a href="#services" class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white border-2 border-[#1E3A5F]/15 text-[#1E3A5F] hover:border-[#1E3A5F]/40 font-bold text-lg transition-all hover:-translate-y-0.5 active:translate-y-0">
+                <a href="#services" class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white border-2 border-brand-navy/15 text-brand-navy hover:border-brand-navy/40 font-bold text-lg transition-all hover:-translate-y-0.5 active:translate-y-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                     Lihat Layanan &amp; Harga
                 </a>
@@ -330,43 +339,43 @@
 
             <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm font-semibold text-slate-600 reveal" data-delay="320">
                 <span class="inline-flex items-center gap-2">
-                    <svg class="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    <svg class="w-5 h-5 text-brand-navy" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                     Garansi Support WhatsApp
                 </span>
                 <span class="inline-flex items-center gap-2">
-                    <svg class="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    <svg class="w-5 h-5 text-brand-navy" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                     Pengerjaan Website Maks 2 Minggu
                 </span>
                 <span class="inline-flex items-center gap-2">
-                    <svg class="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    <svg class="w-5 h-5 text-brand-navy" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                     SEO-Friendly &amp; Responsive
                 </span>
             </div>
         </div>
 
-        <div class="juki-scroll-hint absolute bottom-6 left-1/2 -translate-x-1/2 text-[#1E3A5F]/40">
+        <div class="juki-scroll-hint absolute bottom-6 left-1/2 -translate-x-1/2 text-brand-navy/40">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
         </div>
     </section>
 
     {{-- ============ STATS BAR ============ --}}
-    <section class="bg-[#1E3A5F] text-white">
+    <section class="bg-brand-navy text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
                 <div class="reveal">
-                    <p class="text-3xl lg:text-4xl font-extrabold text-[#F4C95D]">2 Minggu</p>
+                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light">2 Minggu</p>
                     <p class="mt-1 text-sm text-blue-100">Pengerjaan Website Maksimal</p>
                 </div>
                 <div class="reveal" data-delay="80">
-                    <p class="text-3xl lg:text-4xl font-extrabold text-[#F4C95D]">1 Bulan</p>
+                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light">1 Bulan</p>
                     <p class="mt-1 text-sm text-blue-100">Sistem Modular + Training</p>
                 </div>
                 <div class="reveal" data-delay="160">
-                    <p class="text-3xl lg:text-4xl font-extrabold text-[#F4C95D]">3+ Teknologi</p>
+                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light">3+ Teknologi</p>
                     <p class="mt-1 text-sm text-blue-100">Laravel, CodeIgniter, WordPress</p>
                 </div>
                 <div class="reveal" data-delay="240">
-                    <p class="text-3xl lg:text-4xl font-extrabold text-[#F4C95D]">100%</p>
+                    <p class="text-3xl lg:text-4xl font-extrabold text-brand-gold-light">100%</p>
                     <p class="mt-1 text-sm text-blue-100">Garansi Support WhatsApp</p>
                 </div>
             </div>
@@ -377,79 +386,79 @@
     <section id="services" class="py-20 lg:py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-14 reveal">
-                <p class="text-sm font-bold uppercase tracking-widest text-[#A16207] mb-3">Layanan Unggulan</p>
-                <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight text-[#1E3A5F] mb-4">Layanan Web Developer Solo</h2>
+                <p class="text-sm font-bold uppercase tracking-widest text-brand-gold-dark mb-3">Layanan Unggulan</p>
+                <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight text-brand-navy mb-4">Layanan Web Developer Solo</h2>
                 <p class="text-lg text-slate-600 max-w-2xl mx-auto">Solusi digital lengkap untuk UMKM, perusahaan, dan instansi di Solo Raya &amp; Jawa Tengah</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {{-- Service 1: Website --}}
                 <div class="juki-card group relative bg-white border border-[#E2E8F0] rounded-3xl p-8 reveal">
-                    <div class="w-16 h-16 rounded-2xl bg-[#1E3A5F] flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[#1E3A5F]/20">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-navy flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-brand-navy/20">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     </div>
                     <h3 class="text-xl font-bold text-[#0F172A] mb-3">Jasa Pembuatan Website Solo</h3>
                     <p class="text-slate-600 text-sm leading-relaxed mb-5">Website company profile, toko online, dan landing page dengan desain modern, cepat, dan mobile-friendly.</p>
                     <ul class="space-y-2.5 text-sm text-slate-700">
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>CMS WordPress / custom</li>
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Responsive &amp; mobile-first</li>
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>SEO-friendly &amp; cepat</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>CMS WordPress / custom</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Responsive &amp; mobile-first</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>SEO-friendly &amp; cepat</li>
                     </ul>
                     <div class="mt-6 pt-5 border-t border-slate-100">
-                        <p class="text-sm text-slate-500 mb-3">Mulai <span class="font-bold text-[#A16207]">Rp 2.500.000</span> · maks 2 minggu</p>
-                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-[#1E3A5F] hover:text-[#A16207] transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                        <p class="text-sm text-slate-500 mb-3">Mulai <span class="font-bold text-brand-gold-dark">Rp 2.500.000</span> · maks 2 minggu</p>
+                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                     </div>
                 </div>
 
                 {{-- Service 2: Sistem Informasi --}}
                 <div class="juki-card group relative bg-white border border-[#E2E8F0] rounded-3xl p-8 reveal" data-delay="80">
-                    <div class="w-16 h-16 rounded-2xl bg-[#2563EB] flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[#2563EB]/20">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-navy flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-brand-navy/20">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 1.657 3.582 3 8 3s8-1.343 8-3V7M4 7c0 1.657 3.582 3 8 3s8-1.343 8-3-3.582-3-8-3-8 1.343-8 3zm16 5c0 1.657-3.582 3-8 3s-8-1.343-8-3"/></svg>
                     </div>
                     <h3 class="text-xl font-bold text-[#0F172A] mb-3">Pembuatan Sistem Informasi</h3>
                     <p class="text-slate-600 text-sm leading-relaxed mb-5">Sistem ERP, CRM, inventory, dan aplikasi web custom sesuai alur bisnis perusahaan Anda.</p>
                     <ul class="space-y-2.5 text-sm text-slate-700">
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Laravel &amp; CodeIgniter</li>
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Database &amp; API terintegrasi</li>
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Modular 1 bulan + training</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Laravel &amp; CodeIgniter</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Database &amp; API terintegrasi</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Modular 1 bulan + training</li>
                     </ul>
                     <div class="mt-6 pt-5 border-t border-slate-100">
-                        <p class="text-sm text-slate-500 mb-3">Mulai <span class="font-bold text-[#A16207]">Rp 10.000.000</span></p>
-                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-[#1E3A5F] hover:text-[#A16207] transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                        <p class="text-sm text-slate-500 mb-3">Mulai <span class="font-bold text-brand-gold-dark">Rp 10.000.000</span></p>
+                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                     </div>
                 </div>
 
                 {{-- Service 3: AI Automation --}}
                 <div class="juki-card group relative bg-white border border-[#E2E8F0] rounded-3xl p-8 reveal" data-delay="160">
-                    <div class="w-16 h-16 rounded-2xl bg-[#A16207] flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[#A16207]/20">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-gold flex items-center justify-center text-brand-navy mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-brand-gold/20">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9z"/></svg>
                     </div>
                     <h3 class="text-xl font-bold text-[#0F172A] mb-3">AI Automation &amp; Chatbot</h3>
                     <p class="text-slate-600 text-sm leading-relaxed mb-5">Otomatisasi layanan pelanggan dan proses bisnis dengan kecerdasan buatan.</p>
                     <ul class="space-y-2.5 text-sm text-slate-700">
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>WhatsApp chatbot</li>
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Customer service automation</li>
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Integrasi API &amp; bisnis</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>WhatsApp chatbot</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Customer service automation</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Integrasi API &amp; bisnis</li>
                     </ul>
                     <div class="mt-6 pt-5 border-t border-slate-100">
-                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-[#1E3A5F] hover:text-[#A16207] transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                     </div>
                 </div>
 
                 {{-- Service 4: SEO & Backlink --}}
                 <div class="juki-card group relative bg-white border border-[#E2E8F0] rounded-3xl p-8 reveal" data-delay="240">
-                    <div class="w-16 h-16 rounded-2xl bg-[#0F766E] flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[#0F766E]/20">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-navy flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-brand-navy/20">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                     </div>
                     <h3 class="text-xl font-bold text-[#0F172A] mb-3">Jasa SEO &amp; Backlink Solo</h3>
                     <p class="text-slate-600 text-sm leading-relaxed mb-5">Naikkan peringkat website Anda di Google dengan strategi SEO lokal dan link building.</p>
                     <ul class="space-y-2.5 text-sm text-slate-700">
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Backlink berkualitas &amp; aman</li>
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Google Maps optimization</li>
-                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Local SEO Surakarta &amp; keyword research</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Backlink berkualitas &amp; aman</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Google Maps optimization</li>
+                        <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Local SEO Surakarta &amp; keyword research</li>
                     </ul>
                     <div class="mt-6 pt-5 border-t border-slate-100">
-                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-[#1E3A5F] hover:text-[#A16207] transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                     </div>
                 </div>
             </div>
@@ -460,8 +469,8 @@
     <section class="py-20 lg:py-24 bg-[#F1F5F9]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-14 reveal">
-                <p class="text-sm font-bold uppercase tracking-widest text-[#A16207] mb-3">Kenapa Memilih Kami</p>
-                <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight text-[#1E3A5F] mb-4">Partner Digital Terpercaya di Solo</h2>
+                <p class="text-sm font-bold uppercase tracking-widest text-brand-gold-dark mb-3">Kenapa Memilih Kami</p>
+                <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight text-brand-navy mb-4">Partner Digital Terpercaya di Solo</h2>
                 <p class="text-lg text-slate-600 max-w-2xl mx-auto">Lebih dari sekadar web developer, kami mitra strategis untuk pertumbuhan bisnis Anda</p>
             </div>
 
@@ -479,7 +488,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($reasons as $index => $reason)
                 <div class="juki-card bg-white border border-[#E2E8F0] rounded-2xl p-7 reveal" data-delay="{{ $index * 70 }}">
-                    <div class="w-14 h-14 rounded-xl bg-[#1E3A5F]/5 text-[#1E3A5F] flex items-center justify-center mb-5">
+                    <div class="w-14 h-14 rounded-xl bg-brand-navy/5 text-brand-navy flex items-center justify-center mb-5">
                         @if($reason['icon'] === 'bolt')
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         @elseif($reason['icon'] === 'target')
@@ -506,8 +515,8 @@
     <section class="py-20 lg:py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
             <div class="reveal">
-                <p class="text-sm font-bold uppercase tracking-widest text-[#A16207] mb-3">Tentang Kami</p>
-                <h2 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-[#1E3A5F] mb-5">
+                <p class="text-sm font-bold uppercase tracking-widest text-brand-gold-dark mb-3">Tentang Kami</p>
+                <h2 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-brand-navy mb-5">
                     Jasa Web Developer &amp; Web Designer di Solo Raya
                 </h2>
                 <p class="text-slate-600 leading-relaxed mb-4">
@@ -527,21 +536,21 @@
                 </p>
 
                 <div class="mt-8 flex flex-wrap gap-3">
-                    <a href="#contact" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1E3A5F] hover:bg-[#16283F] text-white font-semibold transition-all">Hubungi Kami</a>
-                    <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border-2 border-[#A16207] text-[#A16207] hover:bg-[#A16207] hover:text-white font-semibold transition-all">Chat WhatsApp</a>
+                    <a href="#contact" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-navy hover:bg-brand-navy-deep text-white font-semibold transition-all">Hubungi Kami</a>
+                    <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border-2 border-brand-gold-dark text-brand-gold-dark hover:bg-brand-gold hover:text-brand-navy font-semibold transition-all">Chat WhatsApp</a>
                 </div>
             </div>
 
             <div class="reveal" data-delay="120">
                 <div class="bg-[#F1F5F9] border border-[#E2E8F0] rounded-3xl p-8">
-                    <h3 class="text-lg font-bold text-[#1E3A5F] mb-6">Teknologi &amp; Keahlian</h3>
+                    <h3 class="text-lg font-bold text-brand-navy mb-6">Teknologi &amp; Keahlian</h3>
                     <div class="flex flex-wrap gap-3 mb-8">
                         @php
                         $techs = ['Laravel', 'CodeIgniter', 'WordPress', 'PHP', 'MySQL', 'React.js', 'Vue.js', 'Tailwind CSS', 'REST API', 'UI/UX Design', 'SEO', 'Google Search Console'];
                         @endphp
                         @foreach($techs as $tech)
-                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E2E8F0] text-sm font-semibold text-[#1E3A5F] shadow-sm">
-                            <svg class="w-4 h-4 text-[#A16207]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd"/></svg>
+                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E2E8F0] text-sm font-semibold text-brand-navy shadow-sm">
+                            <svg class="w-4 h-4 text-brand-gold-dark" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd"/></svg>
                             {{ $tech }}
                         </span>
                         @endforeach
@@ -549,19 +558,19 @@
 
                     <div class="grid grid-cols-2 gap-4 text-sm">
                         <div class="flex items-start gap-3">
-                            <svg class="w-6 h-6 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            <svg class="w-6 h-6 text-brand-navy shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             <span class="text-slate-700">Responsive &amp; mobile-first design</span>
                         </div>
                         <div class="flex items-start gap-3">
-                            <svg class="w-6 h-6 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            <svg class="w-6 h-6 text-brand-navy shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             <span class="text-slate-700">Optimasi kecepatan &amp; Core Web Vitals</span>
                         </div>
                         <div class="flex items-start gap-3">
-                            <svg class="w-6 h-6 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            <svg class="w-6 h-6 text-brand-navy shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             <span class="text-slate-700">Struktur SEO &amp; schema JSON-LD</span>
                         </div>
                         <div class="flex items-start gap-3">
-                            <svg class="w-6 h-6 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            <svg class="w-6 h-6 text-brand-navy shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             <span class="text-slate-700">Keamanan SSL &amp; backup rutin</span>
                         </div>
                     </div>
@@ -574,8 +583,8 @@
     <section id="harga" class="py-20 lg:py-24 bg-[#F1F5F9]">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-14 reveal">
-                <p class="text-sm font-bold uppercase tracking-widest text-[#A16207] mb-3">Harga Jasa Pembuatan Website Solo</p>
-                <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight text-[#1E3A5F] mb-4">Paket Transparan, Tanpa Biaya Tersembunyi</h2>
+                <p class="text-sm font-bold uppercase tracking-widest text-brand-gold-dark mb-3">Harga Jasa Pembuatan Website Solo</p>
+                <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight text-brand-navy mb-4">Paket Transparan, Tanpa Biaya Tersembunyi</h2>
                 <p class="text-lg text-slate-600 max-w-2xl mx-auto">Harga dapat disesuaikan dengan kebutuhan. Konsultasikan proyek Anda secara gratis.</p>
             </div>
 
@@ -584,26 +593,26 @@
                 <div class="juki-card relative bg-white border border-[#E2E8F0] rounded-3xl p-8 lg:p-10 reveal">
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-2xl font-bold text-[#0F172A]">Paket Website</h3>
-                        <span class="px-3 py-1 rounded-full bg-[#1E3A5F]/10 text-[#1E3A5F] text-xs font-bold uppercase tracking-wide">CMS WordPress</span>
+                        <span class="px-3 py-1 rounded-full bg-brand-navy/10 text-brand-navy text-xs font-bold uppercase tracking-wide">CMS WordPress</span>
                     </div>
                     <p class="flex items-baseline gap-2 mb-6">
                         <span class="text-sm text-slate-500">Mulai</span>
-                        <span class="text-4xl font-extrabold text-[#A16207]">Rp 2.500.000</span>
+                        <span class="text-4xl font-extrabold text-brand-gold-dark">Rp 2.500.000</span>
                     </p>
                     <ul class="space-y-3 text-sm text-slate-700 mb-8">
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Company profile, landing page, atau toko online</li>
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Desain responsive, modern, mobile-first</li>
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Struktur SEO-friendly &amp; cepat loading</li>
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Pengerjaan maksimal 2 minggu</li>
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Garansi support via WhatsApp</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Company profile, landing page, atau toko online</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Desain responsive, modern, mobile-first</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Struktur SEO-friendly &amp; cepat loading</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Pengerjaan maksimal 2 minggu</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Garansi support via WhatsApp</li>
                     </ul>
-                    <a href="https://wa.me/6282213028718?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Website%20Rp%202.500.000" target="_blank" rel="noopener" class="juki-badge inline-flex w-full items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-[#1E3A5F] hover:bg-[#16283F] text-white font-bold transition-all">Pilih Paket Website</a>
+                    <a href="https://wa.me/6282213028718?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Website%20Rp%202.500.000" target="_blank" rel="noopener" class="juki-badge inline-flex w-full items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-brand-navy hover:bg-brand-navy-deep text-white font-bold transition-all">Pilih Paket Website</a>
                 </div>
 
                 {{-- Paket Sistem Informasi --}}
-                <div class="juki-card relative bg-[#1E3A5F] text-white rounded-3xl p-8 lg:p-10 reveal" data-delay="120">
+                <div class="juki-card relative bg-brand-navy text-white rounded-3xl p-8 lg:p-10 reveal" data-delay="120">
                     <div class="absolute top-6 right-6">
-                        <span class="px-3 py-1 rounded-full bg-[#A16207] text-white text-xs font-bold uppercase tracking-wide shadow-lg shadow-[#A16207]/30">Premium</span>
+                        <span class="px-3 py-1 rounded-full bg-brand-gold text-brand-navy text-xs font-bold uppercase tracking-wide shadow-lg shadow-brand-gold/30">Premium</span>
                     </div>
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-2xl font-bold">Paket Sistem Informasi</h3>
@@ -611,21 +620,21 @@
                     </div>
                     <p class="flex items-baseline gap-2 mb-6">
                         <span class="text-sm text-blue-100">Mulai</span>
-                        <span class="text-4xl font-extrabold text-[#F4C95D]">Rp 10.000.000</span>
+                        <span class="text-4xl font-extrabold text-brand-gold-light">Rp 10.000.000</span>
                     </p>
                     <ul class="space-y-3 text-sm text-blue-100 mb-8">
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-[#F4C95D] mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>ERP, CRM, inventory, POS, aplikasi web custom</li>
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-[#F4C95D] mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Program modular selesai 1 bulan + training</li>
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-[#F4C95D] mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Custom program menyesuaikan kebutuhan &amp; kompleksitas</li>
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-[#F4C95D] mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Database, keamanan &amp; API terintegrasi</li>
-                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-[#F4C95D] mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Garansi support via WhatsApp</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>ERP, CRM, inventory, POS, aplikasi web custom</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Program modular selesai 1 bulan + training</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Custom program menyesuaikan kebutuhan &amp; kompleksitas</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Database, keamanan &amp; API terintegrasi</li>
+                        <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Garansi support via WhatsApp</li>
                     </ul>
-                    <a href="https://wa.me/6282213028718?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Sistem%20Informasi%20Rp%2010.000.000" target="_blank" rel="noopener" class="juki-badge inline-flex w-full items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-[#A16207] hover:bg-[#B4750C] text-white font-bold transition-all">Pilih Paket Sistem Informasi</a>
+                    <a href="https://wa.me/6282213028718?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Sistem%20Informasi%20Rp%2010.000.000" target="_blank" rel="noopener" class="juki-badge inline-flex w-full items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold transition-all">Pilih Paket Sistem Informasi</a>
                 </div>
             </div>
 
             <p class="text-center text-sm text-slate-500 mt-8 reveal">
-                Butuh penawaran khusus atau proyek skala besar? <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="font-bold text-[#A16207] hover:underline">Konsultasikan kebutuhan Anda</a> — gratis.
+                Butuh penawaran khusus atau proyek skala besar? <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="font-bold text-brand-gold-dark hover:underline">Konsultasikan kebutuhan Anda</a> — gratis.
             </p>
         </div>
     </section>
@@ -644,14 +653,14 @@
     <section id="blog" class="py-20 lg:py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-14 reveal">
-                <p class="text-sm font-bold uppercase tracking-widest text-[#A16207] mb-3">Dari Blog</p>
-                <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight text-[#1E3A5F] mb-4">Artikel &amp; Tips Website</h2>
+                <p class="text-sm font-bold uppercase tracking-widest text-brand-gold-dark mb-3">Dari Blog</p>
+                <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight text-brand-navy mb-4">Artikel &amp; Tips Website</h2>
                 <p class="text-lg text-slate-600 max-w-2xl mx-auto">Wawasan seputar pembuatan website, SEO, dan digital marketing untuk bisnis Anda</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($recentPosts as $post)
-                <article class="juki-card bg-white border border-[#E2E8F0] rounded-3xl overflow-hidden flex flex-col reveal">
+                <article class="juki-card group bg-white border border-[#E2E8F0] rounded-3xl overflow-hidden flex flex-col reveal">
                     <a href="{{ route('blog.show', $post->slug) }}" class="block overflow-hidden bg-slate-100">
                         <img src="{{ $post->featured_image_url ?: asset('images/seofast-placeholder.svg') }}" alt="{{ $post->featured_image_alt ?? $post->title }}" loading="lazy" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
                     </a>
@@ -660,10 +669,10 @@
                         <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">{{ $post->published_at->format('d M Y') }}</span>
                         @endif
                         <h3 class="font-bold text-lg text-[#0F172A] mb-3 line-clamp-2">
-                            <a href="{{ route('blog.show', $post->slug) }}" class="hover:text-[#A16207] transition-colors">{{ $post->title }}</a>
+                            <a href="{{ route('blog.show', $post->slug) }}" class="hover:text-brand-gold-dark transition-colors">{{ $post->title }}</a>
                         </h3>
                         <p class="text-slate-600 text-sm leading-relaxed mb-5 line-clamp-3 flex-1">{{ $post->excerpt }}</p>
-                        <a href="{{ route('blog.show', $post->slug) }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-[#1E3A5F] hover:text-[#A16207] transition-colors">Baca Selengkapnya <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                        <a href="{{ route('blog.show', $post->slug) }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Baca Selengkapnya <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                     </div>
                 </article>
                 @endforeach
@@ -676,8 +685,8 @@
     <section id="faq" class="py-20 lg:py-24 bg-[#F1F5F9]">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 reveal">
-                <p class="text-sm font-bold uppercase tracking-widest text-[#A16207] mb-3">FAQ</p>
-                <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight text-[#1E3A5F] mb-4">Pertanyaan yang Sering Diajukan</h2>
+                <p class="text-sm font-bold uppercase tracking-widest text-brand-gold-dark mb-3">FAQ</p>
+                <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight text-brand-navy mb-4">Pertanyaan yang Sering Diajukan</h2>
             </div>
 
             <div class="space-y-4" x-data="{ open: 0 }">
@@ -696,7 +705,7 @@
                 <div class="bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden reveal" data-delay="{{ $index * 60 }}">
                     <button type="button" @click="open = (open === {{ $index + 1 }} ? 0 : {{ $index + 1 }})" :aria-expanded="open === {{ $index + 1 }} ? 'true' : 'false'" class="w-full flex items-center justify-between gap-4 px-6 py-5 text-left">
                         <span class="font-bold text-[#0F172A]">{{ $faq['q'] }}</span>
-                        <svg class="w-5 h-5 text-[#A16207] shrink-0 transition-transform duration-300" :class="open === {{ $index + 1 }} ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-5 h-5 text-brand-gold-dark shrink-0 transition-transform duration-300" :class="open === {{ $index + 1 }} ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="open === {{ $index + 1 }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="px-6 pb-5" style="display: none;">
                         <p class="text-slate-600 leading-relaxed">{{ $faq['a'] }}</p>
@@ -711,15 +720,15 @@
     <section class="py-20 lg:py-24 bg-white">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 reveal">
-                <p class="text-sm font-bold uppercase tracking-widest text-[#A16207] mb-3">Layanan Kami</p>
-                <h2 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-[#1E3A5F] mb-4">Jasa Web Developer Profesional di Solo</h2>
+                <p class="text-sm font-bold uppercase tracking-widest text-brand-gold-dark mb-3">Layanan Kami</p>
+                <h2 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-brand-navy mb-4">Jasa Web Developer Profesional di Solo</h2>
                 <p class="text-lg text-slate-600 max-w-2xl mx-auto">Solusi website &amp; sistem digital lengkap untuk bisnis di Surakarta, Sukoharjo, dan Jawa Tengah</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                 <div class="bg-white border border-[#E2E8F0] rounded-2xl p-7 juki-card reveal">
-                    <h3 class="text-lg font-bold text-[#1E3A5F] mb-3 flex items-center gap-2">
-                        <svg class="w-6 h-6 text-[#2563EB]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    <h3 class="text-lg font-bold text-brand-navy mb-3 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-brand-gold-dark" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                         Layanan Web Development Solo
                     </h3>
                     <p class="text-slate-600 text-sm leading-relaxed">
@@ -732,8 +741,8 @@
                 </div>
 
                 <div class="bg-white border border-[#E2E8F0] rounded-2xl p-7 juki-card reveal" data-delay="80">
-                    <h3 class="text-lg font-bold text-[#1E3A5F] mb-3 flex items-center gap-2">
-                        <svg class="w-6 h-6 text-[#2563EB]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/></svg>
+                    <h3 class="text-lg font-bold text-brand-navy mb-3 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-brand-gold-dark" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/></svg>
                         Sistem Informasi &amp; Aplikasi Custom
                     </h3>
                     <p class="text-slate-600 text-sm leading-relaxed">
@@ -746,8 +755,8 @@
                 </div>
 
                 <div class="bg-white border border-[#E2E8F0] rounded-2xl p-7 juki-card reveal">
-                    <h3 class="text-lg font-bold text-[#1E3A5F] mb-3 flex items-center gap-2">
-                        <svg class="w-6 h-6 text-[#2563EB]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/></svg>
+                    <h3 class="text-lg font-bold text-brand-navy mb-3 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-brand-gold-dark" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/></svg>
                         AI Automation &amp; Chatbot Indonesia
                     </h3>
                     <p class="text-slate-600 text-sm leading-relaxed">
@@ -758,8 +767,8 @@
                 </div>
 
                 <div class="bg-white border border-[#E2E8F0] rounded-2xl p-7 juki-card reveal" data-delay="80">
-                    <h3 class="text-lg font-bold text-[#1E3A5F] mb-3 flex items-center gap-2">
-                        <svg class="w-6 h-6 text-[#2563EB]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.672 1.911a1 1 0 10-1.932.518l.259.966a1 1 0 001.932-.518l-.259-.966zM4.429 4.468a1 1 0 00-1.287-.143l-.898.542a1 1 0 00.144 1.731l.898.543a1 1 0 001.287-.144l.898-.898a1 1 0 00-.144-1.287l-.898-.542zm10.616-.39a1 1 0 011.287.144l.898.898a1 1 0 01-.144 1.287l-.898.542a1 1 0 01-1.287-.144l-.898-.898a1 1 0 01.144-1.287l.898-.542zM12.2 3.9a1 1 0 011.932.518l-.259.966a1 1 0 01-1.932-.518l.259-.966zM3 8a1 1 0 011-1h2a1 1 0 110 2H4a1 1 0 01-1-1zm5.5-4.5A1.5 1.5 0 0110 2h1.5a1.5 1.5 0 010 3H10A1.5 1.5 0 018.5 3.5zm-1.187 5.93a1 1 0 01.185 1.399l-1.5 2a1 1 0 01-1.399.185l-2-1.5a1 1 0 01-.185-1.399l1.5-2a1 1 0 011.399-.185l2 1.5zm7.5-1.5a1 1 0 011.399-.185l2 1.5a1 1 0 01-.185 1.399l-1.5 2a1 1 0 01-1.399.185l-2-1.5a1 1 0 01.185-1.399l1.5-2z" clip-rule="evenodd"/></svg>
+                    <h3 class="text-lg font-bold text-brand-navy mb-3 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-brand-gold-dark" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.672 1.911a1 1 0 10-1.932.518l.259.966a1 1 0 001.932-.518l-.259-.966zM4.429 4.468a1 1 0 00-1.287-.143l-.898.542a1 1 0 00.144 1.731l.898.543a1 1 0 001.287-.144l.898-.898a1 1 0 00-.144-1.287l-.898-.542zm10.616-.39a1 1 0 011.287.144l.898.898a1 1 0 01-.144 1.287l-.898.542a1 1 0 01-1.287-.144l-.898-.898a1 1 0 01.144-1.287l.898-.542zM12.2 3.9a1 1 0 011.932.518l-.259.966a1 1 0 01-1.932-.518l.259-.966zM3 8a1 1 0 011-1h2a1 1 0 110 2H4a1 1 0 01-1-1zm5.5-4.5A1.5 1.5 0 0110 2h1.5a1.5 1.5 0 010 3H10A1.5 1.5 0 018.5 3.5zm-1.187 5.93a1 1 0 01.185 1.399l-1.5 2a1 1 0 01-1.399.185l-2-1.5a1 1 0 01-.185-1.399l1.5-2a1 1 0 011.399-.185l2 1.5zm7.5-1.5a1 1 0 011.399-.185l2 1.5a1 1 0 01-.185 1.399l-1.5 2a1 1 0 01-1.399.185l-2-1.5a1 1 0 01.185-1.399l1.5-2z" clip-rule="evenodd"/></svg>
                         Jasa SEO &amp; Link Building Solo
                     </h3>
                     <p class="text-slate-600 text-sm leading-relaxed">
@@ -772,14 +781,14 @@
             </div>
 
             <div class="bg-[#F1F5F9] border border-[#E2E8F0] rounded-3xl p-8 reveal">
-                <h3 class="text-xl font-bold text-[#1E3A5F] mb-6">Area Layanan Web Developer Solo</h3>
+                <h3 class="text-xl font-bold text-brand-navy mb-6">Area Layanan Web Developer Solo</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-slate-700">
                     @php
                     $areas = ['Surakarta / Solo', 'Sukoharjo', 'Grogol', 'Kartasura', 'Karanganyar', 'Boyolali', 'Klaten', 'Jawa Tengah', 'Yogyakarta', 'Semarang', 'Jabodetabek', 'Seluruh Indonesia'];
                     @endphp
                     @foreach($areas as $area)
                     <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <svg class="w-4 h-4 text-brand-navy shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                         {{ $area }}
                     </div>
                     @endforeach
@@ -789,10 +798,10 @@
     </section>
 
     {{-- ============ CONTACT ============ --}}
-    <section id="contact" class="py-20 lg:py-24 bg-[#1E3A5F] text-white">
+    <section id="contact" class="py-20 lg:py-24 bg-brand-navy text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-14 reveal">
-                <p class="text-sm font-bold uppercase tracking-widest text-[#F4C95D] mb-3">Lokasi &amp; Kontak</p>
+                <p class="text-sm font-bold uppercase tracking-widest text-brand-gold-light mb-3">Lokasi &amp; Kontak</p>
                 <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight mb-4">Hubungi Web Developer Solo</h2>
                 <p class="text-lg text-blue-100 max-w-2xl mx-auto">Kunjungi kami atau hubungi untuk konsultasi gratis</p>
             </div>
@@ -815,7 +824,7 @@
                         <h3 class="text-2xl font-bold mb-6">Kontak Kami</h3>
                         <div class="space-y-6">
                             <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-[#A16207]/20 flex items-center justify-center text-[#F4C95D] shrink-0">
+                                <div class="w-12 h-12 rounded-xl bg-brand-gold/20 flex items-center justify-center text-brand-gold-light shrink-0">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </div>
                                 <div>
@@ -824,7 +833,7 @@
                                 </div>
                             </div>
                             <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-[#2563EB]/20 flex items-center justify-center text-blue-300 shrink-0">
+                                <div class="w-12 h-12 rounded-xl bg-brand-navy/20 flex items-center justify-center text-brand-gold-light shrink-0">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                 </div>
                                 <div>
@@ -842,7 +851,7 @@
                                 </div>
                             </div>
                             <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-[#A16207]/20 flex items-center justify-center text-[#F4C95D] shrink-0">
+                                <div class="w-12 h-12 rounded-xl bg-brand-gold/20 flex items-center justify-center text-brand-gold-light shrink-0">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </div>
                                 <div>
@@ -865,18 +874,18 @@
     </section>
 
     {{-- ============ FINAL CTA ============ --}}
-    <section class="py-20 lg:py-24 bg-gradient-to-br from-[#16283F] via-[#1E3A5F] to-[#0F1B2E] text-white relative overflow-hidden">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(161,98,7,0.25),transparent_70%)]"></div>
+    <section class="py-20 lg:py-24 bg-gradient-to-br from-brand-navy-mid via-brand-navy to-brand-navy-deep text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(206,154,69,0.28),transparent_70%)]"></div>
         <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
             <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight mb-6 reveal">
-                Siap Transformasi Digital <span class="text-[#F4C95D]">Bisnis Anda?</span>
+                Siap Transformasi Digital <span class="text-brand-gold-light">Bisnis Anda?</span>
             </h2>
             <p class="text-lg lg:text-xl text-blue-100 mb-10 max-w-2xl mx-auto reveal" data-delay="80">
                 Mulai dari <strong class="text-white">Rp 2.500.000</strong> untuk website profesional. Konsultasikan
                 proyek Anda hari ini — gratis dan tanpa komitmen.
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 reveal" data-delay="160">
-                <a href="https://wa.me/6282213028718?text=Halo%2C%20saya%20ingin%20mulai%20proyek%20website%20segera" target="_blank" rel="noopener" class="juki-badge inline-flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-[#A16207] hover:bg-[#B4750C] text-white font-bold text-xl shadow-2xl shadow-[#A16207]/30 transition-all hover:-translate-y-0.5">
+                <a href="https://wa.me/6282213028718?text=Halo%2C%20saya%20ingin%20mulai%20proyek%20website%20segera" target="_blank" rel="noopener" class="juki-badge inline-flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold text-xl shadow-2xl shadow-brand-gold/30 transition-all hover:-translate-y-0.5">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
                     Mulai Proyek Sekarang
                 </a>
@@ -888,7 +897,7 @@
     </section>
 
     {{-- ============ FOOTER ============ --}}
-    <footer class="bg-[#0F1B2E] text-slate-300 py-8">
+    <footer class="bg-brand-navy-deep text-slate-300 py-8">
         <div class="max-w-7xl mx-auto px-4 text-center">
             <p class="text-sm">
                 © {{ date('Y') }} <strong class="text-white">Juki Website Developer Solo</strong>.
