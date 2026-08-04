@@ -1,11 +1,15 @@
 @extends('layouts.frontend')
 
 @php
+    use App\Models\SystemSetting;
+    $siteName = SystemSetting::get('site_name', config('app.name'));
     $page = request('page', 1);
     $titleSuffix = $page > 1 ? " - Halaman {$page}" : "";
+    $canonicalUrl = url()->current() . ($page > 1 ? '?page=' . $page : '');
 @endphp
-@section('title', $tag->name . ' — Tag' . $titleSuffix)
-@section('meta_description', 'Artikel dengan tag ' . $tag->name)
+@section('title', 'Artikel dengan tag: ' . $tag->name . ' — ' . $siteName . $titleSuffix)
+@section('meta_description', 'Kumpulan artikel dan panduan yang membahas ' . $tag->name . '. Temukan insight, tutorial, dan strategi terbaru seputar topik ini di ' . $siteName . '.')
+@section('canonical_url', $canonicalUrl)
 @section('robots_meta', 'index, follow')
 
 @if($posts->hasPages())
@@ -18,6 +22,32 @@
 @endif
 @endsection
 @endif
+
+@section('schema_markup')
+@php
+    $crumbs = [
+        ['name' => 'Home',   'url' => route('home')],
+        ['name' => 'Blog',   'url' => route('blog.index')],
+        ['name' => 'Tag: ' . $tag->name, 'url' => request()->url()],
+    ];
+    
+    // CollectionPage schema for tag archive
+    $schema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => 'Articles tagged: ' . $tag->name,
+        'description' => 'Kumpulan artikel dengan tag ' . $tag->name . '.',
+        'url' => request()->url(),
+        'isPartOf' => [
+            '@type' => 'WebSite',
+            'name' => $siteName,
+            'url' => url('/'),
+        ],
+    ];
+@endphp
+{!! \App\Services\SeoHelper::breadcrumbSchema($crumbs) !!}
+<script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endsection
 
 @section('content')
 <section class="relative pt-24 pb-12 border-b border-slate-200 bg-slate-100/30">

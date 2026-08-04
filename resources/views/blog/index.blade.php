@@ -2,6 +2,7 @@
 
 @php
     use App\Models\SystemSetting;
+    $siteName = SystemSetting::get('site_name', config('app.name'));
     $page = request('page', 1);
     $titleSuffix = $page > 1 ? " - Halaman {$page}" : "";
     $canonicalUrl = url()->current() . ($page > 1 ? '?page=' . $page : '');
@@ -21,6 +22,36 @@
 @if(!$posts->onFirstPage())
     <link rel="prev" href="{{ $posts->previousPageUrl() }}">
 @endif
+@endsection
+
+@section('schema_markup')
+@php
+    $crumbs = [
+        ['name' => 'Home',   'url' => route('home')],
+        ['name' => 'Blog',   'url' => request()->url()],
+    ];
+    
+    // Blog index schema
+    $schema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Blog',
+        'name' => $blogHeading,
+        'description' => $blogTagline,
+        'url' => request()->url(),
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => $siteName,
+            'url' => url('/'),
+        ],
+        'isPartOf' => [
+            '@type' => 'WebSite',
+            'name' => $siteName,
+            'url' => url('/'),
+        ],
+    ];
+@endphp
+{!! \App\Services\SeoHelper::breadcrumbSchema($crumbs) !!}
+<script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endsection
 
 @section('content')
