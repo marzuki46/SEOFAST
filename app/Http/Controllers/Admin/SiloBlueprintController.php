@@ -49,6 +49,8 @@ class SiloBlueprintController extends Controller
             'published_contents' => 0,
         ]);
 
+        \App\Http\Controllers\SitemapController::flushCache();
+
         return redirect()->route('admin.silo.show', $silo->id)
             ->with('success', 'Topical Silo created! Now you can start generating your silo structure step-by-step.');
     }
@@ -230,7 +232,9 @@ class SiloBlueprintController extends Controller
             'slug' => $slug,
             'status' => 'blueprint'
         ]);
-        
+
+        \App\Http\Controllers\SitemapController::flushCache();
+
         return back()->with('success', 'Keyword approved! URL has been generated.');
     }
     
@@ -346,6 +350,7 @@ class SiloBlueprintController extends Controller
     public function destroy(SiloBlueprint $silo)
     {
         $silo->delete();
+        \App\Http\Controllers\SitemapController::flushCache();
 
         return redirect()->route('admin.silo.index')
             ->with('success', 'Silo Blueprint deleted successfully.');

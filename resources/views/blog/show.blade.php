@@ -4,6 +4,8 @@
     use App\Services\SeoHelper;
     $postMeta    = SeoHelper::getModelMeta($post);
     $resolvedTitle = SeoHelper::postTitle($post->title, $postMeta['title']);
+    // Gating hreflang EN: hanya jika post ini punya body bahasa Inggris terisi.
+    $hasEnContent = $post->hasEnglishContent();
 @endphp
 
 @section('title', $resolvedTitle)
@@ -13,6 +15,10 @@
     @section('robots_meta', 'noindex, nofollow')
 @else
     @section('robots_meta', $postMeta['robots'])
+@endif
+@if(app()->getLocale() === 'en' && !$hasEnContent)
+    {{-- Halaman EN tanpa konten EN → noindex agar tidak jadi duplikat tipis --}}
+    @section('robots_meta', 'noindex, follow')
 @endif
 @section('og_image', $postMeta['og_image'])
 @section('og_title', $postMeta['og_title'] ?? $resolvedTitle)

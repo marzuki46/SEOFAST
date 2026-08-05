@@ -7,7 +7,7 @@
 @endphp
 @section('title', $product->name . ' — ' . $siteName)
 @section('meta_description', strip_tags($product->description))
-@section('og_image', $product->image_url ? asset($product->image_url) : SystemSetting::get('seo_global_og_image', asset('assets/og-default.jpg')))
+@section('og_image', $product->image_url ? asset($product->image_url) : '')
 @section('og_title', $product->name)
 @section('og_description', strip_tags($product->description))
 @section('canonical_url', url()->current())
@@ -27,7 +27,7 @@
   "@@context": "https://schema.org/",
   "@@type": "Product",
   "name": "{{ $product->name }}",
-  "image": "{{ $product->image_url ? asset($product->image_url) : SystemSetting::get('seo_global_og_image', asset('assets/og-default.jpg')) }}",
+  "image": "{{ $product->image_url ? asset($product->image_url) : $seoOgImage }}",
   "description": "{{ strip_tags($product->description) }}",
   "sku": "PROD-{{ $product->id }}",
   "brand": { "@type": "Brand", "name": "{{ $siteName }}" },

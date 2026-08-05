@@ -80,6 +80,7 @@ class ContentController extends Controller
     public function restore(Content $content)
     {
         $content->restore();
+        \App\Http\Controllers\SitemapController::flushCache();
 
         return redirect()->route('admin.content.trash')
             ->with('success', 'Post restored successfully.');
@@ -92,6 +93,7 @@ class ContentController extends Controller
     {
         $content->tags()->detach();
         $content->forceDelete();
+        \App\Http\Controllers\SitemapController::flushCache();
 
         return redirect()->route('admin.content.trash')
             ->with('success', 'Post permanently deleted.');
@@ -103,6 +105,7 @@ class ContentController extends Controller
     public function destroy(Content $content)
     {
         $content->delete();
+        \App\Http\Controllers\SitemapController::flushCache();
 
         return redirect()->route('admin.content.index')
             ->with('success', 'Post moved to trash. You can restore it from the Trash page.');
@@ -325,6 +328,8 @@ class ContentController extends Controller
             'twitter_card' => $request->twitter_card ?? 'summary_large_image',
             'schema' => $schema,
         ]);
+
+        \App\Http\Controllers\SitemapController::flushCache();
 
         return redirect()->route('admin.content.show', $content->id)
             ->with('success', 'Content successfully updated manually.');
@@ -850,6 +855,7 @@ class ContentController extends Controller
             ]);
             $count++;
         }
+        // Cache sitemap sudah di-flush oleh model hook (status → published).
 
         return response()->json([
             'success' => true,

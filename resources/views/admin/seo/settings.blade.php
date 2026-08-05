@@ -468,6 +468,39 @@
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Publisher / Author Name (Default)</label>
                                     <input type="text" name="seo_schema_author" value="{{ $settings['seo_schema']['seo_schema_author'] ?? \App\Models\SystemSetting::get('seo_schema_author') }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="Admin SEOFAST">
                                 </div>
+
+                                {{-- SOCIAL PROFILES (Organization sameAs) --}}
+                                <div class="border-t border-slate-200 pt-6">
+                                    <h4 class="text-base font-bold text-slate-900 mb-1.5 flex items-center gap-2">
+                                        <span class="text-brand-indigo">🌐</span> Social Profiles (Organization sameAs)
+                                    </h4>
+                                    <p class="text-xs text-slate-500 mb-4">
+                                        URL profil sosial ini otomatis mengisi properti <code class="bg-slate-100 px-1 rounded">sameAs</code> pada schema
+                                        <code class="bg-slate-100 px-1 rounded">Organization</code> (JSON-LD) — memperkuat sinyal E-E-A-T untuk Google.
+                                        Kosongkan jika platform tidak dipakai.
+                                    </p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        @php
+                                            $socialFields = [
+                                                'seo_social_facebook' => ['Facebook', 'https://facebook.com/username', 'f'],
+                                                'seo_social_instagram' => ['Instagram', 'https://instagram.com/username', 'IG'],
+                                                'seo_social_linkedin' => ['LinkedIn', 'https://linkedin.com/in/username', 'in'],
+                                                'seo_social_twitter' => ['Twitter / X', 'https://x.com/username', 'X'],
+                                                'seo_social_youtube' => ['YouTube', 'https://youtube.com/@channel', 'YT'],
+                                                'seo_social_tiktok' => ['TikTok', 'https://tiktok.com/@username', 'TT'],
+                                            ];
+                                        @endphp
+                                        @foreach($socialFields as $socialKey => [$socialLabel, $socialPlaceholder, $socialBadge])
+                                            <div>
+                                                <label class="block text-sm font-semibold text-slate-700 mb-1 flex items-center gap-2">
+                                                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-brand-indigo/10 text-brand-indigo text-[10px] font-bold">{{ $socialBadge }}</span>
+                                                    {{ $socialLabel }}
+                                                </label>
+                                                <input type="url" name="{{ $socialKey }}" value="{{ $settings['seo_schema'][$socialKey] ?? \App\Models\SystemSetting::get($socialKey) }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2.5" placeholder="{{ $socialPlaceholder }}">
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
                         @elseif($key === 'indexing')
                             <div class="grid grid-cols-1 gap-6">
@@ -488,7 +521,7 @@
                                 <div class="border-t border-slate-200 pt-6">
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Robots.txt Editor</label>
                                     @php
-                                        $defaultRobots = "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /admin/dashboard\nDisallow: /master/adminis-trator\nDisallow: /buyer/\nDisallow: /g/\n\nSitemap: " . url('/sitemap.xml') . "\n";
+                                        $defaultRobots = "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /admin/dashboard\nDisallow: /master/adminis-trator\nDisallow: /buyer/\nDisallow: /login\nDisallow: /register\nDisallow: /payment/\nDisallow: /g/\n\nSitemap: " . url('/sitemap.xml') . "\n";
                                     @endphp
                                     <textarea name="robots_txt_content" rows="8" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm font-mono text-sm focus:border-brand-indigo focus:ring-brand-indigo px-4 py-2">{{ $settings['seo_indexing']['robots_txt_content'] ?? \App\Models\SystemSetting::get('robots_txt_content', $defaultRobots) }}</textarea>
                                     <p class="text-xs text-slate-500 mt-1">Kosongkan jika Anda ingin mengembalikan file <code class="bg-slate-100 px-1 rounded">robots.txt</code> ke versi default sistem.</p>

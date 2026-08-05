@@ -17,7 +17,15 @@ class SetNoindexPaths
             return $response;
         }
 
-        $paths = SystemSetting::get('noindex_paths', '');
+        // Default: area privat/transaksi tidak layak diindeks.
+        // Dapat diubah/diperluas dari admin (SEO Settings → Indexation).
+        $defaultNoindexPaths = "/login\n/register\n/payment/*\n/search";
+        // Jika setting tersimpan tapi kosong → fallback ke default,
+        // agar pengguna yang belum mengisi setting tetap terlindungi.
+        $paths = SystemSetting::get('noindex_paths');
+        if (empty(trim((string) $paths))) {
+            $paths = $defaultNoindexPaths;
+        }
         $paths = preg_split('/\r\n|\r|\n/', trim($paths));
 
         foreach ($paths as $pattern) {

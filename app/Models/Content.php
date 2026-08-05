@@ -26,6 +26,10 @@ class Content extends Model
             if ($content->isDirty('status') && $content->status === 'published' && !$content->published_at) {
                 $content->published_at = now();
             }
+            // Post baru ter-publish → sitemap harus diperbarui (invalidasi cache origin).
+            if ($content->isDirty('status') && $content->status === 'published') {
+                \App\Http\Controllers\SitemapController::flushCache();
+            }
             if ($content->isDirty('status') && $content->status === 'published' && !$content->featured_image_url) {
                 $title = $content->meta_title ?: $content->target_keyword;
                 $slug = $content->target_keyword ?: 'content';
@@ -250,6 +254,29 @@ class Content extends Model
 
     public function getFeaturedImageCaptionAttribute() { return $this->getJsonField('featured_image_caption'); }
     public function setFeaturedImageCaptionAttribute($val) { $this->setJsonField('featured_image_caption', $val); }
+
+    /**
+     * Apakah post ini punya konten bahasa Inggris yang benar-benar terisi?
+     * Digunakan untuk gating hreflang & sitemap EN (body_raw JSON 'en').
+     */
+    public function hasEnglishContent(): bool
+    {
+        $raw = $this->getRawOriginal('body_raw');
+        $val = is_string($raw) ? trim($raw) : '';
+
+        $depth = 0;
+        while ($val !== '' && $depth < 3 && (str_starts_with($val, '{') || str_starts_with($val, '"{'))) {
+            $decoded = json_decode(trim($val, '"'), true);
+            if (!is_array($decoded)) break;
+            if (array_key_exists('en', $decoded)) {
+                return trim((string) $decoded['en']) !== '';
+            }
+            $val = trim((string) ($decoded['id'] ?? $decoded[0] ?? ''));
+            $depth++;
+        }
+
+        return false;
+    }
 
     /**
      * Get display title.

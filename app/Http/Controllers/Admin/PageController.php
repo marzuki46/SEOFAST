@@ -54,6 +54,8 @@ class PageController extends Controller
         }
         $page->updateSeoMeta($seoMeta);
 
+        \App\Http\Controllers\SitemapController::flushCache();
+
         return redirect()->route('admin.pages.builder', $page->id)->with('success', 'Page created! Now build it.');
     }
 
@@ -117,6 +119,8 @@ class PageController extends Controller
 
         $page->updateSeoMeta($seoMeta);
 
+        \App\Http\Controllers\SitemapController::flushCache();
+
         return redirect()->route('admin.pages.index')->with('success', 'Page settings updated successfully.');
     }
 
@@ -133,6 +137,8 @@ class PageController extends Controller
             'builder_data' => $request->input('components'), // JSON from grapesjs
         ]);
 
+        \App\Http\Controllers\SitemapController::flushCache();
+
         return response()->json(['success' => true]);
     }
     
@@ -140,6 +146,7 @@ class PageController extends Controller
     {
         Page::where('is_homepage', true)->update(['is_homepage' => false]);
         $page->update(['is_homepage' => true]);
+        \App\Http\Controllers\SitemapController::flushCache();
         return redirect()->back()->with('success', 'Homepage updated successfully.');
     }
 }

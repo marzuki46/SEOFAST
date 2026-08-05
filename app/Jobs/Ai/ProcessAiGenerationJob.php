@@ -848,7 +848,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             'robots'         => 'index, follow',
             'og_title'       => $generatedTitle ?: $content->title,
             'og_description' => $generatedDesc,
-            'og_image'       => $content->featured_image_url ?: \App\Models\SystemSetting::get('seo_og_image'),
+            'og_image'       => $content->featured_image_url ?: \App\Models\SystemSetting::get('seo_global_og_image') ?: asset('assets/og-default.jpg'),
         ]);
 
         Log::info("SEO Meta DONE | content={$content->id}");

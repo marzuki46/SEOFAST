@@ -14,6 +14,13 @@
     $orgName = \App\Models\SystemSetting::get('site_name', config('app.name'));
     $orgLogo = \App\Models\SystemSetting::get('logo_url', asset('favicon.ico'));
     $authorName = \App\Models\SystemSetting::get('seo_schema_author', 'Admin SEOFAST');
+    $schemaOgImage = trim((string) ($page->seoMeta?->og_image ?? ''));
+    if (!$schemaOgImage) {
+        $schemaOgImage = trim((string) \App\Models\SystemSetting::get('seo_global_og_image'));
+    }
+    if (!$schemaOgImage) {
+        $schemaOgImage = asset('assets/og-default.jpg');
+    }
 @endphp
 
 @if($schemaType !== 'None')
@@ -27,7 +34,7 @@
   },
   "headline": "{{ $page->title }}",
   "description": "{{ $page->meta_description }}",
-  "image": "{{ $page->seoMeta?->og_image ?? \App\Models\SystemSetting::get('seo_og_image', asset('assets/og-default.jpg')) }}",
+  "image": "{{ $page->seoMeta?->og_image ?: $schemaOgImage }}",
   "datePublished": "{{ $page->created_at->toIso8601String() }}",
   "dateModified": "{{ $page->updated_at->toIso8601String() }}",
   "inLanguage": "{{ app()->getLocale() === 'en' ? 'en-US' : 'id-ID' }}",

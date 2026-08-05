@@ -123,12 +123,20 @@ class SeoHelper
     {
         $seoMeta = $model->seoMeta ?? null;
 
+        $ogImage = trim((string) ($seoMeta?->og_image ?? ''));
+        if (!$ogImage) {
+            $ogImage = trim((string) SystemSetting::get('seo_global_og_image'));
+        }
+        if (!$ogImage) {
+            $ogImage = asset('assets/og-default.jpg');
+        }
+
         return [
             'title'       => $seoMeta?->title ?: ($model->meta_title ?? $model->title ?? null),
             'description' => $seoMeta?->description ?: ($model->meta_description ?? null),
             'canonical'   => $seoMeta?->canonical ?: request()->url(),
             'robots'      => $seoMeta?->robots ?: SystemSetting::get('seo_indexing_robots', 'index, follow'),
-            'og_image'    => $seoMeta?->og_image ?: SystemSetting::get('seo_global_og_image', asset('assets/og-default.jpg')),
+            'og_image'    => $ogImage,
             'og_title'    => $seoMeta?->og_title ?: null,
             'og_desc'     => $seoMeta?->og_description ?: null,
         ];

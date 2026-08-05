@@ -93,6 +93,8 @@ class ProductController extends Controller
             $product->categories()->sync($request->categories);
         }
 
+        \App\Http\Controllers\SitemapController::flushCache();
+
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
     }
 
@@ -173,12 +175,15 @@ class ProductController extends Controller
             $product->categories()->detach();
         }
 
+        \App\Http\Controllers\SitemapController::flushCache();
+
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }
 
     public function destroy(Product $product)
     {
         $product->delete();
+        \App\Http\Controllers\SitemapController::flushCache();
         return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully.');
     }
 

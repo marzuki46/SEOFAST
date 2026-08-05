@@ -20,7 +20,7 @@ class SetLocale
         if ($locale === 'en') {
             app()->setLocale('en');
         } else {
-            app()->setLocale(config('app.locale', 'id'));
+            app()->setLocale('id');
         }
 
         return $next($request);

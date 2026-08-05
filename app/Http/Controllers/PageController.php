@@ -23,6 +23,16 @@ class PageController extends Controller
             abort(404);
         }
 
+        // Legacy/duplicate slugs → 301 ke URL kanonik (lihat config/seo.php).
+        $aliases = config('seo.page_aliases', []);
+        if (isset($aliases[$slug])) {
+            $target = $aliases[$slug];
+            if (app()->getLocale() === 'en' && !str_starts_with($target, '/en')) {
+                $target = '/en' . $target;
+            }
+            return redirect($target, 301);
+        }
+
         $page = Page::where('slug', $slug)->first();
 
         if ($page) {

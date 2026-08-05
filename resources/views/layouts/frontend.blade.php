@@ -17,8 +17,18 @@
         $seoTitle       = trim($__env->yieldContent('title'));
         $seoDescription = trim($__env->yieldContent('meta_description'));
         $seoCanonical   = trim($__env->yieldContent('canonical_url', request()->url()));
-        $seoOgImage     = trim($__env->yieldContent('og_image', SystemSetting::get('seo_global_og_image', asset('assets/og-default.jpg'))));
         $seoRobots      = trim($__env->yieldContent('robots_meta', SystemSetting::get('seo_indexing_robots', 'index, follow')));
+
+        // og:image fallback chain: halaman -> global setting -> branded default.
+        // SystemSetting::get() mengembalikan string kosong dari DB, jadi wajib
+        // di-trim + fallback manual (bukan default arg).
+        $seoOgImage = trim($__env->yieldContent('og_image'));
+        if (!$seoOgImage) {
+            $seoOgImage = trim((string) SystemSetting::get('seo_global_og_image'));
+        }
+        if (!$seoOgImage) {
+            $seoOgImage = asset('assets/og-default.jpg');
+        }
 
         $siteMetaDescriptionFallback = e(SystemSetting::get('seo_global_meta_description', ''));
 
@@ -40,6 +50,15 @@
         $siteVerif   = SystemSetting::get('seo_global_google_site_verification');
         $bingVerif   = SystemSetting::get('seo_indexing_bing_verification');
         $keywords    = SystemSetting::get('homepage_meta_keywords');
+        // Profil sosial untuk schema Organization (sameAs) — isi via SystemSetting.
+        $socials = array_values(array_filter([
+            (string) SystemSetting::get('seo_social_facebook'),
+            (string) SystemSetting::get('seo_social_instagram'),
+            (string) SystemSetting::get('seo_social_twitter'),
+            (string) SystemSetting::get('seo_social_linkedin'),
+            (string) SystemSetting::get('seo_social_youtube'),
+            (string) SystemSetting::get('seo_social_tiktok'),
+        ]));
         $faviconUrl  = SystemSetting::get('favicon_url', asset('favicon.ico'));
         $logoUrl     = SystemSetting::get('logo_url');
         $logoAlt     = SystemSetting::get('logo_alt', $siteName);
@@ -104,7 +123,9 @@
     @endphp
     <link rel="alternate" hreflang="id" href="{{ $idUrl }}">
     <link rel="alternate" hreflang="x-default" href="{{ $idUrl }}">
-    @if($multiLang && $hasEnVersion)
+    {{-- hreflang EN hanya jika post ini benar-benar punya konten EN ($hasEnContent)
+         atau route memang punya EN version ($hasEnVersion) --}}
+    @if($multiLang && ($hasEnContent ?? $hasEnVersion))
     <link rel="alternate" hreflang="en" href="{{ $enUrl }}">
     @endif
 
@@ -229,7 +250,7 @@
         "@@context": "https://schema.org",
         "@@type": "WebSite",
         "name": "{{ $siteName }}",
-        "url": "{{ config('app.url') }}",
+        "url": "{{ url('/') }}",
         "inLanguage": "{{ app()->getLocale() === 'en' ? 'en-US' : 'id-ID' }}",
         "potentialAction": {
             "@@type": "SearchAction",
@@ -248,7 +269,7 @@
         "@@context": "https://schema.org",
         "@@type": "Organization",
         "name": "{{ $siteName }}",
-        "url": "{{ config('app.url') }}",
+        "url": "{{ url('/') }}",
         @if($logoUrl)
         "logo": "{{ $logoUrl }}",
         @endif
@@ -258,7 +279,8 @@
         "image": "{{ $logoUrl }}",
         @endif
         "sameAs": [
-            {{-- Sosial media links bisa ditambah via settings nanti --}}
+            {{-- json_encode: aman untuk URL yang mengandung & (tanpa &amp;) --}}
+            @foreach($socials as $socialUrl){!! json_encode($socialUrl, JSON_UNESCAPED_SLASHES) !!}@if(!$loop->last),@endif @endforeach
         ]
     }
     </script>
@@ -346,7 +368,7 @@
                     </div>
                 </div>
 
-                @if(\App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '1' && $hasEnVersion)
+                @if(\App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '1' && ($hasEnContent ?? $hasEnVersion))
                     <div class="relative" x-data="{ langOpen: false }" @click.away="langOpen = false">
                         <button @click="langOpen = !langOpen" aria-label="Toggle Language" aria-expanded="false" :aria-expanded="langOpen.toString()" class="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors bg-white/50 px-2 py-1.5 rounded-lg border border-slate-200 shadow-sm">
                             <span class="uppercase">{{ app()->getLocale() }}</span>
