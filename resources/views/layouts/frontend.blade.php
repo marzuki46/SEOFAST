@@ -533,6 +533,9 @@
         </div>
     </footer>
 
+    {{-- Floating WhatsApp Widget (global, tampil di semua halaman public) --}}
+    @include('partials.floating-whatsapp')
+
     @yield('scripts')
     @stack('scripts')
     

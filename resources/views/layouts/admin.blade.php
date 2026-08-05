@@ -180,28 +180,36 @@
                         </div>
                     </div>
 
-                    <!-- GROUP: Configuration & Tools -->
+                    <!-- GROUP: Search & Ranking -->
                     <div class="pt-2">
                         <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider select-none">
-                            <span>System Admin</span>
+                            <span>Search &amp; Ranking</span>
                         </div>
                         <div class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
                             <a href="{{ route('admin.gsc.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.gsc.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 Google Search Console
                             </a>
-                            <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.users.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
-                                User Management
+                            <a href="{{ route('admin.serp-rank.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.serp-rank.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+                                SERP Rank
                             </a>
-                            <a href="{{ route('admin.seo.settings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.seo.settings.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
-                                Enterprise SEO
+                            <a href="{{ route('admin.competitor-analysis.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.competitor-analysis.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5"/></svg>
+                                Competitor Analysis
                             </a>
-                            <a href="{{ route('admin.settings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.settings.*') && !request()->routeIs('admin.seo.settings.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
-                                Global Settings
+                            <a href="{{ route('admin.url-audit.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.url-audit.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m6.121-1.516a4.5 4.5 0 01-1.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757"/></svg>
+                                URL Audit
                             </a>
-                            <a href="{{ route('admin.errors.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.errors.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
-                                404 Error Tracker
-                            </a>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: Content Quality -->
+                    <div class="pt-2">
+                        <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider select-none">
+                            <span>Content Quality</span>
+                        </div>
+                        <div class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
                             <a href="{{ route('admin.broken-links.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.broken-links.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.76a4.5 4.5 0 00-7.244 1.242l-4.5 4.5a4.5 4.5 0 006.364 6.364l1.757-1.757"/></svg>
                                 Broken Link Checker
@@ -214,21 +222,40 @@
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                                 Readability
                             </a>
-                            <a href="{{ route('admin.url-audit.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.url-audit.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m6.121-1.516a4.5 4.5 0 01-1.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757"/></svg>
-                                URL Audit
-                            </a>
-                            <a href="{{ route('admin.serp-rank.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.serp-rank.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
-                                SERP Rank
-                            </a>
-                            <a href="{{ route('admin.competitor-analysis.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.competitor-analysis.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5"/></svg>
-                                Competitor Analysis
+                        </div>
+                    </div>
+
+                    <!-- GROUP: Traffic & Errors -->
+                    <div class="pt-2">
+                        <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider select-none">
+                            <span>Traffic &amp; Errors</span>
+                        </div>
+                        <div class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
+                            <a href="{{ route('admin.errors.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.errors.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                                404 Error Tracker
                             </a>
                             <a href="{{ route('admin.redirects.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.redirects.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
                                 Redirect Manager
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- GROUP: System Admin -->
+                    <div class="pt-2">
+                        <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider select-none">
+                            <span>System Admin</span>
+                        </div>
+                        <div class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
+                            <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.users.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                User Management
+                            </a>
+                            <a href="{{ route('admin.seo.settings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.seo.settings.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                Enterprise SEO
+                            </a>
+                            <a href="{{ route('admin.settings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.settings.*') && !request()->routeIs('admin.seo.settings.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
+                                Global Settings
                             </a>
                             <a href="{{ route('admin.infrastructure.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.infrastructure.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -411,6 +438,27 @@
                     aside.classList.remove('border-l');
                     aside.classList.add('border-r');
                 }
+            }
+
+            // Keep sidebar nav scroll position across navigations so clicking a
+            // menu item at the bottom doesn't jump the list back to the top.
+            const sidebarNav = document.querySelector('#admin-sidebar nav');
+            if (sidebarNav) {
+                const SIDEBAR_SCROLL_KEY = 'admin-sidebar-scroll';
+                const saved = sessionStorage.getItem(SIDEBAR_SCROLL_KEY);
+                if (saved) {
+                    sidebarNav.scrollTop = parseInt(saved, 10) || 0;
+                }
+                let ticking = false;
+                sidebarNav.addEventListener('scroll', function () {
+                    if (!ticking) {
+                        window.requestAnimationFrame(function () {
+                            sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(sidebarNav.scrollTop));
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                });
             }
         });
     </script>

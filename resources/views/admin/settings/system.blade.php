@@ -324,6 +324,36 @@
                             </div>
 
                             <div>
+                                <h4 class="text-md font-bold text-slate-900 mb-4 border-b border-slate-200 pb-3">Floating WhatsApp Widget</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="checkbox" name="whatsapp_floating_enabled" value="on" class="w-4 h-4 text-brand-indigo bg-gray-100 border-gray-300 rounded focus:ring-brand-indigo" {{ !isset($settings['whatsapp']['whatsapp_floating_enabled']) || !empty($settings['whatsapp']['whatsapp_floating_enabled']) ? 'checked' : '' }}>
+                                            <span class="text-sm font-semibold text-slate-700">Tampilkan Widget</span>
+                                        </label>
+                                        <p class="text-xs text-slate-500 mt-1">Tombol chat WhatsApp melayang di pojok kanan bawah semua halaman publik. Form ini mengirim inquiry ke halaman Contact &amp; WhatsApp Anda.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nomor WhatsApp Tujuan</label>
+                                        <input type="text" name="whatsapp_floating_number" value="{{ $settings['whatsapp']['whatsapp_floating_number'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="6282213028718">
+                                        <p class="text-xs text-slate-500 mt-1">Nomor tujuan inquiry dari widget (wa.me). Kosongkan untuk memakai "Inquiry WhatsApp Number" di tab General.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Judul Header</label>
+                                        <input type="text" name="whatsapp_floating_title" value="{{ $settings['whatsapp']['whatsapp_floating_title'] ?? 'CS Juki Website Developer' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Status / Online Text</label>
+                                        <input type="text" name="whatsapp_floating_status" value="{{ $settings['whatsapp']['whatsapp_floating_status'] ?? 'Online — biasanya balas dalam 5 menit' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pesan Sapaan di Panel Chat</label>
+                                        <textarea name="whatsapp_floating_greeting" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['whatsapp']['whatsapp_floating_greeting'] ?? 'Halo! 👋 Selamat datang di Juki Website Developer Solo. Mau konsultasi gratis tentang website, sistem informasi, atau SEO? Silakan isi data di bawah ya.' }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
                                 <h4 class="text-md font-bold text-slate-900 mb-4 border-b border-slate-200 pb-3">Anti-Spam Form</h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
@@ -371,7 +401,7 @@
                                 </div>
                             </div>
                         </div>
-                        <input type="hidden" name="expected_checkboxes" value='["antispam_enabled"]'>
+                        <input type="hidden" name="expected_checkboxes" value='["antispam_enabled","whatsapp_floating_enabled"]'>
                     @else
                             <div class="p-8 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
                                 Konfigurasi {{ $label }} tidak tersedia atau sudah dipindahkan.
