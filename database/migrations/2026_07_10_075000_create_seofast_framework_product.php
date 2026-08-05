@@ -2,12 +2,18 @@
 
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Tenant;
 use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
     public function up(): void
     {
+        // This is seed data that assumes the primary tenant (id=1) already
+        // exists. Skip on fresh installs / test databases where it doesn't.
+        if (!Tenant::where('id', 1)->exists()) {
+            return;
+        }
         // ── 1. Create category ──
         $category = ProductCategory::firstOrCreate(
             ['slug' => 'seofast-framework'],

@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // Add 'draft' to the enum for 'status'
-        DB::statement("ALTER TABLE contents MODIFY COLUMN status ENUM('blueprint', 'ai_processing', 'failed_cqi', 'canonicalized', 'published', 'needs_reoptimize', 'draft') DEFAULT 'blueprint'");
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE contents MODIFY COLUMN status ENUM('blueprint', 'ai_processing', 'failed_cqi', 'canonicalized', 'published', 'needs_reoptimize', 'draft') DEFAULT 'blueprint'");
+        }
     }
 
     /**
@@ -22,6 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         // Revert back
-        DB::statement("ALTER TABLE contents MODIFY COLUMN status ENUM('blueprint', 'ai_processing', 'failed_cqi', 'canonicalized', 'published', 'needs_reoptimize') DEFAULT 'blueprint'");
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE contents MODIFY COLUMN status ENUM('blueprint', 'ai_processing', 'failed_cqi', 'canonicalized', 'published', 'needs_reoptimize') DEFAULT 'blueprint'");
+        }
     }
 };

@@ -12,11 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement('ALTER TABLE contents MODIFY rendered_html_path LONGTEXT NULL');
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE contents MODIFY rendered_html_path LONGTEXT NULL');
+        }
     }
 
     public function down(): void
     {
-        DB::statement('ALTER TABLE contents MODIFY rendered_html_path VARCHAR(255) NULL');
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE contents MODIFY rendered_html_path VARCHAR(255) NULL');
+        }
     }
 };

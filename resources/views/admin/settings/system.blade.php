@@ -31,6 +31,7 @@
                 'email' => 'Email SMTP',
                 'storage' => 'Storage/S3',
                 'payment' => 'Payment Gateway',
+                'whatsapp' => 'WhatsApp & Anti-Spam',
             ];
         @endphp
 
@@ -293,14 +294,85 @@
                                             <input type="text" name="midtrans_client_key" value="{{ $settings['payment']['midtrans_client_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="SB-Mid-client-...">
                                         </div>
                                     </div>
+                                <div>
+                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Midtrans Server Key</label>
+                                    <input type="password" name="midtrans_server_key" value="{{ $settings['payment']['midtrans_server_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="SB-Mid-server-...">
+                                    <p class="text-xs text-slate-500 mt-1">Gunakan Server Key untuk menerima pembayaran produk digital di website Anda secara otomatis.</p>
+                                </div>
+                            </div>
+                        </div>
+                    @elseif($key === 'whatsapp')
+                        <div class="space-y-6 max-w-4xl">
+                            <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-4 mb-6 text-sm">
+                                <strong>WhatsApp &amp; Anti-Spam:</strong> atur nomor WhatsApp untuk tombol wa.me, token Fonnte untuk kirim pesan dari dashboard Admin → Inquiries, dan filter anti-spam untuk form kontak / live chat / enterprise.
+                            </div>
+
+                            <div>
+                                <h4 class="text-md font-bold text-slate-900 mb-4 border-b border-slate-200 pb-3">Nomor &amp; Integrasi</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Midtrans Server Key</label>
-                                        <input type="password" name="midtrans_server_key" value="{{ $settings['payment']['midtrans_server_key'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="SB-Mid-server-...">
-                                        <p class="text-xs text-slate-500 mt-1">Gunakan Server Key untuk menerima pembayaran produk digital di website Anda secara otomatis.</p>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Token Fonnte</label>
+                                        <input type="password" name="whatsapp_fonnte_token" value="{{ $settings['whatsapp']['whatsapp_fonnte_token'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="masukkan token dari dashboard Fonnte">
+                                        <p class="text-xs text-slate-500 mt-1">Diperoleh dari https://fonnte.com → menu Device / Token.</p>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nomor Target Pengiriman Admin (default)</label>
+                                        <input type="text" name="whatsapp_fonnte_target" value="{{ $settings['whatsapp']['whatsapp_fonnte_target'] ?? '' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2" placeholder="6282213028718">
+                                        <p class="text-xs text-slate-500 mt-1">Nomor pemilik yang menerima forwarded inquiry saat klik "Kirim ke WhatsApp" di Admin → Inquiries. Kosongkan untuk memakai "Inquiry WhatsApp Number" di tab General.</p>
                                     </div>
                                 </div>
                             </div>
-                        @else
+
+                            <div>
+                                <h4 class="text-md font-bold text-slate-900 mb-4 border-b border-slate-200 pb-3">Anti-Spam Form</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="checkbox" name="antispam_enabled" value="on" class="w-4 h-4 text-brand-indigo bg-gray-100 border-gray-300 rounded focus:ring-brand-indigo" {{ !empty($settings['whatsapp']['antispam_enabled']) ? 'checked' : '' }}>
+                                            <span class="text-sm font-semibold text-slate-700">Aktifkan Anti-Spam</span>
+                                        </label>
+                                        <p class="text-xs text-slate-500 mt-1">Deteksi spam otomatis. Spam tetap tersimpan (ditandai) tapi tidak diteruskan ke WhatsApp/email pemilik.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Maks. Link per Pesan</label>
+                                        <input type="number" min="-1" name="antispam_max_links" value="{{ $settings['whatsapp']['antispam_max_links'] ?? '2' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                        <p class="text-xs text-slate-500 mt-1">Kiriman dengan link lebih dari ini dianggap spam. -1 untuk nonaktif.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Min. Panjang Pesan</label>
+                                        <input type="number" min="0" name="antispam_min_message_length" value="{{ $settings['whatsapp']['antispam_min_message_length'] ?? '3' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                        <p class="text-xs text-slate-500 mt-1">Pesan lebih pendek dari ini dianggap spam. 0 untuk nonaktif.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Maks. Kirim / Identitas / Jam</label>
+                                        <input type="number" min="0" name="antispam_max_per_identity" value="{{ $settings['whatsapp']['antispam_max_per_identity'] ?? '3' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Maks. Kirim / IP / Jam</label>
+                                        <input type="number" min="0" name="antispam_max_per_ip" value="{{ $settings['whatsapp']['antispam_max_per_ip'] ?? '5' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jendela Waktu (menit)</label>
+                                        <input type="number" min="1" name="antispam_repeat_window_minutes" value="{{ $settings['whatsapp']['antispam_repeat_window_minutes'] ?? '60' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                        <p class="text-xs text-slate-500 mt-1">Jendela waktu untuk hitungan "per identitas / per IP".</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Email / Domain Diblokir</label>
+                                        <textarea name="antispam_blocked_emails" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2 font-mono" placeholder="spamdomain.com&#10;*@junkmail.io&#10;beli.followers@gmail.com">{{ $settings['whatsapp']['antispam_blocked_emails'] ?? '' }}</textarea>
+                                        <p class="text-xs text-slate-500 mt-1">Satu per baris atau dipisah koma. Substring dicocokkan di alamat email.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Kata Kunci Diblokir</label>
+                                        <textarea name="antispam_blocked_keywords" rows="4" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2 font-mono" placeholder="iklan,jasa seo murah,beli backlink">{{ $settings['whatsapp']['antispam_blocked_keywords'] ?? '' }}</textarea>
+                                        <p class="text-xs text-slate-500 mt-1">Kata yang jika muncul di pesan/nama/subjek akan ditandai spam. Satu per baris.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="expected_checkboxes" value='["antispam_enabled"]'>
+                    @else
                             <div class="p-8 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
                                 Konfigurasi {{ $label }} tidak tersedia atau sudah dipindahkan.
                             </div>

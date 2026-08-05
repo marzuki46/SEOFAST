@@ -24,6 +24,7 @@ class SystemSettingController extends Controller
             'storage'    => SystemSetting::group('storage'),
             'queue'      => SystemSetting::group('queue'),
             'api'        => SystemSetting::group('api'),
+            'whatsapp'   => SystemSetting::group('whatsapp'),
         ];
 
         return view('admin.settings.system', compact('settings'));
@@ -33,16 +34,34 @@ class SystemSettingController extends Controller
     {
         $group = $request->input('group', 'general');
         $inputs = $request->except(['_token', 'group', '_method', 'expected_checkboxes']);
+        $booleanKeys = [];
+        $integerKeys = [
+            'antispam_max_links',
+            'antispam_min_message_length',
+            'antispam_max_per_identity',
+            'antispam_max_per_ip',
+            'antispam_repeat_window_minutes',
+        ];
 
         foreach ($inputs as $key => $value) {
             // Handle checkboxes (boolean)
             if ($value === 'on' || $value === 'true') {
                 $value = true;
+                $booleanKeys[] = $key;
             } elseif ($value === 'off' || $value === 'false') {
                 $value = false;
+                $booleanKeys[] = $key;
             }
 
-            SystemSetting::set($key, $value, $group);
+            $type = 'string';
+            if (in_array($key, $booleanKeys, true)) {
+                $type = 'boolean';
+            } elseif (in_array($key, $integerKeys, true) && is_numeric($value)) {
+                $value = (int) $value;
+                $type = 'integer';
+            }
+
+            SystemSetting::set($key, $value, $group, $type);
         }
 
         // Handle checkboxes that were unchecked (and thus not in the request)
@@ -50,7 +69,7 @@ class SystemSettingController extends Controller
             $expected = json_decode($request->input('expected_checkboxes'), true) ?? [];
             foreach ($expected as $cb) {
                 if (!array_key_exists($cb, $inputs)) {
-                    SystemSetting::set($cb, false, $group);
+                    SystemSetting::set($cb, false, $group, 'boolean');
                 }
             }
         }

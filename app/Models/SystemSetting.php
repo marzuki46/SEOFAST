@@ -30,6 +30,22 @@ class SystemSetting extends Model
     }
 
     /**
+     * Get a setting value, falling back to the default when the settings
+     * table is not available yet (e.g. app boot during install / migrate).
+     */
+    public static function tryGet(string $key, mixed $default = null): mixed
+    {
+        try {
+            return static::get($key, $default);
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), 'no such table')) {
+                return $default;
+            }
+            throw $e;
+        }
+    }
+
+    /**
      * Set a setting value and flush cache.
      */
     public static function set(string $key, mixed $value, string $group = 'general', string $type = 'string', string $label = ''): void

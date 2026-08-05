@@ -18,9 +18,12 @@ class PageErrorController extends Controller
             $query->where('url', 'like', "%{$q}%");
         }
 
+        $totalCount = (clone $query)->count();
+        $totalHits = (clone $query)->sum('count');
+
         $pageErrors = $query->paginate(25);
 
-        return view('admin.errors.index', compact('pageErrors'));
+        return view('admin.errors.index', compact('pageErrors', 'totalCount', 'totalHits'));
     }
 
     public function createRedirect(Request $request, PageError $pageError)
@@ -60,5 +63,53 @@ class PageErrorController extends Controller
 
         return redirect()->route('admin.errors.index')
             ->with('success', 'All 404 entries cleared.');
+    }
+
+    public function export(Request $request)
+    {
+        $query = PageError::query();
+
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $query->where('url', 'like', "%{$q}%");
+        }
+
+        $errors = $query->orderByDesc('count')->get();
+
+        $fileName = '404-errors-' . now()->format('Y-m-d-Hi') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'no-store, no-cache',
+        ];
+
+        $callback = function () use ($errors) {
+            $out = fopen('php://output', 'w');
+
+            fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
+
+            fputcsv($out, [
+                'URL',
+                'Referer',
+                'Hits',
+                'First Seen',
+                'Last Seen',
+            ]);
+
+            foreach ($errors as $error) {
+                fputcsv($out, [
+                    $error->url,
+                    $error->referer ?? '',
+                    $error->count,
+                    $error->first_seen ? $error->first_seen->format('Y-m-d H:i:s') : '',
+                    $error->last_seen ? $error->last_seen->format('Y-m-d H:i:s') : '',
+                ]);
+            }
+
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

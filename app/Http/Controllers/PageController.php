@@ -26,6 +26,12 @@ class PageController extends Controller
         $page = Page::where('slug', $slug)->first();
 
         if ($page) {
+            // The homepage page is served at / (or /en); serving it via its slug
+            // creates duplicate content — 301 to the canonical URL.
+            if ($page->is_homepage) {
+                return redirect(app()->getLocale() === 'en' ? url('/en') : url('/'), 301);
+            }
+
             return $this->renderPage($page);
         }
 

@@ -22,7 +22,9 @@ return new class extends Migration
         });
 
         // Modify ENUM to support 7 phases
-        DB::statement("ALTER TABLE ai_generation_jobs MODIFY COLUMN status ENUM('pending', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6', 'phase_7', 'completed', 'failed') DEFAULT 'pending'");
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE ai_generation_jobs MODIFY COLUMN status ENUM('pending', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'phase_5', 'phase_6', 'phase_7', 'completed', 'failed') DEFAULT 'pending'");
+        }
     }
 
     /**
@@ -34,6 +36,8 @@ return new class extends Migration
             $table->dropColumn(['phase_1_lsi', 'phase_4_answers', 'phase_5_combined', 'phase_6_html']);
         });
 
-        DB::statement("ALTER TABLE ai_generation_jobs MODIFY COLUMN status ENUM('pending', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'completed', 'failed') DEFAULT 'pending'");
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE ai_generation_jobs MODIFY COLUMN status ENUM('pending', 'phase_1', 'phase_2', 'phase_3', 'phase_4', 'completed', 'failed') DEFAULT 'pending'");
+        }
     }
 };

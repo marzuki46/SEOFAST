@@ -127,6 +127,33 @@
         content-visibility: auto;
         contain-intrinsic-size: auto 500px;
     }
+
+    /* ===== Honeypot anti-spam (hidden from humans) ===== */
+    .hp-field {
+        position: absolute !important;
+        left: -9999px !important;
+        width: 1px !important;
+        height: 1px !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* ===== Live Chat Widget ===== */
+    .juki-chat-panel {
+        display: flex;
+        flex-direction: column;
+        max-height: min(540px, calc(100vh - 120px));
+    }
+    .juki-chat-body {
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+    .juki-chat-input:focus {
+        outline: none;
+        border-color: #25D366 !important;
+        box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
+    }
 </style>
 @endverbatim
 @endsection
@@ -329,6 +356,7 @@
 @php
     $brandLogo = \App\Models\SystemSetting::get('logo_url');
     $brandLogoAlt = \App\Models\SystemSetting::get('logo_alt', 'Juki Website Developer Solo');
+    $waNumber = \App\Models\SystemSetting::get('contact_inquiry_whatsapp', '6282213028718');
 @endphp
 <div class="juki-landing bg-[#F8FAFC] text-[#0F172A] overflow-x-hidden">
 
@@ -361,7 +389,7 @@
             </p>
 
             <div class="flex flex-col sm:flex-row justify-center gap-4 mb-10 reveal" data-delay="240">
-                <a href="https://wa.me/6282213028718?text=Halo%20Juki%20Website%20Developer%20Solo%2C%20saya%20ingin%20konsultasi%20pembuatan%20website" target="_blank" rel="noopener" class="juki-badge inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold text-lg shadow-xl shadow-brand-gold/25 transition-all hover:-translate-y-0.5 active:translate-y-0">
+                <a href="https://wa.me/{{ $waNumber }}?text=Halo%20Juki%20Website%20Developer%20Solo%2C%20saya%20ingin%20konsultasi%20pembuatan%20website" target="_blank" rel="noopener" class="juki-badge inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold text-lg shadow-xl shadow-brand-gold/25 transition-all hover:-translate-y-0.5 active:translate-y-0">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
                     Konsultasi Gratis via WhatsApp
                 </a>
@@ -511,7 +539,7 @@
                     </ul>
                     <div class="mt-6 pt-5 border-t border-slate-100">
                         <p class="text-sm text-slate-500 mb-3">Mulai <span class="font-bold text-brand-gold-dark">Rp 2.500.000</span> · maks 2 minggu</p>
-                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                        <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                     </div>
                 </div>
 
@@ -529,7 +557,7 @@
                     </ul>
                     <div class="mt-6 pt-5 border-t border-slate-100">
                         <p class="text-sm text-slate-500 mb-3">Mulai <span class="font-bold text-brand-gold-dark">Rp 10.000.000</span></p>
-                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                        <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                     </div>
                 </div>
 
@@ -546,7 +574,7 @@
                         <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Integrasi API &amp; bisnis</li>
                     </ul>
                     <div class="mt-6 pt-5 border-t border-slate-100">
-                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                        <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                     </div>
                 </div>
 
@@ -563,7 +591,7 @@
                         <li class="flex items-start gap-2"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Local SEO Surakarta &amp; keyword research</li>
                     </ul>
                     <div class="mt-6 pt-5 border-t border-slate-100">
-                        <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                        <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-bold text-brand-navy hover:text-brand-gold-dark transition-colors">Konsultasi <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                     </div>
                 </div>
             </div>
@@ -642,7 +670,7 @@
 
                 <div class="mt-8 flex flex-wrap gap-3">
                     <a href="#contact" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-navy hover:bg-brand-navy-deep text-white font-semibold transition-all">Hubungi Kami</a>
-                    <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border-2 border-brand-gold-dark text-brand-gold-dark hover:bg-brand-gold hover:text-brand-navy font-semibold transition-all">Chat WhatsApp</a>
+                    <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border-2 border-brand-gold-dark text-brand-gold-dark hover:bg-brand-gold hover:text-brand-navy font-semibold transition-all">Chat WhatsApp</a>
                 </div>
             </div>
 
@@ -711,7 +739,7 @@
                         <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Pengerjaan maksimal 2 minggu</li>
                         <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-navy mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Garansi support via WhatsApp</li>
                     </ul>
-                    <a href="https://wa.me/6282213028718?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Website%20Rp%202.500.000" target="_blank" rel="noopener" class="juki-badge inline-flex w-full items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-brand-navy hover:bg-brand-navy-deep text-white font-bold transition-all">Pilih Paket Website</a>
+                    <a href="https://wa.me/{{ $waNumber }}?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Website%20Rp%202.500.000" target="_blank" rel="noopener" class="juki-badge inline-flex w-full items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-brand-navy hover:bg-brand-navy-deep text-white font-bold transition-all">Pilih Paket Website</a>
                 </div>
 
                 {{-- Paket Sistem Informasi --}}
@@ -734,13 +762,84 @@
                         <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Database, keamanan &amp; API terintegrasi</li>
                         <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Garansi support via WhatsApp</li>
                     </ul>
-                    <a href="https://wa.me/6282213028718?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Sistem%20Informasi%20Rp%2010.000.000" target="_blank" rel="noopener" class="juki-badge inline-flex w-full items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold transition-all">Pilih Paket Sistem Informasi</a>
+                    <a href="https://wa.me/{{ $waNumber }}?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Sistem%20Informasi%20Rp%2010.000.000" target="_blank" rel="noopener" class="juki-badge inline-flex w-full items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold transition-all">Pilih Paket Sistem Informasi</a>
                 </div>
             </div>
 
             <p class="text-center text-sm text-slate-500 mt-8 reveal">
-                Butuh penawaran khusus atau proyek skala besar? <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" class="font-bold text-brand-gold-dark hover:underline">Konsultasikan kebutuhan Anda</a> — gratis.
+                Butuh penawaran khusus atau proyek skala besar? <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener" class="font-bold text-brand-gold-dark hover:underline">Konsultasikan kebutuhan Anda</a> — gratis.
             </p>
+
+            {{-- ===== Paket Custom / Enterprise ===== --}}
+            <div id="enterprise" class="mt-12 rounded-3xl overflow-hidden reveal" style="background:linear-gradient(135deg,#15253F 0%,#1D3357 60%,#233A63 100%);">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 p-8 lg:p-12 items-stretch">
+                    <div class="text-white">
+                        <span class="px-3 py-1 rounded-full bg-brand-gold text-brand-navy text-xs font-bold uppercase tracking-wide shadow-lg shadow-brand-gold/30">Custom / Enterprise</span>
+                        <h3 class="text-3xl font-extrabold mt-5 mb-4">Paket Custom / Enterprise</h3>
+                        <p class="text-blue-100 leading-relaxed mb-6">
+                            Kebutuhan khusus atau skala besar — sistem informasi kompleks, ERP/CRM terintegrasi,
+                            AI automation enterprise, hingga retained SEO. Penawaran disusun sesuai spesifikasi
+                            dan alur proyek Anda.
+                        </p>
+                        <ul class="space-y-3 text-sm text-blue-100 mb-8">
+                            <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Analisis kebutuhan &amp; scoping proyek gratis</li>
+                            <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>ERP, CRM, POS, inventory, HRIS custom</li>
+                            <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>AI automation &amp; integrasi API enterprise</li>
+                            <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Retained SEO &amp; digital marketing bulanan</li>
+                            <li class="flex items-start gap-3"><svg class="w-5 h-5 text-brand-gold-light mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Dukungan prioritas &amp; SLA khusus</li>
+                        </ul>
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                            <p class="font-bold text-white mb-3">Alur kerja:</p>
+                            <ol class="space-y-2 text-sm text-blue-100">
+                                <li>1. Kirim kebutuhan melalui form di samping</li>
+                                <li>2. Diskusi &amp; scoping detail via WhatsApp</li>
+                                <li>3. Proposal &amp; penawaran resmi</li>
+                                <li>4. Eksekusi bertahap + support</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="bg-white text-slate-700 rounded-2xl p-6 lg:p-8 shadow-2xl">
+                        <h4 class="text-lg font-bold text-[#0F172A] mb-1">Diskusikan Kebutuhan Anda</h4>
+                        <p class="text-sm text-slate-500 mb-6">Data tersimpan &amp; terkirim langsung ke WhatsApp dengan format terstruktur.</p>
+                        <form action="{{ route('lead.store') }}" method="POST" class="space-y-4" onsubmit="disableButton(this)">
+                            @csrf
+                            <div>
+                                <label for="ent_email" class="block text-sm font-semibold text-slate-700 mb-1.5">Email <span class="text-red-500">*</span></label>
+                                <input type="email" id="ent_email" name="email" required placeholder="nama@perusahaan.com"
+                                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label for="ent_alur" class="block text-sm font-semibold text-slate-700 mb-1.5">Alur Proses yang Diinginkan <span class="text-red-500">*</span></label>
+                                <select id="ent_alur" name="alur" required class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all bg-white">
+                                    <option value="">— Pilih Alur —</option>
+                                    <option value="Saya sudah tahu kebutuhan, mohon penawaran">Saya sudah tahu kebutuhan, mohon penawaran</option>
+                                    <option value="Saya butuh konsultasi & scoping dulu">Saya butuh konsultasi &amp; scoping dulu</option>
+                                    <option value="Saya ingin proposal resmi perusahaan">Saya ingin proposal resmi perusahaan</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="ent_msg" class="block text-sm font-semibold text-slate-700 mb-1.5">Kebutuhan / Deskripsi Proyek <span class="text-red-500">*</span></label>
+                                <textarea id="ent_msg" name="message" rows="4" required placeholder="Jelaskan kebutuhan proyek Anda secara detail..."
+                                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all resize-y"></textarea>
+                            </div>
+                            <div>
+                                <label for="ent_phone" class="block text-sm font-semibold text-slate-700 mb-1.5">Nomor WhatsApp Anda <span class="text-red-500">*</span></label>
+                                <input type="tel" id="ent_phone" name="phone" required placeholder="082213028718"
+                                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all">
+                            </div>
+                            <input type="hidden" name="source" value="enterprise">
+                            <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+                            <button type="submit"
+                                class="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-brand-navy hover:bg-brand-navy-deep text-white font-bold shadow-lg transition-all">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                                Kirim &amp; Lanjut ke WhatsApp
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -754,7 +853,6 @@
             ->take(3)
             ->get();
     @endphp
-    @if($recentPosts->isNotEmpty())
     <section id="blog" class="py-20 lg:py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-14 reveal">
@@ -763,6 +861,7 @@
                 <p class="text-lg text-slate-600 max-w-2xl mx-auto">Wawasan seputar pembuatan website, SEO, dan digital marketing untuk bisnis Anda</p>
             </div>
 
+            @if($recentPosts->isNotEmpty())
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($recentPosts as $post)
                 <article class="juki-card group bg-white border border-[#E2E8F0] rounded-3xl overflow-hidden flex flex-col reveal">
@@ -782,9 +881,17 @@
                 </article>
                 @endforeach
             </div>
+            @endif
+
+            <div class="text-center mt-12 reveal">
+                <a href="https://juki.eu.org/blog" target="_blank" rel="noopener" class="juki-badge inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-brand-navy hover:bg-brand-navy-deep text-white font-bold text-lg shadow-xl shadow-brand-navy/20 transition-all hover:-translate-y-0.5">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd"/></svg>
+                    Kunjungi Blog &amp; Artikel
+                </a>
+            </div>
         </div>
     </section>
-    @endif
+
 
     {{-- ============ FAQ ============ --}}
     <section id="faq" class="py-20 lg:py-24 bg-[#F1F5F9]">
@@ -925,6 +1032,49 @@
                 </div>
 
                 <div class="flex flex-col justify-center space-y-6 reveal" data-delay="120">
+                    <div class="bg-white text-slate-700 rounded-3xl p-8 shadow-2xl">
+                        <h3 class="text-2xl font-bold text-[#0F172A] mb-1">Konsultasi Gratis</h3>
+                        <p class="text-sm text-slate-500 mb-6">Isi form ini — data tersimpan &amp; langsung terkirim ke WhatsApp saya dengan format terstruktur.</p>
+                        <form action="{{ route('lead.store') }}" method="POST" class="space-y-4" onsubmit="disableButton(this)">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="ct_name" class="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
+                                    <input type="text" id="ct_name" name="name" required maxlength="255" placeholder="Tri Marzuki"
+                                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all">
+                                </div>
+                                <div>
+                                    <label for="ct_phone" class="block text-sm font-semibold text-slate-700 mb-1.5">Nomor WhatsApp</label>
+                                    <input type="tel" id="ct_phone" name="phone" maxlength="50" placeholder="082213028718"
+                                        class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="ct_subject" class="block text-sm font-semibold text-slate-700 mb-1.5">Layanan yang Dibutuhkan</label>
+                                <select id="ct_subject" name="subject" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all bg-white">
+                                    <option value="">— Pilih Layanan —</option>
+                                    <option value="Jasa Pembuatan Website">Jasa Pembuatan Website</option>
+                                    <option value="Sistem Informasi / Aplikasi">Sistem Informasi / Aplikasi</option>
+                                    <option value="AI Automation & Chatbot">AI Automation &amp; Chatbot</option>
+                                    <option value="Jasa SEO & Backlink">Jasa SEO &amp; Backlink</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="ct_msg" class="block text-sm font-semibold text-slate-700 mb-1.5">Pesan <span class="text-red-500">*</span></label>
+                                <textarea id="ct_msg" name="message" rows="4" required maxlength="5000" placeholder="Ceritakan kebutuhan project Anda..."
+                                    class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all resize-y"></textarea>
+                            </div>
+                            <input type="hidden" name="source" value="contact">
+                            <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+                            <button type="submit"
+                                class="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-brand-navy hover:bg-brand-navy-deep text-white font-bold shadow-lg transition-all">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                                Kirim &amp; Lanjut ke WhatsApp
+                            </button>
+                        </form>
+                    </div>
+
                     <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8">
                         <h3 class="text-2xl font-bold mb-6">Kontak Kami</h3>
                         <div class="space-y-6">
@@ -935,15 +1085,6 @@
                                 <div>
                                     <h4 class="font-semibold mb-1">Alamat</h4>
                                     <p class="text-blue-100">Home Parangjoro 2, Parangjoro, Grogol, Sukoharjo, Jawa Tengah 57552</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-brand-navy/20 flex items-center justify-center text-brand-gold-light shrink-0">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold mb-1">Email</h4>
-                                    <p class="text-blue-100">contact@juki.eu.org</p>
                                 </div>
                             </div>
                             <div class="flex items-start gap-4">
@@ -967,7 +1108,7 @@
                         </div>
 
                         <div class="mt-8 pt-8 border-t border-white/10">
-                            <a href="https://wa.me/6282213028718?text=Halo%20Juki%20Website%20Developer%20Solo%2C%20saya%20ingin%20konsultasi%20pembuatan%20website" target="_blank" rel="noopener" class="juki-badge inline-flex w-full items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-[#25D366] hover:bg-[#1FBD5A] text-white font-bold text-lg transition-all">
+                            <a href="https://wa.me/{{ $waNumber }}?text=Halo%20Juki%20Website%20Developer%20Solo%2C%20saya%20ingin%20konsultasi%20pembuatan%20website" target="_blank" rel="noopener" class="juki-badge inline-flex w-full items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-[#25D366] hover:bg-[#1FBD5A] text-white font-bold text-lg transition-all">
                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
                                 Chat WhatsApp Sekarang
                             </a>
@@ -990,7 +1131,7 @@
                 proyek Anda hari ini — gratis dan tanpa komitmen.
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 reveal" data-delay="160">
-                <a href="https://wa.me/6282213028718?text=Halo%2C%20saya%20ingin%20mulai%20proyek%20website%20segera" target="_blank" rel="noopener" class="juki-badge inline-flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold text-xl shadow-2xl shadow-brand-gold/30 transition-all hover:-translate-y-0.5">
+                <a href="https://wa.me/{{ $waNumber }}?text=Halo%2C%20saya%20ingin%20mulai%20proyek%20website%20segera" target="_blank" rel="noopener" class="juki-badge inline-flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold text-xl shadow-2xl shadow-brand-gold/30 transition-all hover:-translate-y-0.5">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
                     Mulai Proyek Sekarang
                 </a>
@@ -1002,25 +1143,136 @@
     </section>
 
     {{-- ============ FOOTER ============ --}}
-    <footer class="bg-brand-navy-deep text-slate-300 py-8">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-sm">
-                © {{ date('Y') }} <strong class="text-white">Juki Website Developer Solo</strong>.
-                Web Developer &amp; Web Designer di Surakarta, Jawa Tengah. All rights reserved.
-            </p>
+    <footer class="bg-brand-navy-deep text-slate-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div>
+                    <p class="text-lg font-extrabold text-white mb-3">Juki Website Developer Solo</p>
+                    <p class="text-sm leading-relaxed text-slate-400">
+                        Web Developer &amp; Web Designer di Surakarta, Jawa Tengah. Membangun website cepat,
+                        SEO-friendly, dan mobile-first untuk bisnis Anda.
+                    </p>
+                </div>
+                <div>
+                    <p class="text-sm font-bold uppercase tracking-widest text-brand-gold-light mb-4">Layanan</p>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#harga" class="hover:text-white transition-colors">Paket Website</a></li>
+                        <li><a href="#services" class="hover:text-white transition-colors">Layanan &amp; Fitur</a></li>
+                        <li><a href="#enterprise" class="hover:text-white transition-colors">Paket Custom / Enterprise</a></li>
+                        <li><a href="#blog" class="hover:text-white transition-colors">Artikel &amp; Tips Website</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="text-sm font-bold uppercase tracking-widest text-brand-gold-light mb-4">Kontak</p>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start gap-2">
+                            <span class="mt-0.5 text-brand-gold-light">WhatsApp</span>
+                            <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener" class="text-slate-300 hover:text-white transition-colors">0822-1302-8718</a>
+                        </li>
+                        <li>
+                            <a href="https://juki.eu.org/blog" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors">
+                                Kunjungi Blog &amp; Artikel
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-white/10">
+            <div class="max-w-7xl mx-auto px-4 py-6 text-center">
+                <p class="text-sm">
+                    © {{ date('Y') }} <strong class="text-white">Juki Website Developer Solo</strong>. All rights reserved.
+                </p>
+            </div>
         </div>
     </footer>
 
-    {{-- Floating WhatsApp Button --}}
-    <a href="https://wa.me/6282213028718" target="_blank" rel="noopener" aria-label="Chat WhatsApp Juki Website Developer Solo"
-       class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[#25D366] hover:bg-[#1FBD5A] text-white flex items-center justify-center shadow-xl shadow-black/25 transition-transform hover:scale-110">
-        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-    </a>
+    {{-- Live Chat WhatsApp Widget --}}
+    <div x-data="{ open: false, sent: false }" x-cloak>
+        {{-- Chat Panel --}}
+        <div x-show="open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-4"
+             class="fixed bottom-24 right-6 z-50 w-[calc(100vw-3rem)] max-w-sm rounded-2xl overflow-hidden shadow-2xl shadow-black/30 bg-white">
+            {{-- Header --}}
+            <div class="bg-gradient-to-r from-[#075E54] to-[#128C7E] text-white px-4 py-3 flex items-center gap-3">
+                <div class="relative shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm">CS</div>
+                    <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#075E54]"></span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold text-sm leading-tight">CS Juki Website Developer</p>
+                    <p class="text-xs text-emerald-100">Online — biasanya balas dalam 5 menit</p>
+                </div>
+                <button type="button" @click="open = false; sent = false" aria-label="Tutup chat" class="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="bg-[#ECE5DD] p-4 h-64 overflow-y-auto juki-chat-body">
+                <div class="bg-white rounded-lg rounded-tl-none px-3 py-2 shadow-sm inline-block max-w-[85%]">
+                    <p class="text-sm text-slate-700">Halo! 👋 Selamat datang di Juki Website Developer Solo. Mau konsultasi gratis tentang website, sistem informasi, atau SEO? Silakan isi data di bawah ya.</p>
+                </div>
+
+                @if($errors->any())
+                <div class="mt-3 bg-red-50 border border-red-200 text-red-800 rounded-xl p-3 text-xs">
+                    <ul class="list-disc list-inside">
+                        @foreach($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+
+                <form action="{{ route('lead.store') }}" method="POST" class="mt-3 space-y-2" onsubmit="disableButton(this)" x-show="!sent">
+                    @csrf
+                    <div>
+                        <label for="chat_name" class="sr-only">Nama Anda</label>
+                        <input type="text" id="chat_name" name="name" required maxlength="255" placeholder="Nama Anda"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label for="chat_phone" class="sr-only">Nomor WhatsApp</label>
+                        <input type="tel" id="chat_phone" name="phone" required maxlength="50" placeholder="Nomor WhatsApp (0822...)"
+                            class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label for="chat_msg" class="sr-only">Pertanyaan</label>
+                        <textarea id="chat_msg" name="message" rows="2" required maxlength="5000" placeholder="Pertanyaan / kebutuhan Anda..."
+                            class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20 outline-none transition-all resize-y"></textarea>
+                    </div>
+                    <input type="hidden" name="subject" value="Live Chat">
+                    <input type="hidden" name="source" value="chat">
+                    <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+                    <button type="submit"
+                        class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#25D366] hover:bg-[#1FBD5A] text-white font-bold text-sm transition-all">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                        Mulai Chat WhatsApp
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {{-- Floating Button --}}
+        <button type="button" @click="open = !open" aria-label="Chat WhatsApp Juki Website Developer Solo"
+            class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[#25D366] hover:bg-[#1FBD5A] text-white flex items-center justify-center shadow-xl shadow-black/25 transition-transform hover:scale-110">
+            <svg x-show="!open" class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            <svg x-show="open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    </div>
 </div>
 @endsection
 
 @section('scripts')
 <script>
+    function disableButton(form) {
+        var btn = form.querySelector('button[type="submit"]');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-5 w-5 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Mengirim...';
+        }
+    }
+
     (function () {
         var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         var hasIO = 'IntersectionObserver' in window;

@@ -53,7 +53,7 @@ $blogRoutes = function() {
     Route::get('/{slug}', [BlogController::class, 'show'])->name('show');
 };
 
-$blogPrefix = SystemSetting::get('permalink_blog', 'blog');
+$blogPrefix = SystemSetting::tryGet('permalink_blog', 'blog');
 
 // Default Locale (ID)
 if ($blogPrefix) {
@@ -79,7 +79,7 @@ $productRoutes = function() {
     Route::post('/{product}/pre-order', [\App\Http\Controllers\PreOrderController::class, 'store'])->name('pre-order');
 };
 
-$productPrefix = SystemSetting::get('permalink_product', 'produk');
+$productPrefix = SystemSetting::tryGet('permalink_product', 'produk');
 
 // Default Locale (ID)
 if ($productPrefix) {
@@ -99,7 +99,7 @@ $projectRoutes = function() {
     Route::get('/{slug}', [\App\Http\Controllers\ProjectController::class, 'show'])->name('show');
 };
 
-$projectPrefix = SystemSetting::get('permalink_project', 'projeku');
+$projectPrefix = SystemSetting::tryGet('permalink_project', 'projeku');
 
 // Default Locale (ID)
 if ($projectPrefix) {
@@ -302,8 +302,12 @@ Route::middleware(['auth'])->group(function () {
         // Contact Inquiries (Super Admin)
         Route::prefix('inquiries')->name('admin.inquiries.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\InquiryController::class, 'index'])->name('index');
+            Route::post('/bulk', [\App\Http\Controllers\Admin\InquiryController::class, 'bulk'])->name('bulk');
             Route::get('/{inquiry}', [\App\Http\Controllers\Admin\InquiryController::class, 'show'])->name('show');
             Route::post('/{inquiry}/replied', [\App\Http\Controllers\Admin\InquiryController::class, 'markReplied'])->name('replied');
+            Route::post('/{inquiry}/whatsapp', [\App\Http\Controllers\Admin\InquiryController::class, 'sendWhatsapp'])->name('whatsapp');
+            Route::post('/{inquiry}/toggle-spam', [\App\Http\Controllers\Admin\InquiryController::class, 'toggleSpam'])->name('toggle_spam');
+            Route::delete('/{inquiry}', [\App\Http\Controllers\Admin\InquiryController::class, 'destroy'])->name('destroy');
         });
 
         // Static Pages & Page Builder
@@ -363,6 +367,7 @@ Route::middleware(['auth'])->group(function () {
         // 404 Error Tracker
         Route::prefix('errors')->name('admin.errors.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\PageErrorController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\PageErrorController::class, 'export'])->name('export');
             Route::post('/clear-all', [\App\Http\Controllers\Admin\PageErrorController::class, 'clearAll'])->name('clear_all');
             Route::post('/{pageError}/redirect', [\App\Http\Controllers\Admin\PageErrorController::class, 'createRedirect'])->name('create_redirect');
             Route::delete('/{pageError}', [\App\Http\Controllers\Admin\PageErrorController::class, 'destroy'])->name('destroy');
@@ -461,6 +466,9 @@ Route::prefix('buyer')->name('buyer.')->group(function () {
 Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'show'])->name('contact.show');
 Route::get('/contact-us', function () { return redirect()->route('contact.show'); });
 Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'submit'])->middleware('throttle:3,5')->name('contact.submit');
+
+// WhatsApp Lead Intake (Home: contact form, live chat, enterprise package)
+Route::post('/lead', [\App\Http\Controllers\WhatsAppLeadController::class, 'store'])->middleware('throttle:5,10')->name('lead.store');
 
 // Global Search
 Route::get('/search', [\App\Http\Controllers\SearchController::class, 'index'])->name('search');

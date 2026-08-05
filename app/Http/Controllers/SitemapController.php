@@ -3,21 +3,120 @@
 namespace App\Http\Controllers;
 
 use App\Models\Content;
+use App\Models\Page;
+use App\Models\Product;
 use App\Models\SiloBlueprint;
-use Illuminate\Http\Request;
+use App\Models\SystemSetting;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
 {
     private const PER_PAGE = 1000;
 
+    private function multiLangEnabled(): bool
+    {
+        return (bool) SystemSetting::get('enable_auto_translate_en', false);
+    }
+
+    private function blogPrefix(): string
+    {
+        return (string) SystemSetting::get('permalink_blog', 'blog');
+    }
+
+    private function productPrefix(): string
+    {
+        $prefix = (string) SystemSetting::get('permalink_product', 'produk');
+        return ($prefix === '' || $prefix === '0') ? 'produk' : $prefix;
+    }
+
+    private function homepageLastmod(): string
+    {
+        $lastmod = Page::withoutGlobalScopes()->where('is_homepage', true)->value('updated_at');
+        return $lastmod?->toAtomString() ?? now()->toAtomString();
+    }
+
+    private function blogIndexLastmod(): string
+    {
+        $lastmod = Content::withoutGlobalScopes()
+            ->where('status', 'published')
+            ->where('published_at', '<=', now())
+            ->orderByDesc('updated_at')
+            ->value('updated_at');
+        return $lastmod?->toAtomString() ?? now()->toAtomString();
+    }
+
+    private function postLastmod(Content $content): string
+    {
+        $last = $content->updated_at ?? $content->published_at;
+        if ($content->last_partial_update_at && $content->last_partial_update_at > $last) {
+            $last = $content->last_partial_update_at;
+        }
+        return $last?->toAtomString() ?? now()->toAtomString();
+    }
+
+    private function postPriority(Content $content): float
+    {
+        if ((float) $content->crawl_priority_score > 0) {
+            $priority = (float) $content->crawl_priority_score;
+        } else {
+            $days = now()->diffInDays($content->published_at ?? now(), false);
+            $priority = match (true) {
+                $days <= 30  => 0.9,
+                $days <= 90  => 0.7,
+                $days <= 180 => 0.6,
+                default      => 0.4,
+            };
+            if ($content->hierarchy_level === 'pillar') $priority += 0.1;
+            if ((int) $content->search_volume > 0) $priority += 0.05;
+            if ($content->gsc_coverage_state === 'Submitted and indexed') $priority += 0.05;
+            $position = (int) $content->current_serp_position;
+            if ($position > 0 && $position <= 3) $priority += 0.05;
+        }
+        return max(0.1, min(1.0, round($priority, 1)));
+    }
+
+    private function postChangefreq(float $priority): string
+    {
+        return match (true) {
+            $priority >= 0.8 => 'weekly',
+            $priority >= 0.5 => 'monthly',
+            default          => 'yearly',
+        };
+    }
+
+    private function hreflangLinks(string $idUrl, string $enUrl): string
+    {
+        if (!$this->multiLangEnabled()) return '';
+
+        return '    <xhtml:link rel="alternate" hreflang="id" href="' . e($idUrl) . '"/>' . PHP_EOL
+             . '    <xhtml:link rel="alternate" hreflang="en" href="' . e($enUrl) . '"/>' . PHP_EOL
+             . '    <xhtml:link rel="alternate" hreflang="x-default" href="' . e($idUrl) . '"/>' . PHP_EOL;
+    }
+
+    private function urlEntry(string $loc, string $lastmod, string $priority, string $changefreq, string $extra = ''): string
+    {
+        return '  <url>' . PHP_EOL
+             . '    <loc>' . e($loc) . '</loc>' . PHP_EOL
+             . $extra
+             . '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL
+             . '    <priority>' . $priority . '</priority>' . PHP_EOL
+             . '    <changefreq>' . $changefreq . '</changefreq>' . PHP_EOL
+             . '  </url>' . PHP_EOL;
+    }
+
+    private function xmlHeader(): string
+    {
+        return '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL
+             . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . PHP_EOL;
+    }
+
     /**
      * Sitemap index — references sub-sitemaps
      */
     public function index(): Response
     {
-        $multiLang = \App\Models\SystemSetting::get('enable_auto_translate_en', '0') === '1';
-        $nowAtom = now()->toAtomString();
+        $multiLang = $this->multiLangEnabled();
+        $lastmod = $this->blogIndexLastmod();
 
         $totalPosts = Content::withoutGlobalScopes()
             ->where('status', 'published')
@@ -31,26 +130,26 @@ class SitemapController extends Controller
 
         $xml .= '  <sitemap>' . PHP_EOL;
         $xml .= '    <loc>' . url('/sitemap-static.xml') . '</loc>' . PHP_EOL;
-        $xml .= '    <lastmod>' . $nowAtom . '</lastmod>' . PHP_EOL;
+        $xml .= '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
         $xml .= '  </sitemap>' . PHP_EOL;
 
         for ($i = 1; $i <= $totalPages; $i++) {
             $xml .= '  <sitemap>' . PHP_EOL;
             $xml .= '    <loc>' . url('/sitemap-posts-' . $i . '.xml') . '</loc>' . PHP_EOL;
-            $xml .= '    <lastmod>' . $nowAtom . '</lastmod>' . PHP_EOL;
+            $xml .= '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
             $xml .= '  </sitemap>' . PHP_EOL;
         }
 
         if ($multiLang) {
             $xml .= '  <sitemap>' . PHP_EOL;
             $xml .= '    <loc>' . url('/sitemap-en-static.xml') . '</loc>' . PHP_EOL;
-            $xml .= '    <lastmod>' . $nowAtom . '</lastmod>' . PHP_EOL;
+            $xml .= '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
             $xml .= '  </sitemap>' . PHP_EOL;
 
             for ($i = 1; $i <= $totalPages; $i++) {
                 $xml .= '  <sitemap>' . PHP_EOL;
                 $xml .= '    <loc>' . url('/sitemap-en-posts-' . $i . '.xml') . '</loc>' . PHP_EOL;
-                $xml .= '    <lastmod>' . $nowAtom . '</lastmod>' . PHP_EOL;
+                $xml .= '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
                 $xml .= '  </sitemap>' . PHP_EOL;
             }
         }
@@ -65,50 +164,60 @@ class SitemapController extends Controller
      */
     public function staticSitemap(): Response
     {
-        $categories = SiloBlueprint::withoutGlobalScopes()->get(['silo_name', 'updated_at']);
-        $products = \App\Models\Product::withoutGlobalScopes()->where('is_active', true)->get(['slug', 'updated_at']);
-        $pages = \App\Models\Page::withoutGlobalScopes()->where('is_published', true)->get(['slug', 'updated_at']);
+        $seen = [];
+        $xml = $this->xmlHeader();
 
-        $nowAtom = now()->toAtomString();
-        $blogPrefix = \App\Models\SystemSetting::get('permalink_blog', 'blog');
-        $productPrefix = \App\Models\SystemSetting::get('permalink_product', 'produk');
-        if ($productPrefix === '0') $productPrefix = 'produk';
-        $lastAtom = now()->toAtomString();
-
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+        $blogPrefix = $this->blogPrefix();
+        $productPrefix = $this->productPrefix();
+        $homeLastmod = $this->homepageLastmod();
+        $blogLastmod = $this->blogIndexLastmod();
 
         // Homepage
-        $xml .= '  <url><loc>' . url('/') . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>1.0</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
+        $xml .= $this->urlEntry(url('/'), $homeLastmod, '1.0', 'daily',
+            $this->hreflangLinks(url('/'), url('/en')));
 
         // Contact
-        $xml .= '  <url><loc>' . url('/contact') . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>' . PHP_EOL;
+        $xml .= $this->urlEntry(url('/contact'), $homeLastmod, '0.7', 'monthly');
 
         // Blog Index
-        $xml .= '  <url><loc>' . url('/' . $blogPrefix) . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.9</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
+        $xml .= $this->urlEntry(url('/' . $blogPrefix), $blogLastmod, '0.9', 'daily',
+            $this->hreflangLinks(url('/' . $blogPrefix), url('/en/' . $blogPrefix)));
 
         // Categories
-        foreach ($categories as $category) {
-            $catSlug = $category->slug;
-            $catLastmod = $category->updated_at?->toAtomString() ?? $lastAtom;
-            $xml .= '  <url><loc>' . url('/' . $blogPrefix . '/category/' . $catSlug) . '</loc><lastmod>' . $catLastmod . '</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>' . PHP_EOL;
+        foreach (SiloBlueprint::withoutGlobalScopes()->get(['silo_name', 'updated_at']) as $category) {
+            $catLastmod = $category->updated_at?->toAtomString() ?? $blogLastmod;
+            $xml .= $this->urlEntry(url('/' . $blogPrefix . '/category/' . $category->slug), $catLastmod, '0.8', 'weekly',
+                $this->hreflangLinks(
+                    url('/' . $blogPrefix . '/category/' . $category->slug),
+                    url('/en/' . $blogPrefix . '/category/' . $category->slug)
+                ));
         }
 
         // Product Catalog Index
-        $xml .= '  <url><loc>' . url('/' . $productPrefix) . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.9</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
+        $xml .= $this->urlEntry(url('/' . $productPrefix), $blogLastmod, '0.9', 'daily',
+            $this->hreflangLinks(url('/' . $productPrefix), url('/en/' . $productPrefix)));
 
         // Products
-        foreach ($products as $product) {
-            $prodSlug = $product->slug;
-            $prodLastmod = $product->updated_at?->toAtomString() ?? $lastAtom;
-            $xml .= '  <url><loc>' . url('/' . $productPrefix . '/' . $prodSlug) . '</loc><lastmod>' . $prodLastmod . '</lastmod><priority>0.9</priority><changefreq>weekly</changefreq></url>' . PHP_EOL;
+        foreach (Product::withoutGlobalScopes()->where('is_active', true)->get(['slug', 'updated_at']) as $product) {
+            $prodLastmod = $product->updated_at?->toAtomString() ?? $blogLastmod;
+            $xml .= $this->urlEntry(url('/' . $productPrefix . '/' . $product->slug), $prodLastmod, '0.9', 'weekly',
+                $this->hreflangLinks(
+                    url('/' . $productPrefix . '/' . $product->slug),
+                    url('/en/' . $productPrefix . '/' . $product->slug)
+                ));
         }
 
-        // Pages
-        foreach ($pages as $page) {
-            $pageSlug = $page->slug;
-            $pageLastmod = $page->updated_at?->toAtomString() ?? $lastAtom;
-            $xml .= '  <url><loc>' . url('/' . $pageSlug) . '</loc><lastmod>' . $pageLastmod . '</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>' . PHP_EOL;
+        // Pages (skip homepage page + slugs shadowed by real routes)
+        foreach (Page::withoutGlobalScopes()->where('is_published', true)->get(['slug', 'updated_at']) as $page) {
+            if ($page->is_homepage) continue;
+            if (in_array($page->slug, ['contact', 'home'], true)) continue;
+
+            $loc = url('/' . $page->slug);
+            if (isset($seen[$loc])) continue;
+            $seen[$loc] = true;
+
+            $pageLastmod = $page->updated_at?->toAtomString() ?? $blogLastmod;
+            $xml .= $this->urlEntry($loc, $pageLastmod, '0.7', 'monthly');
         }
 
         $xml .= '</urlset>';
@@ -124,24 +233,17 @@ class SitemapController extends Controller
         $contents = Content::withoutGlobalScopes()
             ->where('status', 'published')
             ->where('published_at', '<=', now())
-            ->orderByDesc('crawl_priority_score')
-            ->paginate(self::PER_PAGE, ['slug', 'published_at', 'crawl_priority_score', 'hierarchy_level'], 'page', $page);
+            ->orderByDesc('updated_at')
+            ->paginate(self::PER_PAGE, ['slug', 'published_at', 'updated_at', 'last_partial_update_at', 'crawl_priority_score', 'hierarchy_level', 'search_volume', 'gsc_coverage_state', 'current_serp_position'], 'page', $page);
 
-        $blogPrefix = \App\Models\SystemSetting::get('permalink_blog', 'blog');
-        $lastAtom = now()->toAtomString();
-
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+        $blogPrefix = $this->blogPrefix();
+        $xml = $this->xmlHeader();
 
         foreach ($contents as $content) {
-            $priority = max(0.1, min(1.0, (float) $content->crawl_priority_score));
-            $changefreq = match(true) {
-                $priority >= 0.8 => 'weekly',
-                $priority >= 0.5 => 'monthly',
-                default => 'yearly',
-            };
-            $articleLastmod = $content->published_at?->toAtomString() ?? $lastAtom;
-            $xml .= '  <url><loc>' . url('/' . $blogPrefix . '/' . $content->slug) . '</loc><lastmod>' . $articleLastmod . '</lastmod><priority>' . number_format($priority, 1) . '</priority><changefreq>' . $changefreq . '</changefreq></url>' . PHP_EOL;
+            $priority = $this->postPriority($content);
+            $loc = url('/' . $blogPrefix . '/' . $content->slug);
+            $xml .= $this->urlEntry($loc, $this->postLastmod($content), number_format($priority, 1), $this->postChangefreq($priority),
+                $this->hreflangLinks($loc, url('/en/' . $blogPrefix . '/' . $content->slug)));
         }
 
         $xml .= '</urlset>';
@@ -154,42 +256,60 @@ class SitemapController extends Controller
      */
     public function staticSitemapEn(): Response
     {
-        $categories = SiloBlueprint::withoutGlobalScopes()->get(['silo_name', 'updated_at']);
-        $pages = \App\Models\Page::withoutGlobalScopes()->where('is_published', true)->get(['slug', 'updated_at']);
+        $seen = [];
+        $xml = $this->xmlHeader();
 
-        $nowAtom = now()->toAtomString();
-        $blogPrefix = \App\Models\SystemSetting::get('permalink_blog', 'blog');
-        $productPrefix = \App\Models\SystemSetting::get('permalink_product', 'produk');
-        if ($productPrefix === '0') $productPrefix = 'produk';
-        $lastAtom = now()->toAtomString();
+        $blogPrefix = $this->blogPrefix();
+        $productPrefix = $this->productPrefix();
+        $homeLastmod = $this->homepageLastmod();
+        $blogLastmod = $this->blogIndexLastmod();
 
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+        // Homepage
+        $xml .= $this->urlEntry(url('/en'), $homeLastmod, '1.0', 'daily',
+            $this->hreflangLinks(url('/'), url('/en')));
 
-        $xml .= '  <url><loc>' . url('/en') . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>1.0</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
-        $xml .= '  <url><loc>' . url('/en/contact') . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>' . PHP_EOL;
-        $xml .= '  <url><loc>' . url('/en/' . $blogPrefix) . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.9</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
+        // Contact
+        $xml .= $this->urlEntry(url('/en/contact'), $homeLastmod, '0.7', 'monthly');
 
-        foreach ($categories as $category) {
-            $catSlug = $category->slug;
-            $catLastmod = $category->updated_at?->toAtomString() ?? $lastAtom;
-            $xml .= '  <url><loc>' . url('/en/' . $blogPrefix . '/category/' . $catSlug) . '</loc><lastmod>' . $catLastmod . '</lastmod><priority>0.8</priority><changefreq>weekly</changefreq></url>' . PHP_EOL;
+        // Blog Index
+        $xml .= $this->urlEntry(url('/en/' . $blogPrefix), $blogLastmod, '0.9', 'daily',
+            $this->hreflangLinks(url('/' . $blogPrefix), url('/en/' . $blogPrefix)));
+
+        // Categories
+        foreach (SiloBlueprint::withoutGlobalScopes()->get(['silo_name', 'updated_at']) as $category) {
+            $catLastmod = $category->updated_at?->toAtomString() ?? $blogLastmod;
+            $xml .= $this->urlEntry(url('/en/' . $blogPrefix . '/category/' . $category->slug), $catLastmod, '0.8', 'weekly',
+                $this->hreflangLinks(
+                    url('/' . $blogPrefix . '/category/' . $category->slug),
+                    url('/en/' . $blogPrefix . '/category/' . $category->slug)
+                ));
         }
 
-        $products = \App\Models\Product::withoutGlobalScopes()->where('is_active', true)->get(['slug', 'updated_at']);
         // Product Catalog Index
-        $xml .= '  <url><loc>' . url('/en/' . $productPrefix) . '</loc><lastmod>' . $nowAtom . '</lastmod><priority>0.9</priority><changefreq>daily</changefreq></url>' . PHP_EOL;
+        $xml .= $this->urlEntry(url('/en/' . $productPrefix), $blogLastmod, '0.9', 'daily',
+            $this->hreflangLinks(url('/' . $productPrefix), url('/en/' . $productPrefix)));
 
-        foreach ($products as $product) {
-            $prodSlug = $product->slug;
-            $prodLastmod = $product->updated_at?->toAtomString() ?? $lastAtom;
-            $xml .= '  <url><loc>' . url('/en/' . $productPrefix . '/' . $prodSlug) . '</loc><lastmod>' . $prodLastmod . '</lastmod><priority>0.9</priority><changefreq>weekly</changefreq></url>' . PHP_EOL;
+        // Products
+        foreach (Product::withoutGlobalScopes()->where('is_active', true)->get(['slug', 'updated_at']) as $product) {
+            $prodLastmod = $product->updated_at?->toAtomString() ?? $blogLastmod;
+            $xml .= $this->urlEntry(url('/en/' . $productPrefix . '/' . $product->slug), $prodLastmod, '0.9', 'weekly',
+                $this->hreflangLinks(
+                    url('/' . $productPrefix . '/' . $product->slug),
+                    url('/en/' . $productPrefix . '/' . $product->slug)
+                ));
         }
 
-        foreach ($pages as $page) {
-            $pageSlug = $page->slug;
-            $pageLastmod = $page->updated_at?->toAtomString() ?? $lastAtom;
-            $xml .= '  <url><loc>' . url('/en/' . $pageSlug) . '</loc><lastmod>' . $pageLastmod . '</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>' . PHP_EOL;
+        // Pages (skip homepage page + slugs shadowed by real routes)
+        foreach (Page::withoutGlobalScopes()->where('is_published', true)->get(['slug', 'updated_at']) as $page) {
+            if ($page->is_homepage) continue;
+            if (in_array($page->slug, ['contact', 'home'], true)) continue;
+
+            $loc = url('/en/' . $page->slug);
+            if (isset($seen[$loc])) continue;
+            $seen[$loc] = true;
+
+            $pageLastmod = $page->updated_at?->toAtomString() ?? $blogLastmod;
+            $xml .= $this->urlEntry($loc, $pageLastmod, '0.7', 'monthly');
         }
 
         $xml .= '</urlset>';
@@ -205,24 +325,17 @@ class SitemapController extends Controller
         $contents = Content::withoutGlobalScopes()
             ->where('status', 'published')
             ->where('published_at', '<=', now())
-            ->orderByDesc('crawl_priority_score')
-            ->paginate(self::PER_PAGE, ['slug', 'published_at', 'crawl_priority_score', 'hierarchy_level'], 'page', $page);
+            ->orderByDesc('updated_at')
+            ->paginate(self::PER_PAGE, ['slug', 'published_at', 'updated_at', 'last_partial_update_at', 'crawl_priority_score', 'hierarchy_level', 'search_volume', 'gsc_coverage_state', 'current_serp_position'], 'page', $page);
 
-        $blogPrefix = \App\Models\SystemSetting::get('permalink_blog', 'blog');
-        $lastAtom = now()->toAtomString();
-
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+        $blogPrefix = $this->blogPrefix();
+        $xml = $this->xmlHeader();
 
         foreach ($contents as $content) {
-            $priority = max(0.1, min(1.0, (float) $content->crawl_priority_score));
-            $changefreq = match(true) {
-                $priority >= 0.8 => 'weekly',
-                $priority >= 0.5 => 'monthly',
-                default => 'yearly',
-            };
-            $articleLastmod = $content->published_at?->toAtomString() ?? $lastAtom;
-            $xml .= '  <url><loc>' . url('/en/' . $blogPrefix . '/' . $content->slug) . '</loc><lastmod>' . $articleLastmod . '</lastmod><priority>' . number_format($priority, 1) . '</priority><changefreq>' . $changefreq . '</changefreq></url>' . PHP_EOL;
+            $priority = $this->postPriority($content);
+            $loc = url('/en/' . $blogPrefix . '/' . $content->slug);
+            $xml .= $this->urlEntry($loc, $this->postLastmod($content), number_format($priority, 1), $this->postChangefreq($priority),
+                $this->hreflangLinks(url('/' . $blogPrefix . '/' . $content->slug), $loc));
         }
 
         $xml .= '</urlset>';
@@ -235,11 +348,14 @@ class SitemapController extends Controller
      */
     public function robots(): Response
     {
-        // Read from database settings if available, otherwise use default
-        $customRobots = \App\Models\SystemSetting::get('robots_txt_content');
+        $customRobots = SystemSetting::get('robots_txt_content');
 
         if ($customRobots) {
-            return response($customRobots, 200, ['Content-Type' => 'text/plain']);
+            $content = $customRobots;
+            if (!str_contains($content, 'Sitemap:')) {
+                $content = rtrim($content) . PHP_EOL . PHP_EOL . 'Sitemap: ' . url('/sitemap.xml') . PHP_EOL;
+            }
+            return response($content, 200, ['Content-Type' => 'text/plain']);
         }
 
         // Default robots.txt

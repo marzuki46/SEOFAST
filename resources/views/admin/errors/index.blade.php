@@ -11,6 +11,11 @@
             <input type="text" name="q" value="{{ request('q') }}" placeholder="Search URL..." class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 w-56">
             <button type="submit" class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50">Search</button>
         </form>
+        <a href="{{ route('admin.errors.export', ['q' => request('q')]) }}"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-500 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Export CSV
+        </a>
         <form action="{{ route('admin.errors.clear_all') }}" method="POST" onsubmit="return confirm('Clear all 404 entries? This cannot be undone.');">
             @csrf
             <button type="submit" class="px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-50">Clear All</button>
@@ -23,6 +28,25 @@
         {{ session('success') }}
     </div>
 @endif
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white border rounded-xl p-4 shadow-sm">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Unique URLs</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1">{{ number_format($totalCount) }}</p>
+    </div>
+    <div class="bg-white border rounded-xl p-4 shadow-sm">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total 404 Hits</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1">{{ number_format($totalHits) }}</p>
+    </div>
+    <div class="bg-white border rounded-xl p-4 shadow-sm">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Redir. Potential</p>
+        <p class="text-2xl font-bold text-amber-600 mt-1">{{ number_format($pageErrors->where('count', '>', 10)->count()) }}</p>
+    </div>
+    <div class="bg-white border rounded-xl p-4 shadow-sm">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Recoverable Hits</p>
+        <p class="text-2xl font-bold text-emerald-600 mt-1">{{ number_format($pageErrors->where('count', '>', 3)->sum('count')) }}</p>
+    </div>
+</div>
 
 <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
     <table class="w-full text-left">

@@ -14,6 +14,10 @@ class ContactInquiry extends Model
         'subject',
         'message',
         'status',
+        'source',
+        'ip_address',
+        'url',
+        'is_spam',
         'admin_note',
         'replied_at',
         'replied_by',
@@ -23,7 +27,28 @@ class ContactInquiry extends Model
     {
         return [
             'replied_at' => 'datetime',
+            'is_spam' => 'boolean',
         ];
+    }
+
+    public function scopeSpam($query)
+    {
+        return $query->where('is_spam', true);
+    }
+
+    public function scopeNotSpam($query)
+    {
+        return $query->where('is_spam', false);
+    }
+
+    public function sourceLabel(): string
+    {
+        return match ($this->source) {
+            'contact' => 'Form Kontak',
+            'chat' => 'Live Chat',
+            'enterprise' => 'Enterprise',
+            default => '—',
+        };
     }
 
     public function repliedBy(): BelongsTo

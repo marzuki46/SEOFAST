@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement('ALTER TABLE contents MODIFY status ENUM("draft", "pending", "ai_processing", "failed_cqi", "failed", "published", "idea", "blueprint") DEFAULT "idea"');
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE contents MODIFY status ENUM("draft", "pending", "ai_processing", "failed_cqi", "failed", "published", "idea", "blueprint") DEFAULT "idea"');
+        }
     }
 
     /**
@@ -20,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement('ALTER TABLE contents MODIFY status ENUM("draft", "pending", "ai_processing", "failed_cqi", "failed", "published") DEFAULT "pending"');
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE contents MODIFY status ENUM("draft", "pending", "ai_processing", "failed_cqi", "failed", "published") DEFAULT "pending"');
+        }
     }
 };

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ContactInquiry;
 use App\Models\SystemSetting;
+use App\Services\SpamGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -22,9 +23,35 @@ class ContactController extends Controller
             'phone'   => 'nullable|string|max:50',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|max:5000',
+            'website' => 'nullable|string|max:255',
         ]);
 
-        ContactInquiry::create($validated);
+        // Honeypot: field tersembunyi terisi berarti bot — diam-diam sukses.
+        if (!empty($validated['website'])) {
+            return redirect()->route('contact.show')
+                ->with('success', 'Terima kasih! Pesan Anda telah terkirim. Saya akan menghubungi Anda segera.');
+        }
+
+        // Anti-spam: deteksi heuristik. Spam tetap disimpan (is_spam=true) tapi
+        // tidak diteruskan ke email/WhatsApp pemilik.
+        $spam = app(SpamGuard::class)->check($request, $validated);
+
+        $inquiry = ContactInquiry::create([
+            'name'       => $validated['name'],
+            'email'      => $validated['email'],
+            'phone'      => $validated['phone'] ?? null,
+            'subject'    => $validated['subject'],
+            'message'    => $validated['message'],
+            'source'     => 'contact',
+            'ip_address' => $request->ip(),
+            'url'        => $request->headers->get('referer'),
+            'is_spam'    => $spam['is_spam'],
+        ]);
+
+        if ($spam['is_spam']) {
+            return redirect()->route('contact.show')
+                ->with('success', 'Terima kasih! Pesan Anda telah terkirim. Saya akan menghubungi Anda segera.');
+        }
 
         $adminEmail = SystemSetting::get('contact_inquiry_email', '');
 

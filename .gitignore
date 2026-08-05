@@ -1,4 +1,3 @@
-```
 # Compiled and build artifacts
 *.pyc
 __pycache__/
@@ -37,4 +36,6 @@ bootstrap/cache/
 toJson()
 update_css.php
 storage/page_html_content.html
-```
+
+# Test artifacts
+.phpunit.result.cache
