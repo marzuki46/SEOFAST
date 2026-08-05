@@ -92,12 +92,11 @@
                     </a>
                     
                     <!-- GROUP: Content Production -->
-                    <div x-data="{ open: {{ request()->routeIs('admin.silo.*', 'admin.links.*', 'admin.content.*', 'admin.wordpress.*') ? 'true' : 'false' }} }" class="pt-2">
-                        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-300 transition-colors">
+                    <div class="pt-2">
+                        <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider select-none">
                             <span>Content Pipeline</span>
-                            <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div x-show="open" x-collapse class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
+                        </div>
+                        <div class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
                             <a href="{{ route('admin.silo.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.silo.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 1. Riset Keyword (Silo)
                             </a>
@@ -132,12 +131,11 @@
 
                     @if(auth()->user()->isAdmin())
                     <!-- GROUP: Website & CMS -->
-                    <div x-data="{ open: {{ request()->routeIs('admin.pages.*', 'admin.menus.*', 'admin.media.*') ? 'true' : 'false' }} }" class="pt-2">
-                        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-300 transition-colors">
+                    <div class="pt-2">
+                        <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider select-none">
                             <span>Website & CMS</span>
-                            <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div x-show="open" x-collapse class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
+                        </div>
+                        <div class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
                             <a href="{{ route('admin.pages.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.pages.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 Static Pages
                             </a>
@@ -151,12 +149,11 @@
                     </div>
 
                     <!-- GROUP: Sales & Products -->
-                    <div x-data="{ open: {{ request()->routeIs('admin.products.*', 'admin.product-categories.*', 'admin.orders.*', 'admin.tickets.*', 'admin.inquiries.*', 'admin.billing.*', 'admin.pre-orders.*') ? 'true' : 'false' }} }" class="pt-2">
-                        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-300 transition-colors">
+                    <div class="pt-2">
+                        <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider select-none">
                             <span>Commerce</span>
-                            <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div x-show="open" x-collapse class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
+                        </div>
+                        <div class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
                             <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.products.*') && !request()->routeIs('admin.product-categories.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 Digital Products
                             </a>
@@ -184,12 +181,11 @@
                     </div>
 
                     <!-- GROUP: Configuration & Tools -->
-                    <div x-data="{ open: {{ request()->routeIs('admin.settings.*', 'admin.seo.settings.*', 'admin.users.*', 'admin.gsc.*', 'admin.infrastructure.*', 'admin.redirects.*', 'admin.errors.*', 'admin.broken-links.*', 'admin.duplicates.*', 'admin.readability.*', 'admin.url-audit.*', 'admin.serp-rank.*', 'admin.competitor-analysis.*') ? 'true' : 'false' }} }" class="pt-2">
-                        <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-300 transition-colors">
+                    <div class="pt-2">
+                        <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider select-none">
                             <span>System Admin</span>
-                            <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <div x-show="open" x-collapse class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
+                        </div>
+                        <div class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
                             <a href="{{ route('admin.gsc.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.gsc.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 Google Search Console
                             </a>

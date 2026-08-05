@@ -12,8 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        // Trusted proxies: di belakang Cloudflare pakai '*' agar IP asli visitor
+        // terbaca (X-Forwarded-For / X-Forwarded-Proto) untuk throttle & logging.
+        // Bisa dipersempit ke range IP Cloudflare via env TRUSTED_PROXIES.
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
         $middleware->append(\App\Http\Middleware\HideServerHeaders::class);
+        $middleware->web(prepend: [
+            \App\Http\Middleware\ValidateHost::class,
+        ]);
         $middleware->web(append: [
             \App\Http\Middleware\CheckInstalled::class,
             \App\Http\Middleware\ForceHttps::class,
@@ -23,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\Capture404::class,
             \App\Http\Middleware\CachePublicPages::class,
             \App\Http\Middleware\SetNoindexPaths::class,
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
 
         $middleware->alias([

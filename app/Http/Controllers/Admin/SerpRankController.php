@@ -173,7 +173,7 @@ class SerpRankController extends Controller
                 'cur.cur_pos', 'prev.prev_pos',
                 DB::raw('ROUND(cur.cur_pos - prev.prev_pos, 1) as drop_val')
             )
-            ->having('drop_val', '>', 2)
+            ->whereRaw('ROUND(cur.cur_pos - prev.prev_pos, 1) > 2')
             ->orderByDesc('drop_val')
             ->take(5)
             ->get();

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="{{ \App\Models\SystemSetting::get('theme_color', '#6366f1') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @php
@@ -38,6 +39,7 @@
     <meta name="description" content="{{ $seoDescription ?: SystemSetting::get('seo_global_meta_description', '') }}">
     <meta name="robots" content="{{ $seoRobots }}">
     <link rel="canonical" href="{{ $seoCanonical }}">
+    <link rel="sitemap" type="application/xml" href="{{ url('sitemap.xml') }}">
     @if($keywords)
     <meta name="keywords" content="{{ $keywords }}">
     @endif
@@ -268,7 +270,7 @@
             <div class="flex items-center gap-12">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 group" aria-label="{{ $siteName }}">
                     @if($logoUrl)
-                    <img src="{{ $logoUrl }}" alt="{{ $logoAlt }}" loading="lazy" class="h-10 w-auto group-hover:scale-105 transition-transform">
+                    <img src="{{ $logoUrl }}" alt="{{ $logoAlt }}" fetchpriority="high" class="h-10 w-auto group-hover:scale-105 transition-transform">
                     @else
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple flex items-center justify-center font-outfit font-extrabold text-white text-xl shadow-lg shadow-brand-indigo/10 group-hover:scale-105 transition-transform">
                         {{ $logoText }}

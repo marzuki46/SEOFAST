@@ -78,4 +78,40 @@
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+    Header always set X-Permitted-Cross-Domain-Policies "none"
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    Header always set X-XSS-Protection "0"
+</IfModule>
+
+# ─── HARDENING: BLOCK DOTFILES (kecuali .well-known) ─────
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_URI} (^|/)\. [NC]
+    RewriteCond %{REQUEST_URI} !^/\.well-known [NC]
+    RewriteRule ^ - [F,L]
+</IfModule>
+
+# ─── HARDENING: BLOCK SENSITIVE FILES (env, git, sql, backup, credential) ──
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_URI} (^|/)(\.env[^/]*|\.git[^/]*|\.svn[^/]*|\.hg[^/]*|\.htaccess|\.htpasswd|\.DS_Store|config\.json|composer\.json|package\.json|credentials|secrets?|tfvars|terraform[^/]*|wp-config[^/]*|config\.inc[^/]*|parameters\.(yml|yaml)|adminer[^/]*|phpinfo[^/]*|info\.php|\.sql$|\.sqlite$|\.log$|\.bak$|\.old$|\.swp$|\.save$|\.orig$|\.pem$|\.key$|\.p12$|\.ovpn$|sftp\.json)(/|$) [NC]
+    RewriteRule ^ - [F,L]
+</IfModule>
+
+# ─── HARDENING: BLOCK ATTACK PATHS (framework/WP/panel scan) ──
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_URI} (^|/)(app_dev\.php|_profiler|cgi-bin|xmlrpc\.php|wp-login\.php|wp-admin|wp-includes|phpMyAdmin|pma|adminer)(/|$) [NC]
+    RewriteRule ^ - [F,L]
+</IfModule>
+
+# ─── HARDENING: BLOCK SCANNER / EXPLOIT QUERY STRINGS ───
+<IfModule mod_rewrite.c>
+    RewriteCond %{QUERY_STRING} (\.env|\.git|tfvars|terraform|wp-json|xmlrpc|_profiler|app_dev\.php|information_schema|union[[:space:]]+select|xp_cmdshell|\.\.%2f|%2e%2e|base64_decode|eval\() [NC,OR]
+    RewriteCond %{QUERY_STRING} (password|passwd|secret|credential|sendgrid|api_key|apikey)[[:space:]]*=[[:space:]]*[^&]+ [NC]
+    RewriteRule ^ - [F,L]
+</IfModule>
+
+# ─── HARDENING: BLOCK KNOWN SCANNER BOTS ─────────────────
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP_USER_AGENT} (sqlmap|nikto|nessus|masscan|zgrab|nmap|acunetix|gobuster|dirbuster|wpscan|whatweb|havij|sqliv|fimap|netsparker|hydra|medusa|patator|r0b0t|MuckWeb|ZmEu) [NC]
+    RewriteRule ^ - [F,L]
 </IfModule>

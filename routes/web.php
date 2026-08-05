@@ -124,15 +124,21 @@ Route::get('/payment/error', [PaymentController::class, 'error'])->name('payment
 // Authentication Routes (Admin)
 Route::middleware('guest')->group(function () {
     Route::get('/master/adminis-trator', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/master/adminis-trator', [LoginController::class, 'authenticate'])->name('login.authenticate');
+    Route::post('/master/adminis-trator', [LoginController::class, 'authenticate'])
+        ->middleware('throttle:10,1')
+        ->name('login.authenticate');
 });
 
 // Buyer Public Authentication Routes (Moved to root level for easier access)
 Route::middleware('guest:buyer')->name('buyer.')->group(function () {
     Route::get('/login', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'login'])->name('login.post');
+    Route::post('/login', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'login'])
+        ->middleware('throttle:10,1')
+        ->name('login.post');
     Route::get('/register', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'register'])->name('register.post');
+    Route::post('/register', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'register'])
+        ->middleware('throttle:5,10')
+        ->name('register.post');
     Route::get('/auth/google/buyer', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'googleRedirect'])->name('auth.google');
     Route::get('/auth/google/buyer/callback', [\App\Http\Controllers\Buyer\BuyerAuthController::class, 'googleCallback'])->name('auth.google.callback');
 });

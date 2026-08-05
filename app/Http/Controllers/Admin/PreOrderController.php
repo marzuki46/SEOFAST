@@ -13,7 +13,7 @@ class PreOrderController extends Controller
 {
     public function global()
     {
-        $products = Product::withCount('preOrders')->having('pre_orders_count', '>', 0)->latest()->get();
+        $products = Product::withCount('preOrders')->has('preOrders')->latest()->get();
         return view('admin.pre-orders.global', compact('products'));
     }
 

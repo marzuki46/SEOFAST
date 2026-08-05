@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BuyerOrder;
+use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;

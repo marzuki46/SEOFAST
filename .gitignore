@@ -39,3 +39,6 @@ storage/page_html_content.html
 
 # Test artifacts
 .phpunit.result.cache
+
+# Local analysis artifacts
+docx/

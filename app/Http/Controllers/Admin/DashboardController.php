@@ -89,8 +89,12 @@ class DashboardController extends Controller
             ->toArray();
 
         // Monthly new content for current year
+        $monthExpr = DB::connection()->getDriverName() === 'sqlite'
+            ? "CAST(strftime('%m', created_at) AS INTEGER) as month"
+            : 'MONTH(created_at) as month';
+
         $monthlyContent = Content::select(
-            DB::raw('MONTH(created_at) as month'),
+            DB::raw($monthExpr),
             DB::raw('COUNT(*) as total')
         )
             ->whereYear('created_at', now()->year)
