@@ -21,6 +21,15 @@
     <div class="absolute bottom-10 left-0 w-72 h-72 rounded-full bg-brand-gold/10 blur-3xl" style="animation-delay: 1.5s;"></div>
     <div class="absolute inset-0 bg-[linear-gradient(rgba(21,37,63,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(21,37,63,0.04)_1px,transparent_1px)] bg-[size:56px_56px]"></div>
     <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 text-center">
+        @php
+            $logoUrl = \App\Models\SystemSetting::get('logo_url');
+            $logoAlt = \App\Models\SystemSetting::get('logo_alt', 'Juki Website Developer Solo');
+        @endphp
+        @if($logoUrl)
+        <div class="flex justify-center mb-8">
+            <img src="{{ $logoUrl }}" alt="{{ $logoAlt }}" class="h-14 sm:h-16 w-auto drop-shadow-xl" loading="eager">
+        </div>
+        @endif
         <span class="inline-block px-4 py-1.5 bg-white border border-[#E2E8F0] shadow-sm text-brand-navy text-xs font-semibold rounded-full mb-4">Ada Project? Saya Siap Bantu!</span>
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold font-outfit leading-tight text-[#0F172A]">
             Mari Diskusikan <br class="hidden sm:block"><span class="text-brand-gold-dark">Project Anda</span>
