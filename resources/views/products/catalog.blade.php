@@ -50,9 +50,18 @@
 @endsection
 
 @section('content')
+<!-- Catalog Hero -->
+@include('partials.juki-hero', [
+    'badge' => 'Katalog Produk Digital',
+    'heading' => 'Produk Digital untuk SEO, Konten AI & Otomasi Pemasaran',
+    'subheadline' => 'Jelajahi produk digital ' . $siteName . ' — tools optimasi SEO, konten AI, dan perangkat otomasi pemasaran untuk mempercepat pertumbuhan bisnis Anda.',
+    'ctaPrimaryText' => 'Konsultasi Gratis',
+    'ctaSecondaryText' => 'Kirim Inquiry',
+])
+
 <div class="max-w-7xl mx-auto py-12 px-4">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <h1 class="text-3xl font-bold text-slate-900 font-outfit">Digital Products</h1>
+        <h2 class="text-3xl font-bold text-slate-900 font-outfit">Digital Products</h2>
 
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <form method="GET" action="{{ route('products.catalog') }}" class="flex items-center w-full sm:w-auto">

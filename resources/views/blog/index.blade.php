@@ -59,17 +59,14 @@
     @section('robots_meta', 'noindex, follow')
 @endif
 
-<!-- Blog Header -->
-<section class="relative pt-24 pb-12 border-b border-slate-200 bg-slate-100/30">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        <h1 class="font-outfit font-extrabold text-4xl md:text-6xl text-slate-900 mb-6">
-            {!! nl2br(e($blogHeading)) !!}
-        </h1>
-        <p class="text-slate-600 text-base md:text-lg max-w-2xl mx-auto">
-            {{ $blogTagline }}
-        </p>
-    </div>
-</section>
+<!-- Blog Hero -->
+@include('partials.juki-hero', [
+    'badge' => 'Blog & Artikel',
+    'heading' => $blogHeading,
+    'subheadline' => $blogTagline,
+    'ctaPrimaryText' => 'Konsultasi Gratis',
+    'ctaSecondaryText' => 'Kirim Inquiry',
+])
 
 <!-- Main Feed Layout -->
 <section class="py-16">
