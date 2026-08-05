@@ -11,14 +11,29 @@
         use App\Models\SystemSetting;
 
         // SSR: resolve title - child views may override via @section('title')
+        // @section('title', $x) bentuk dua argumen sudah auto-escape oleh
+        // startSection, dan yieldContent juga meng-escape default, jadi output
+        // dengan {!! !!} untuk mencegah double-escape (mis. "&" -> "&amp;amp;").
         $seoTitle       = trim($__env->yieldContent('title'));
         $seoDescription = trim($__env->yieldContent('meta_description'));
         $seoCanonical   = trim($__env->yieldContent('canonical_url', request()->url()));
         $seoOgImage     = trim($__env->yieldContent('og_image', SystemSetting::get('seo_global_og_image', asset('assets/og-default.jpg'))));
         $seoRobots      = trim($__env->yieldContent('robots_meta', SystemSetting::get('seo_indexing_robots', 'index, follow')));
 
+        $siteMetaDescriptionFallback = e(SystemSetting::get('seo_global_meta_description', ''));
+
         if (!$seoTitle) {
-            $seoTitle = SeoHelper::homepageTitle();
+            $seoTitle = e(SeoHelper::homepageTitle());
+        }
+
+        $ogTitle = trim($__env->yieldContent('og_title'));
+        if (!$ogTitle) {
+            $ogTitle = $seoTitle;
+        }
+
+        $ogDescription = trim($__env->yieldContent('og_description'));
+        if (!$ogDescription) {
+            $ogDescription = $seoDescription ?: $siteMetaDescriptionFallback;
         }
 
         $siteName    = SystemSetting::get('site_name', config('app.name'));
@@ -35,10 +50,10 @@
     @endphp
 
     <!-- SEO Meta Tags (SSR) -->
-    <title>{{ $seoTitle }}</title>
-    <meta name="description" content="{{ $seoDescription ?: SystemSetting::get('seo_global_meta_description', '') }}">
-    <meta name="robots" content="{{ $seoRobots }}">
-    <link rel="canonical" href="{{ $seoCanonical }}">
+    <title>{!! $seoTitle !!}</title>
+    <meta name="description" content="{!! $seoDescription ?: $siteMetaDescriptionFallback !!}">
+    <meta name="robots" content="{!! $seoRobots !!}">
+    <link rel="canonical" href="{!! $seoCanonical !!}">
     <link rel="sitemap" type="application/xml" href="{{ url('sitemap.xml') }}">
     @if($keywords)
     <meta name="keywords" content="{{ $keywords }}">
@@ -105,9 +120,9 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ $siteName }}">
     <meta property="og:url" content="{{ request()->url() }}">
-    <meta property="og:title" content="{{ trim($__env->yieldContent('og_title', $seoTitle)) }}">
-    <meta property="og:description" content="{{ trim($__env->yieldContent('og_description', $seoDescription ?: SystemSetting::get('seo_global_meta_description', ''))) }}">
-    <meta property="og:image" content="{{ $seoOgImage }}">
+    <meta property="og:title" content="{!! $ogTitle !!}">
+    <meta property="og:description" content="{!! $ogDescription !!}">
+    <meta property="og:image" content="{!! $seoOgImage !!}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'id_ID' }}">
@@ -116,9 +131,9 @@
     <!-- Twitter Card (SSR) -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="{{ request()->url() }}">
-    <meta name="twitter:title" content="{{ trim($__env->yieldContent('og_title', $seoTitle)) }}">
-    <meta name="twitter:description" content="{{ trim($__env->yieldContent('og_description', $seoDescription ?: SystemSetting::get('seo_global_meta_description', ''))) }}">
-    <meta name="twitter:image" content="{{ $seoOgImage }}">
+    <meta name="twitter:title" content="{!! $ogTitle !!}">
+    <meta name="twitter:description" content="{!! $ogDescription !!}">
+    <meta name="twitter:image" content="{!! $seoOgImage !!}">
 
     <!-- Favicon (SSR) -->
     <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
