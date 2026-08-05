@@ -470,11 +470,11 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-10">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
                 <div class="lg:col-span-2">
-                    <a href="{{ route('home') }}" class="inline-flex items-center gap-3 mb-6">
+                    <a href="{{ route('home') }}" class="inline-flex items-center mb-6 rounded-2xl bg-white shadow-lg shadow-black/20 p-3 pr-6 transition-transform hover:scale-[1.02]" aria-label="{{ $footerBrand }}">
                         @if($logoUrl)
-                        <img src="{{ $logoUrl }}" alt="{{ $logoAlt }}" loading="lazy" decoding="async" class="h-12 w-auto">
+                        <img src="{{ $logoUrl }}" alt="{{ $logoAlt }}" loading="lazy" decoding="async" class="h-11 w-auto">
                         @else
-                        <span class="font-outfit font-extrabold text-2xl tracking-tight text-white">{{ $footerBrand }}</span>
+                        <span class="font-outfit font-extrabold text-2xl tracking-tight text-brand-navy">{{ $footerBrand }}</span>
                         @endif
                     </a>
                     <p class="text-blue-100/80 text-sm leading-relaxed max-w-md mb-7">
