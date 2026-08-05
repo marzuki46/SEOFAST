@@ -16,29 +16,29 @@
 @endphp
 <div class="juki-contact bg-[#F8FAFC] text-[#0F172A] overflow-x-hidden">
 <!-- Hero -->
-<section class="relative overflow-hidden bg-gradient-to-br from-brand-navy-deep via-brand-navy to-brand-navy-mid">
-    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-brand-gold/10 blur-3xl"></div>
+<section class="relative overflow-hidden bg-gradient-to-br from-white via-[#F4F7FB] to-[#E8EEF6]">
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-brand-navy/5 blur-3xl"></div>
     <div class="absolute bottom-10 left-0 w-72 h-72 rounded-full bg-brand-gold/10 blur-3xl" style="animation-delay: 1.5s;"></div>
-    <div class="absolute inset-0 bg-[linear-gradient(rgba(206,154,69,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(206,154,69,0.06)_1px,transparent_1px)] bg-[size:56px_56px]"></div>
+    <div class="absolute inset-0 bg-[linear-gradient(rgba(21,37,63,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(21,37,63,0.04)_1px,transparent_1px)] bg-[size:56px_56px]"></div>
     <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 text-center">
-        <span class="inline-block px-4 py-1.5 bg-white/10 text-brand-gold-light text-xs font-semibold rounded-full mb-4 backdrop-blur-sm border border-brand-gold/40">Ada Project? Saya Siap Bantu!</span>
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold font-outfit leading-tight text-white drop-shadow-xl">
-            Mari Diskusikan <br class="hidden sm:block"><span class="text-brand-gold-light">Project Anda</span>
+        <span class="inline-block px-4 py-1.5 bg-white border border-[#E2E8F0] shadow-sm text-brand-navy text-xs font-semibold rounded-full mb-4">Ada Project? Saya Siap Bantu!</span>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold font-outfit leading-tight text-[#0F172A]">
+            Mari Diskusikan <br class="hidden sm:block"><span class="text-brand-gold-dark">Project Anda</span>
         </h1>
-        <p class="mt-6 text-lg md:text-xl text-blue-100 max-w-2xl mx-auto leading-relaxed">
-            Isi form di bawah, dan saya akan menghubungi Anda dalam <strong class="text-brand-gold-light">1x24 jam</strong> untuk membahas solusi digital terbaik untuk bisnis Anda.
+        <p class="mt-6 text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Isi form di bawah, dan saya akan menghubungi Anda dalam <strong class="text-brand-navy">1x24 jam</strong> untuk membahas solusi digital terbaik untuk bisnis Anda.
         </p>
-        <div class="mt-8 flex flex-wrap justify-center gap-3 text-sm font-semibold text-white/90">
-            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-white/15">
-                <svg class="w-4 h-4 text-brand-gold-light" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        <div class="mt-8 flex flex-wrap justify-center gap-3 text-sm font-semibold text-slate-600">
+            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E2E8F0] shadow-sm">
+                <svg class="w-4 h-4 text-brand-navy" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                 Konsultasi Gratis
             </span>
-            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-white/15">
-                <svg class="w-4 h-4 text-brand-gold-light" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E2E8F0] shadow-sm">
+                <svg class="w-4 h-4 text-brand-navy" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                 Respon Cepat via WhatsApp
             </span>
-            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-white/15">
-                <svg class="w-4 h-4 text-brand-gold-light" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E2E8F0] shadow-sm">
+                <svg class="w-4 h-4 text-brand-navy" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                 Grogol, Sukoharjo, Jawa Tengah
             </span>
         </div>
