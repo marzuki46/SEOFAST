@@ -307,6 +307,7 @@ HTML;
             'hero-video' => 'Hero Video Background',
             'hero-cta' => 'Hero Bold CTA',
             'juki-landing' => 'Juki Landing (animated)',
+            'juki-about' => 'Juki About (navy + gold)',
         ];
     }
 }
