@@ -3,13 +3,14 @@
 @php
     use App\Models\SystemSetting;
     $siteName = SystemSetting::get('site_name', config('app.name'));
+    $brandName = SystemSetting::get('logo_alt', $siteName);
     $page = request('page', 1);
     $titleSuffix = $page > 1 ? " - Halaman {$page}" : "";
     $canonicalUrl = url()->current() . ($page > 1 ? '?page=' . $page : '');
-    $blogTitle = SystemSetting::get('blog_meta_title', config('app.name') . ' Blog — Latest Insights in AI Content & SEO Automation');
-    $blogDesc = SystemSetting::get('blog_meta_description', 'Discover advanced technical SEO workflows, AI-driven content generation, and closed-loop Google Search Console sync strategies.');
-    $blogHeading = SystemSetting::get('blog_index_heading', 'The ' . config('app.name') . ' Blog');
-    $blogTagline = SystemSetting::get('blog_index_tagline', 'Practical strategies, technical tutorials, and case studies on how to scale organic search traffic using advanced automated pipelines.');
+    $blogTitle = SystemSetting::get('blog_meta_title', 'Blog & Artikel ' . $brandName . ' — Tips SEO, Web Development & Digital Marketing');
+    $blogDesc = SystemSetting::get('blog_meta_description', 'Jelajahi artikel, tips, dan tutorial dari ' . $brandName . ' — panduan optimasi SEO, konten AI, pembuatan website, dan strategi pemasaran digital untuk mempercepat pertumbuhan bisnis Anda.');
+    $blogHeading = SystemSetting::get('blog_index_heading', 'Blog & Artikel ' . $brandName . ' — Tips SEO, Web Development & Digital Marketing');
+    $blogTagline = SystemSetting::get('blog_index_tagline', 'Jelajahi artikel dan tips dari ' . $brandName . ' — panduan optimasi SEO, konten AI, pembuatan website, dan strategi pemasaran digital untuk mempercepat pertumbuhan bisnis Anda.');
 @endphp
 @section('title', $blogTitle . $titleSuffix)
 @section('meta_description', $blogDesc)

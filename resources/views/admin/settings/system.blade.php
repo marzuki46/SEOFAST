@@ -176,21 +176,30 @@
                                     <label class="block text-base font-semibold text-slate-800 mb-1.5">Footer Description</label>
                                     <textarea name="footer_description" rows="3" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">{{ $settings['footer']['footer_description'] ?? 'The ultimate SEO Operating System for modern marketing. Zero manual refresh, zero soft failures, and seamless closed-loop Google Search Console synchronization.' }}</textarea>
                                 </div>
-                                <div>
-                                    <label class="block text-base font-semibold text-slate-800 mb-1.5">Footer Sub-text / Architecture Info</label>
-                                    <input type="text" name="footer_subtext" value="{{ $settings['footer']['footer_subtext'] ?? 'System Architecture V3' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Alamat Perusahaan</label>
+                                        <input type="text" name="footer_address" value="{{ $settings['footer']['footer_address'] ?? 'Home Parangjoro 2, Parangjoro, Grogol, Sukoharjo, Jawa Tengah 57552' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Telepon / WhatsApp</label>
+                                        <input type="text" name="footer_phone" value="{{ $settings['footer']['footer_phone'] ?? '0822-1302-8718' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-base font-semibold text-slate-800 mb-1.5">Jam Operasional</label>
+                                        <input type="text" name="footer_hours" value="{{ $settings['footer']['footer_hours'] ?? 'Senin - Jumat: 09.00 - 17.00 WIB' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                    </div>
                                 </div>
-                                
                                 <div class="border-t border-slate-200 pt-6">
                                     <h4 class="text-md font-bold text-slate-900 mb-4">Column 1 Links</h4>
                                     <div class="space-y-4">
                                         <div>
                                             <label class="block text-sm font-semibold text-slate-800 mb-1.5">Column 1 Title</label>
-                                            <input type="text" name="footer_col1_title" value="{{ $settings['footer']['footer_col1_title'] ?? 'Platform' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <input type="text" name="footer_col1_title" value="{{ $settings['footer']['footer_col1_title'] ?? 'Layanan' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-semibold text-slate-800 mb-1.5">Column 1 Links (Format: Link Text | URL per baris)</label>
-                                            <textarea name="footer_col1_links" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm font-mono px-4 py-2">{{ $settings['footer']['footer_col1_links'] ?? "Integrations|/\nAI Content Generator|/\nSilo Builder|/\nPricing Plans|/#pricing" }}</textarea>
+                                            <textarea name="footer_col1_links" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm font-mono px-4 py-2">{{ $settings['footer']['footer_col1_links'] ?? "Paket Website|/produk\nJasa Pembuatan Website|/produk\nLayanan & Fitur|#services\nPaket Custom / Enterprise|#enterprise" }}</textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -200,11 +209,11 @@
                                     <div class="space-y-4">
                                         <div>
                                             <label class="block text-sm font-semibold text-slate-800 mb-1.5">Column 2 Title</label>
-                                            <input type="text" name="footer_col2_title" value="{{ $settings['footer']['footer_col2_title'] ?? 'Resources' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
+                                            <input type="text" name="footer_col2_title" value="{{ $settings['footer']['footer_col2_title'] ?? 'Navigasi' }}" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-semibold text-slate-800 mb-1.5">Column 2 Links (Format: Link Text | URL per baris)</label>
-                                            <textarea name="footer_col2_links" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm font-mono px-4 py-2">{{ $settings['footer']['footer_col2_links'] ?? "Blog Feed|/blog\nDocumentation|/\nChangelog|/\nSupport Center|/" }}</textarea>
+                                            <textarea name="footer_col2_links" rows="5" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm font-mono px-4 py-2">{{ $settings['footer']['footer_col2_links'] ?? "Beranda|/\nTentang|/about-us\nBlog & Artikel|/blog\nHubungi Kami|/contact" }}</textarea>
                                         </div>
                                     </div>
                                 </div>
