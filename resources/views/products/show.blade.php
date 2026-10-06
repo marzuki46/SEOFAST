@@ -3,7 +3,11 @@
 @php
     use App\Models\SystemSetting;
     $siteName = SystemSetting::get('site_name', config('app.name'));
+    $seoOgImage = SystemSetting::get('seo_global_og_image') ?: asset('assets/og-default.jpg');
     $sections = $product->display_sections ?? ['description', 'features', 'specifications', 'faq', 'changelog', 'documentation'];
+    $productImage = $product->image_url
+        ? asset($product->image_url)
+        : $seoOgImage;
 @endphp
 @section('title', $product->name . ' — ' . $siteName)
 @section('meta_description', strip_tags($product->description))
@@ -27,7 +31,7 @@
   "@@context": "https://schema.org/",
   "@@type": "Product",
   "name": "{{ $product->name }}",
-  "image": "{{ $product->image_url ? asset($product->image_url) : $seoOgImage }}",
+  "image": {{ Js::from($productImage) }},
   "description": "{{ strip_tags($product->description) }}",
   "sku": "PROD-{{ $product->id }}",
   "brand": { "@type": "Brand", "name": "{{ $siteName }}" },

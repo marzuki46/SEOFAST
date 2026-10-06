@@ -7,7 +7,7 @@
     $titleSuffix = $page > 1 ? " - Halaman {$page}" : "";
     $canonicalUrl = url()->current() . ($page > 1 ? '?page=' . $page : '');
 @endphp
-@section('title', SeoHelper::categoryTitle($category->silo_name) . $titleSuffix)
+@section('title', \App\Services\SeoHelper::categoryTitle($category->silo_name) . $titleSuffix)
 @section('meta_description', 'Baca artikel tentang ' . $category->silo_name . ' di ' . $siteName . '. Temukan panduan lengkap, strategi SEO, dan insight terbaru seputar ' . $category->seed_keyword . '.')
 @section('canonical_url', $canonicalUrl)
 
@@ -33,7 +33,7 @@
         ],
     ];
 @endphp
-{!! \\App\\Services\\SeoHelper::breadcrumbSchema($crumbs) !!}
+{!! \App\Services\SeoHelper::breadcrumbSchema($crumbs) !!}
 <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endsection
 
