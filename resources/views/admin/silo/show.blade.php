@@ -13,6 +13,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
             <span class="font-semibold text-slate-800">{{ $silo->silo_name }}</span>
+            @if($silo->product)
+                <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">Produk: {{ $silo->product->name }}</span>
+            @endif
         </div>
         
         @if($silo->contents()->exists())

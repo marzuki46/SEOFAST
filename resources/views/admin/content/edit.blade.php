@@ -63,6 +63,18 @@
             </div>
 
             <div>
+                <label for="product_id" class="block text-sm font-semibold text-slate-700 mb-1">Produk Digital</label>
+                <select name="product_id" id="product_id"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 outline-none">
+                    <option value="">Tanpa produk</option>
+                    @foreach($products as $product)
+                        <option value="{{ $product->id }}" {{ (int) old('product_id', $content->product_id) === $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-slate-500 mt-1">Gunakan produk yang ingin didorong oleh artikel ini.</p>
+            </div>
+
+            <div>
                 <label for="tags" class="block text-sm font-semibold text-slate-700 mb-1">Tags (pisahkan dengan koma)</label>
                 <input type="text" name="tags" id="tags" value="{{ old('tags', $content->tags->pluck('name')->implode(', ')) }}"
                        class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"

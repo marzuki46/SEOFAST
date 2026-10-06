@@ -11,7 +11,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::withoutGlobalScopes()->with('categories')->latest()->get();
+        $products = Product::withoutGlobalScopes()->with('categories')->withCount('contents')->latest()->get();
 
         return view('admin.products.index', compact('products'));
     }

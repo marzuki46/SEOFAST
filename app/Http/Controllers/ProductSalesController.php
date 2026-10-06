@@ -24,7 +24,7 @@ class ProductSalesController extends Controller
             $search = $request->input('q');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -48,19 +48,26 @@ class ProductSalesController extends Controller
 
         $products = $query->paginate(12)->withQueryString();
         $categories = ProductCategory::active()->orderBy('order')->orderBy('name')->withCount('products')->get();
+        $currentCategoryName = $request->filled('category')
+            ? ProductCategory::where('slug', $request->input('category'))->value('name')
+            : null;
 
-        return view('products.catalog', compact('products', 'categories'));
+        return view('products.catalog', compact('products', 'categories', 'currentCategoryName'));
     }
 
-    public function show($slug)
+    public function show(string $slug)
     {
-        $product = Product::where('slug', $slug)->with('categories')->firstOrFail();
+        $product = Product::where('slug', $slug)
+            ->where('is_active', true)
+            ->with('categories')
+            ->firstOrFail();
+
         return view('products.show', compact('product'));
     }
 
     public function order(Request $request, Product $product)
     {
-        if (!Auth::guard('buyer')->check()) {
+        if (! Auth::guard('buyer')->check()) {
             return redirect()->route('buyer.login')->with('error', 'Silakan login sebagai pembeli terlebih dahulu.');
         }
 
@@ -79,7 +86,7 @@ class ProductSalesController extends Controller
 
         $snapToken = $this->midtrans->createBuyerSnapToken($order);
 
-        if (!$snapToken) {
+        if (! $snapToken) {
             return redirect()->back()->with('error', 'Gagal terhubung ke gateway pembayaran. Silakan coba lagi.');
         }
 

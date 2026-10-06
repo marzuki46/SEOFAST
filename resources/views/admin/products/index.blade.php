@@ -51,6 +51,9 @@
             <div class="mb-4">
                 <p class="text-3xl font-bold text-slate-900 tracking-tight">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
                 <p class="text-sm text-slate-500 mt-1">{{ $product->description ?? 'One-time payment' }}</p>
+                <a href="{{ route('admin.content.prapost', ['product_id' => $product->id]) }}" class="inline-flex items-center gap-1.5 mt-3 text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                    {{ $product->contents_count }} konten terkait <span aria-hidden="true">→</span>
+                </a>
             </div>
 
             @if($product->categories->isNotEmpty())

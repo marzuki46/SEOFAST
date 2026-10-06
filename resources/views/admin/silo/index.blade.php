@@ -117,14 +117,25 @@
                         <p class="text-xs text-slate-400 mt-1.5">This root keyword will be used to generate sub-cluster and KGR topics.</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="target_language" class="block text-sm font-semibold text-slate-700 mb-1">Language</label>
                             <select name="target_language" id="target_language" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 bg-white focus:border-indigo-500 outline-none">
                                 <option value="id">Indonesian (id)</option>
                                 <option value="en">English (en)</option>
                             </select>
-                        </div>
+            </div>
+
+                    <div>
+                        <label for="product_id" class="block text-sm font-semibold text-slate-700 mb-1">Digital Product (opsional)</label>
+                        <select name="product_id" id="product_id" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 bg-white focus:border-indigo-500 outline-none">
+                            <option value="">Silo umum</option>
+                            @foreach($products as $product)
+                                <option value="{{ $product->id }}">{{ $product->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-slate-400 mt-1.5">Semua konten yang digenerate dari silo ini akan otomatis terkait ke produk.</p>
+                    </div>
                         <div>
                             <label for="target_country" class="block text-sm font-semibold text-slate-700 mb-1">Country</label>
                             <select name="target_country" id="target_country" class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 bg-white focus:border-indigo-500 outline-none">

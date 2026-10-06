@@ -38,6 +38,54 @@
     <!-- AJAX status banner -->
     <div id="ajax-status" class="hidden rounded-xl p-4 border text-sm font-semibold"></div>
 
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div class="mb-4">
+            <h2 class="font-bold text-slate-900">Tambah Konten untuk Produk</h2>
+            <p class="text-xs text-slate-500 mt-1">Setiap produk dapat memiliki banyak artikel. Konten akan dibuat sebagai blueprint atau langsung masuk antrean AI.</p>
+        </div>
+        <form action="{{ route('admin.content.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+            @csrf
+            <div class="md:col-span-2">
+                <label for="target_keyword" class="block text-xs font-semibold text-slate-600 mb-1">Target keyword</label>
+                <input id="target_keyword" name="target_keyword" required maxlength="255" placeholder="contoh: cara audit SEO teknis"
+                       class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label for="product_id" class="block text-xs font-semibold text-slate-600 mb-1">Produk</label>
+                <select id="product_id" name="product_id" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
+                    <option value="">Tanpa produk</option>
+                    @foreach($products as $product)
+                        <option value="{{ $product->id }}" {{ (int) $productId === $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="silo_blueprint_id" class="block text-xs font-semibold text-slate-600 mb-1">Silo</label>
+                <select id="silo_blueprint_id" name="silo_blueprint_id" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
+                    <option value="">Pilih silo</option>
+                    @foreach($siloBlueprints as $silo)
+                        <option value="{{ $silo->id }}">{{ $silo->silo_name }} ({{ $silo->seed_keyword }})</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="hierarchy_level" class="block text-xs font-semibold text-slate-600 mb-1">Level</label>
+                <select id="hierarchy_level" name="hierarchy_level" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 outline-none">
+                    <option value="pillar">Pillar</option>
+                    <option value="cluster" selected>Cluster</option>
+                    <option value="sub_cluster">Sub-cluster</option>
+                </select>
+            </div>
+            <div class="md:col-span-5 flex items-center justify-between gap-3">
+                <label class="inline-flex items-center gap-2 text-sm text-slate-600">
+                    <input type="checkbox" name="generate_ai" value="1" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                    Langsung antrekan ke AI
+                </label>
+                <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition">Tambah Konten</button>
+            </div>
+        </form>
+    </div>
+
     <!-- Content Table Card -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         {{-- No <form> wrapper here — submit is done via AJAX fetch to bypass HTTP 301 redirect --}}
@@ -51,7 +99,7 @@
                         </th>
                         <th class="px-6 py-3.5">Title / Target Keyword</th>
                         <th class="px-6 py-3.5">Hierarchy</th>
-                        <th class="px-6 py-3.5">Silo Category</th>
+                        <th class="px-6 py-3.5">Product / Silo Category</th>
                         <th class="px-6 py-3.5">Target Anchor</th>
                         <th class="px-6 py-3.5">CQI Score</th>
                         <th class="px-6 py-3.5">Status</th>
@@ -82,15 +130,15 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 text-slate-600">
-                            {{ $post->siloBlueprint?->silo_name ?? 'N/A' }}
+                            @if($post->product)
+                                <a href="{{ route('admin.content.prapost', ['product_id' => $post->product_id]) }}" class="block font-semibold text-indigo-600 hover:underline">{{ $post->product->name }}</a>
+                            @endif
+                            <span class="text-xs">{{ $post->siloBlueprint?->silo_name ?? 'N/A' }}</span>
                         </td>
                         <td class="px-6 py-4 text-xs">
-                            @php
-                                $links = \App\Models\DeterministicLink::where('target_content_id', $post->id)->get();
-                            @endphp
-                            @if($links->count() > 0)
+                            @if($post->targetLinks->count() > 0)
                                 <div class="flex flex-col gap-1">
-                                    @foreach($links as $link)
+                                    @foreach($post->targetLinks as $link)
                                         <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
                                             {{ $link->mandatory_anchor_text }}
                                         </span>
@@ -125,7 +173,7 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-3">
-                                <a href="{{ route('blog.preview', ['slug' => $post->slug]) }}" target="_blank" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="Preview on Website">
+                                <a href="{{ URL::temporarySignedRoute('blog.preview', now()->addMinutes(30), ['slug' => $post->slug]) }}" target="_blank" rel="noopener" class="p-1 text-slate-400 hover:text-indigo-600 transition" title="Preview on Website">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                                     </svg>

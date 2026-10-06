@@ -7,6 +7,7 @@ use App\Models\Content;
 use App\Models\SiloBlueprint;
 use App\Models\AiGenerationJob;
 use App\Models\Tag;
+use App\Models\Product;
 use App\Jobs\Ai\ProcessAiGenerationJob;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -38,11 +39,21 @@ class ContentController extends Controller
         $contents = Content::withoutGlobalScopes()
             ->whereIn('status', ['blueprint', 'failed_cqi'])
             ->whereNull('deleted_at')
-            ->with(['siloBlueprint'])
+            ->when($productId = request()->integer('product_id'), fn ($query) => $query->where('product_id', $productId))
+            ->with(['siloBlueprint', 'product', 'targetLinks'])
             ->latest()
-            ->paginate(50);
+            ->paginate(50)
+            ->withQueryString();
 
-        return view('admin.content.prapost', compact('contents'));
+        $products = Product::withoutGlobalScopes()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        $siloBlueprints = SiloBlueprint::withoutGlobalScopes()
+            ->orderBy('silo_name')
+            ->get(['id', 'silo_name', 'seed_keyword']);
+
+        return view('admin.content.prapost', compact('contents', 'products', 'siloBlueprints', 'productId'));
     }
 
     /**
@@ -151,6 +162,7 @@ class ContentController extends Controller
             'target_keyword' => 'required|string|max:255',
             'hierarchy_level' => 'required|string|in:pillar,cluster,sub_cluster',
             'silo_blueprint_id' => 'required|exists:silo_blueprints,id',
+            'product_id' => 'nullable|exists:products,id',
         ]);
 
         $slug = Str::slug($request->target_keyword);
@@ -166,6 +178,7 @@ class ContentController extends Controller
         // Create Content model
         $content = Content::create([
             'tenant_id'        => \App\Models\Tenant::first()?->id ?? 1,
+            'product_id'       => $request->input('product_id'),
             'silo_blueprint_id' => $request->silo_blueprint_id,
             'target_keyword'   => $request->target_keyword,
             'slug'             => ['id' => $slug],
@@ -224,10 +237,14 @@ class ContentController extends Controller
     public function edit(Content $content)
     {
         $siloBlueprints = SiloBlueprint::withoutGlobalScopes()->get();
+        $products = Product::withoutGlobalScopes()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         $content->load('tags');
 
-        return view('admin.content.edit', compact('content', 'siloBlueprints'));
+        return view('admin.content.edit', compact('content', 'siloBlueprints', 'products'));
     }
 
     /**
@@ -240,6 +257,7 @@ class ContentController extends Controller
             'target_keyword' => 'required|string|max:255',
             'hierarchy_level' => 'required|string|in:pillar,cluster,sub_cluster',
             'silo_blueprint_id' => 'required|exists:silo_blueprints,id',
+            'product_id' => 'nullable|exists:products,id',
             'body_raw' => 'nullable|string',
             'rendered_html_path' => 'nullable|string',
             'meta_title' => 'nullable|string|max:70',

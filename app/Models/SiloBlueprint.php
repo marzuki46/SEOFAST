@@ -13,6 +13,7 @@ class SiloBlueprint extends Model
 
     protected $fillable = [
         'tenant_id',
+        'product_id',
         'silo_name',
         'content_framework',
         'content_tone',
@@ -72,6 +73,11 @@ class SiloBlueprint extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
     }
 
     public function contents(): HasMany

@@ -69,6 +69,11 @@ class Product extends Model
         return $this->hasMany(PreOrder::class);
     }
 
+    public function contents(): HasMany
+    {
+        return $this->hasMany(Content::class);
+    }
+
     public function isLaunched(): bool
     {
         return !is_null($this->launched_at);

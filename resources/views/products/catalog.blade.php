@@ -1,7 +1,6 @@
 @extends('layouts.frontend')
 
 @php
-    use App\Models\ProductCategory;
     use App\Models\SystemSetting;
     $page = request('page', 1);
     $canonicalUrl = url()->current() . ($page > 1 ? '?page=' . $page : '');
@@ -9,7 +8,6 @@
     $currentSort = request('sort', 'latest');
     $currentQ = request('q');
     $siteName = SystemSetting::get('site_name', config('app.name'));
-    $currentCategoryName = $currentCategory ? optional(ProductCategory::where('slug', $currentCategory)->first())->name : null;
 @endphp
 @section('title', $currentCategoryName ? $currentCategoryName . ' — ' . $siteName : 'Katalog Produk Digital — ' . $siteName)
 @section('meta_description', $currentCategoryName ? 'Belanja produk digital kategori ' . $currentCategoryName . ' di ' . $siteName : 'Jelajahi produk digital ' . $siteName . ' untuk optimasi SEO, konten AI, dan perangkat otomasi pemasaran.')

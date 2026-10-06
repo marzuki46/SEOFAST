@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SiloBlueprint;
 use App\Models\Content;
+use App\Models\Product;
 use App\Services\AIService;
 use App\Services\Seo\InternalLinkingService;
 use Illuminate\Http\Request;
@@ -17,11 +18,17 @@ class SiloBlueprintController extends Controller
     public function index()
     {
         $silos = SiloBlueprint::withoutGlobalScopes()
+            ->with(['product'])
             ->withCount('contents')
             ->latest()
             ->get();
 
-        return view('admin.silo.index', compact('silos'));
+        $products = Product::withoutGlobalScopes()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('admin.silo.index', compact('silos', 'products'));
     }
 
     /**
@@ -35,10 +42,12 @@ class SiloBlueprintController extends Controller
             'target_language' => 'required|string|size:2',
             'target_country' => 'required|string|size:2',
             'content_framework' => 'nullable|string|in:default,aida,pas,how_to,listicle',
+            'product_id' => 'nullable|exists:products,id',
         ]);
 
         $silo = SiloBlueprint::create([
             'tenant_id' => \App\Models\Tenant::first()?->id ?? 1,
+            'product_id' => $request->input('product_id'),
             'silo_name' => $request->silo_name,
             'seed_keyword' => $request->seed_keyword,
             'target_language' => $request->target_language,
@@ -85,6 +94,7 @@ class SiloBlueprintController extends Controller
 
         Content::create([
             'tenant_id'         => $silo->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
+            'product_id'        => $silo->product_id,
             'silo_blueprint_id' => $silo->id,
             'parent_id'         => null,
             'target_keyword'    => $pillarKeyword,
@@ -136,6 +146,7 @@ class SiloBlueprintController extends Controller
 
             Content::create([
                 'tenant_id'         => $silo->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
+                'product_id'        => $content->product_id ?? $silo->product_id,
                 'silo_blueprint_id' => $silo->id,
                 'parent_id'         => $content->id,
                 'target_keyword'    => $clusterText,
@@ -187,6 +198,7 @@ class SiloBlueprintController extends Controller
 
             Content::create([
                 'tenant_id'         => $silo->tenant_id ?? (\App\Models\Tenant::first()?->id ?? 1),
+                'product_id'        => $content->product_id ?? $silo->product_id,
                 'silo_blueprint_id' => $silo->id,
                 'parent_id'         => $content->id,
                 'target_keyword'    => $subText,
