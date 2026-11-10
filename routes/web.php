@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\Admin\BillingController;
 use App\Http\Controllers\Admin\BrokenLinkController;
-use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\ContentCampaignController;
+use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DuplicateContentController;
 use App\Http\Controllers\Admin\GscAdminController;
@@ -273,6 +273,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('content-campaigns')->name('admin.content-campaigns.')->group(function () {
             Route::get('/', [ContentCampaignController::class, 'index'])->name('index');
             Route::post('/', [ContentCampaignController::class, 'store'])->name('store');
+            Route::post('/global-settings', [ContentCampaignController::class, 'updateGlobalSettings'])->name('global_settings');
             Route::get('/{campaign}/topics', [ContentCampaignController::class, 'topics'])->name('topics');
             Route::get('/{campaign}/settings', [ContentCampaignController::class, 'settings'])->name('settings');
             Route::put('/{campaign}/settings', [ContentCampaignController::class, 'updateSettings'])->name('settings.update');

@@ -8,6 +8,7 @@ use App\Models\ContentCampaign;
 use App\Models\ContentCampaignTarget;
 use App\Models\Product;
 use App\Models\SiloBlueprint;
+use App\Models\SystemSetting;
 use App\Models\Tenant;
 use App\Services\ContentCampaignPromptService;
 use App\Services\ContentCampaignScheduleService;
@@ -27,14 +28,143 @@ class ContentCampaignController extends Controller
         $campaignOptions = ContentCampaign::withoutGlobalScopes()->latest()->get(['id', 'name']);
         $products = Product::withoutGlobalScopes()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
         $silos = SiloBlueprint::withoutGlobalScopes()->with('product')->orderBy('silo_name')->get(['id', 'silo_name', 'product_id']);
-        $selectedCampaign = null;
-        if (request()->string('tab')->value() === 'settings' && request()->filled('campaign')) {
-            $selectedCampaign = ContentCampaign::withoutGlobalScopes()->findOrFail(request()->integer('campaign'));
-            $this->assertTenantAccess($selectedCampaign);
-            $selectedCampaign = app(ContentCampaignPromptService::class)->applyDefaults($selectedCampaign);
+
+        $globalSettings = [
+            'ai_provider' => SystemSetting::get('ai_provider', 'gemini'),
+            'gemini_api_key' => SystemSetting::get('gemini_api_key', ''),
+            'gemini_model' => SystemSetting::get('gemini_model', 'gemini-2.0-flash'),
+            '9router_api_key' => SystemSetting::get('9router_api_key', ''),
+            '9router_api_base' => SystemSetting::get('9router_api_base', 'https://api.9router.com/v1'),
+            '9router_model' => SystemSetting::get('9router_model', 'openai/gpt-4o'),
+            'openai_api_key' => SystemSetting::get('openai_api_key', ''),
+            'openai_model' => SystemSetting::get('openai_model', 'gpt-4o'),
+            'custom_api_base' => SystemSetting::get('custom_api_base', 'http://localhost:20128/v1'),
+            'custom_api_key' => SystemSetting::get('custom_api_key', ''),
+            'custom_model' => SystemSetting::get('custom_model', 'custom-model'),
+            'model_planner' => SystemSetting::get('apc_model_planner', 'gemini-2.5-flash'),
+            'model_writer' => SystemSetting::get('apc_model_writer', 'gemini-2.0-flash'),
+            'niche' => SystemSetting::get('apc_niche', 'Jasa & Solusi Bisnis Digital'),
+            'brand_voice' => SystemSetting::get('apc_brand_voice', 'Otoritatif, Solutif, Informatif, Profesional'),
+            'audience' => SystemSetting::get('apc_audience', 'Pemilik Bisnis, Calon Klien, Pengambil Keputusan'),
+            'business_data' => SystemSetting::get('apc_business_data', ''),
+            'cta_type' => SystemSetting::get('apc_cta_type', 'whatsapp'),
+            'cta_label' => SystemSetting::get('apc_cta_label', 'Hubungi Kami via WhatsApp'),
+            'cta_url' => SystemSetting::get('apc_cta_url', ''),
+            'word_count_min' => (int) SystemSetting::get('apc_word_count_min', 900),
+            'word_count_max' => (int) SystemSetting::get('apc_word_count_max', 1400),
+            'keyword_prompt' => SystemSetting::get('apc_keyword_prompt', "Ekstrak dan kembangkan kata kunci entitas SEO:\n1. Target kata kunci utama (Primary Keyword)\n2. 5-8 Entity keywords (LSI / semantic terms) yang relevan\n3. Klasifikasi search intent pengunjung"),
+            'content_prompt' => SystemSetting::get('apc_content_prompt', "Tulis artikel dengan gaya bahasa jurnalis atau praktisi profesional manusia (100% natural, bebas klise robot AI, minimal 800-1400 kata).\n- HINDARI pembuka klise seperti 'Di era digital yang serba cepat...'\n- HINDARI sub-judul 'Kesimpulan', ganti dengan langkah aksi praktis\n- JANGAN gunakan garis mendatar (---)\n- Sub-heading jelas (H2, H3) dengan studi kasus/contoh konkret\n- Sisipkan Call To Action (CTA) secara persuasif dan mengalir\n- Optimasi kaidah Google Helpful Content & E-E-A-T"),
+        ];
+
+        return view('admin.content-campaigns.index', compact('campaigns', 'campaignOptions', 'products', 'silos', 'globalSettings'));
+    }
+
+    public function updateGlobalSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'ai_provider' => ['nullable', 'string', 'in:gemini,9router,openai,claude,custom'],
+            'gemini_api_key' => ['nullable', 'string'],
+            'gemini_model' => ['nullable', 'string'],
+            '9router_api_key' => ['nullable', 'string'],
+            '9router_api_base' => ['nullable', 'string'],
+            '9router_model' => ['nullable', 'string'],
+            'openai_api_key' => ['nullable', 'string'],
+            'openai_model' => ['nullable', 'string'],
+            'custom_api_base' => ['nullable', 'string'],
+            'custom_api_key' => ['nullable', 'string'],
+            'custom_model' => ['nullable', 'string'],
+            'model_planner' => ['nullable', 'string'],
+            'model_writer' => ['nullable', 'string'],
+            'niche' => ['nullable', 'string', 'max:255'],
+            'brand_voice' => ['nullable', 'string', 'max:255'],
+            'audience' => ['nullable', 'string', 'max:500'],
+            'business_data' => ['nullable', 'string', 'max:15000'],
+            'cta_type' => ['nullable', 'string', 'max:50'],
+            'cta_label' => ['nullable', 'string', 'max:120'],
+            'cta_url' => ['nullable', 'string', 'max:2048'],
+            'word_count_min' => ['nullable', 'integer', 'min:300', 'max:5000'],
+            'word_count_max' => ['nullable', 'integer', 'min:400', 'max:8000'],
+            'keyword_prompt' => ['nullable', 'string', 'max:6000'],
+            'content_prompt' => ['nullable', 'string', 'max:6000'],
+        ]);
+
+        if (isset($validated['ai_provider'])) {
+            SystemSetting::set('ai_provider', $validated['ai_provider'], 'ai');
+        }
+        if (isset($validated['gemini_api_key'])) {
+            SystemSetting::set('gemini_api_key', $validated['gemini_api_key'], 'ai');
+        }
+        if (isset($validated['gemini_model'])) {
+            SystemSetting::set('gemini_model', $validated['gemini_model'], 'ai');
+        }
+        if (isset($validated['9router_api_key'])) {
+            SystemSetting::set('9router_api_key', $validated['9router_api_key'], 'ai');
+        }
+        if (isset($validated['9router_api_base'])) {
+            SystemSetting::set('9router_api_base', $validated['9router_api_base'], 'ai');
+        }
+        if (isset($validated['9router_model'])) {
+            SystemSetting::set('9router_model', $validated['9router_model'], 'ai');
+        }
+        if (isset($validated['openai_api_key'])) {
+            SystemSetting::set('openai_api_key', $validated['openai_api_key'], 'ai');
+        }
+        if (isset($validated['openai_model'])) {
+            SystemSetting::set('openai_model', $validated['openai_model'], 'ai');
+        }
+        if (isset($validated['custom_api_base'])) {
+            SystemSetting::set('custom_api_base', $validated['custom_api_base'], 'ai');
+        }
+        if (isset($validated['custom_api_key'])) {
+            SystemSetting::set('custom_api_key', $validated['custom_api_key'], 'ai');
+        }
+        if (isset($validated['custom_model'])) {
+            SystemSetting::set('custom_model', $validated['custom_model'], 'ai');
+        }
+        if (isset($validated['model_planner'])) {
+            SystemSetting::set('apc_model_planner', $validated['model_planner'], 'ai');
+        }
+        if (isset($validated['model_writer'])) {
+            SystemSetting::set('apc_model_writer', $validated['model_writer'], 'ai');
         }
 
-        return view('admin.content-campaigns.index', compact('campaigns', 'campaignOptions', 'products', 'silos', 'selectedCampaign'));
+        if (isset($validated['niche'])) {
+            SystemSetting::set('apc_niche', $validated['niche'], 'content');
+        }
+        if (isset($validated['brand_voice'])) {
+            SystemSetting::set('apc_brand_voice', $validated['brand_voice'], 'content');
+        }
+        if (isset($validated['audience'])) {
+            SystemSetting::set('apc_audience', $validated['audience'], 'content');
+        }
+        if (isset($validated['business_data'])) {
+            SystemSetting::set('apc_business_data', $validated['business_data'], 'content');
+        }
+        if (isset($validated['cta_type'])) {
+            SystemSetting::set('apc_cta_type', $validated['cta_type'], 'content');
+        }
+        if (isset($validated['cta_label'])) {
+            SystemSetting::set('apc_cta_label', $validated['cta_label'], 'content');
+        }
+        if (isset($validated['cta_url'])) {
+            SystemSetting::set('apc_cta_url', $validated['cta_url'], 'content');
+        }
+        if (isset($validated['word_count_min'])) {
+            SystemSetting::set('apc_word_count_min', $validated['word_count_min'], 'content', 'integer');
+        }
+        if (isset($validated['word_count_max'])) {
+            SystemSetting::set('apc_word_count_max', $validated['word_count_max'], 'content', 'integer');
+        }
+        if (isset($validated['keyword_prompt'])) {
+            SystemSetting::set('apc_keyword_prompt', $validated['keyword_prompt'], 'content');
+        }
+        if (isset($validated['content_prompt'])) {
+            SystemSetting::set('apc_content_prompt', $validated['content_prompt'], 'content');
+        }
+
+        SystemSetting::flushCache();
+
+        return back()->with('success', 'Pengaturan terpusat AI, Brand, dan Prompt SEO berhasil disimpan.');
     }
 
     public function topics(ContentCampaign $campaign)
@@ -146,9 +276,9 @@ class ContentCampaignController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'product_id' => ['required', 'integer', 'exists:products,id'],
+            'product_id' => ['nullable', 'integer', 'exists:products,id'],
             'target_keywords' => ['nullable', 'string', 'max:5000'],
-            'silo_blueprint_id' => ['required', 'integer', 'exists:silo_blueprints,id'],
+            'silo_blueprint_id' => ['nullable', 'integer', 'exists:silo_blueprints,id'],
             'name' => ['required', 'string', 'max:120'],
             'status' => ['nullable', 'in:draft,active,paused'],
             'language' => ['required', 'in:id,en'],
@@ -176,9 +306,9 @@ class ContentCampaignController extends Controller
         ]);
     }
 
-    private function assertSiloMatchesProduct(?int $siloId, int $productId): void
+    private function assertSiloMatchesProduct(?int $siloId, ?int $productId): void
     {
-        if (! $siloId) {
+        if (! $siloId || ! $productId) {
             return;
         }
         $silo = SiloBlueprint::withoutGlobalScopes()->findOrFail($siloId);
