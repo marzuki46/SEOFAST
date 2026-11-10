@@ -7,6 +7,7 @@ use App\Models\Buyer;
 use App\Models\BuyerOrder;
 use App\Models\Content;
 use App\Models\PageError;
+use App\Models\PageErrorVisit;
 use App\Models\Product;
 use App\Models\SiloBlueprint;
 use App\Models\Tenant;
@@ -127,6 +128,32 @@ class SecurityRegressionTest extends TestCase
         $this->withServerVariables(['REMOTE_ADDR' => $ip])->get('/missing-one')->assertNotFound();
         $this->withServerVariables(['REMOTE_ADDR' => $ip])->get('/missing-two')->assertNotFound();
         $this->withServerVariables(['REMOTE_ADDR' => $ip])->get('/missing-three')->assertRedirect(route('home'));
+    }
+
+    public function test_admin_can_clear_error_events_with_foreign_key_records(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $error = PageError::create([
+            'url' => url('/missing-clear-test'),
+            'url_hash' => hash('sha256', 'missing-clear-test'),
+            'status_code' => 404,
+            'category' => 'person',
+            'count' => 1,
+            'first_seen' => now(),
+            'last_seen' => now(),
+        ]);
+        PageErrorVisit::create([
+            'page_error_id' => $error->id,
+            'ip_address' => '203.0.113.12',
+            'path' => '/missing-clear-test',
+            'status_code' => 404,
+            'category' => 'person',
+            'created_at' => now(),
+        ]);
+
+        $this->actingAs($admin)->post(route('admin.errors.clear_all'))->assertRedirect(route('admin.errors.index'));
+        $this->assertDatabaseCount('page_errors', 0);
+        $this->assertDatabaseCount('page_error_visits', 0);
     }
 
     private function makeContent(string $slug, string $status = 'draft'): array

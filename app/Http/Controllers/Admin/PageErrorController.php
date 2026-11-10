@@ -8,6 +8,7 @@ use App\Models\PageErrorVisit;
 use App\Models\Redirect;
 use App\Services\IpLocationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PageErrorController extends Controller
 {
@@ -64,8 +65,12 @@ class PageErrorController extends Controller
 
     public function clearAll()
     {
-        PageErrorVisit::truncate();
-        PageError::truncate();
+        DB::transaction(function (): void {
+            // MySQL forbids TRUNCATE on a parent table while a foreign key
+            // exists, even when the child table was truncated first.
+            PageErrorVisit::query()->delete();
+            PageError::query()->delete();
+        });
 
         return redirect()->route('admin.errors.index')
             ->with('success', 'All 404 entries cleared.');
