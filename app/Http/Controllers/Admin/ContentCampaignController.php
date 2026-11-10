@@ -24,10 +24,17 @@ class ContentCampaignController extends Controller
             ->with(['product', 'siloBlueprint', 'targets'])
             ->withCount(['topics', 'contents'])
             ->latest()->paginate(20);
+        $campaignOptions = ContentCampaign::withoutGlobalScopes()->latest()->get(['id', 'name']);
         $products = Product::withoutGlobalScopes()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
         $silos = SiloBlueprint::withoutGlobalScopes()->with('product')->orderBy('silo_name')->get(['id', 'silo_name', 'product_id']);
+        $selectedCampaign = null;
+        if (request()->string('tab')->value() === 'settings' && request()->filled('campaign')) {
+            $selectedCampaign = ContentCampaign::withoutGlobalScopes()->findOrFail(request()->integer('campaign'));
+            $this->assertTenantAccess($selectedCampaign);
+            $selectedCampaign = app(ContentCampaignPromptService::class)->applyDefaults($selectedCampaign);
+        }
 
-        return view('admin.content-campaigns.index', compact('campaigns', 'products', 'silos'));
+        return view('admin.content-campaigns.index', compact('campaigns', 'campaignOptions', 'products', 'silos', 'selectedCampaign'));
     }
 
     public function topics(ContentCampaign $campaign)

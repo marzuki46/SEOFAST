@@ -12,6 +12,26 @@
         <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{{ $errors->first() }}</div>
     @endif
 
+    <nav aria-label="Content campaign menu" class="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+        <a href="{{ route('admin.content-campaigns.index') }}" aria-current="{{ request('tab', 'campaigns') === 'campaigns' ? 'page' : 'false' }}" class="rounded-xl px-4 py-2 text-sm font-semibold {{ request('tab', 'campaigns') === 'campaigns' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100' }}">Campaign</a>
+        <a href="{{ route('admin.content-campaigns.index', ['tab' => 'settings']) }}" aria-current="{{ request('tab') === 'settings' ? 'page' : 'false' }}" class="rounded-xl px-4 py-2 text-sm font-semibold {{ request('tab') === 'settings' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100' }}">Prompt & AI Settings</a>
+    </nav>
+
+    @if(request('tab') === 'settings')
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="mb-5"><h2 class="text-xl font-bold text-slate-900">Prompt & AI Settings</h2><p class="mt-1 text-sm text-slate-500">Pilih campaign untuk mengatur prompt, data bisnis, gaya bahasa, dan output dalam satu tempat.</p></div>
+            <form method="GET" action="{{ route('admin.content-campaigns.index') }}" class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end">
+                <input type="hidden" name="tab" value="settings">
+                <label class="flex-1 text-sm font-semibold">Campaign aktif<select name="campaign" required class="mt-1 w-full rounded-lg border-slate-300"><option value="">Pilih campaign</option>@foreach($campaignOptions as $campaignOption)<option value="{{ $campaignOption->id }}" @selected($selectedCampaign?->id === $campaignOption->id)>{{ $campaignOption->name }}</option>@endforeach</select></label>
+                <button class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Buka Pengaturan</button>
+            </form>
+            @if($selectedCampaign)
+                @include('admin.content-campaigns._settings-form', ['campaign' => $selectedCampaign])
+            @else
+                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-5 py-12 text-center text-sm text-slate-500">Pilih campaign di atas untuk mulai mengatur prompt AI.</div>
+            @endif
+        </div>
+    @else
     <div class="flex items-center justify-between gap-4">
         <div>
             <p class="text-sm text-slate-500">Kelola topic bank, funnel TOFU/MOFU/BOFU, dan jadwal artikel per produk.</p>
@@ -64,5 +84,6 @@
             </form>
         </div>
     </div>
+    @endif
 </div>
 @endsection
