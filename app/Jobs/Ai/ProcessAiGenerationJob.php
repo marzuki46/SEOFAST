@@ -284,6 +284,13 @@ class ProcessAiGenerationJob implements ShouldQueue
             }
         }
 
+        $campaignTarget = $content->campaignTarget()->with('page')->first();
+        if ($campaignTarget?->landing_url) {
+            $anchor = e($campaignTarget->anchor_variations[0] ?? $campaignTarget->keyword);
+            $landingUrl = e($campaignTarget->landing_url);
+            $linkInstructions .= "\n\nCAMPAIGN LANDING PAGE (WAJIB ditautkan secara natural satu kali):\n- [{$anchor}]({$landingUrl})\n";
+        }
+
         if ($content->hierarchy_level === 'pillar') {
             $clusters = Content::withoutGlobalScopes()
                 ->where('parent_id', $content->id)
@@ -722,6 +729,15 @@ class ProcessAiGenerationJob implements ShouldQueue
             }, $matches[2]);
             return $matches[1] . $capitalized . $matches[3];
         }, $finalBody);
+
+        // Guarantee one safe, server-owned link to the campaign landing page if
+        // the model omitted the required link from its HTML output.
+        $campaignTarget = $content->campaignTarget()->with('page')->first();
+        if ($campaignTarget?->landing_url && ! str_contains($finalBody, $campaignTarget->landing_url)) {
+            $anchor = e($campaignTarget->anchor_variations[0] ?? $campaignTarget->keyword);
+            $landingUrl = e($campaignTarget->landing_url);
+            $finalBody .= '<p class="campaign-landing-cta"><a href="'.$landingUrl.'">Pelajari '.$anchor.'</a></p>';
+        }
 
         $contentHash = hash('sha256', $finalBody);
         $cqiScore    = (int) ($critique['cqi_score'] ?? 80);

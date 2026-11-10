@@ -52,6 +52,9 @@ class Content extends Model
     protected $fillable = [
         'tenant_id',
         'product_id',
+        'campaign_id',
+        'campaign_target_id',
+        'content_topic_id',
         'silo_blueprint_id',
         'target_keyword',
         'slug',
@@ -116,6 +119,21 @@ class Content extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(ContentCampaign::class, 'campaign_id');
+    }
+
+    public function contentTopic(): BelongsTo
+    {
+        return $this->belongsTo(ContentTopic::class, 'content_topic_id');
+    }
+
+    public function campaignTarget(): BelongsTo
+    {
+        return $this->belongsTo(ContentCampaignTarget::class, 'campaign_target_id');
     }
 
     public function siloBlueprint(): BelongsTo

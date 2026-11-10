@@ -85,6 +85,11 @@ class SiloBlueprint extends Model
         return $this->hasMany(Content::class);
     }
 
+    public function contentCampaigns(): HasMany
+    {
+        return $this->hasMany(ContentCampaign::class);
+    }
+
     public function pillarContent()
     {
         return $this->contents()->where('hierarchy_level', 'pillar');

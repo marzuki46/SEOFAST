@@ -48,6 +48,8 @@ Schedule::call(function () {
 // Content Freshness Engine — setiap hari Senin pukul 02:00
 Schedule::job(ContentFreshnessJob::class, 'ai-heavy')->weeklyOn(1, '02:00');
 
+Schedule::command('seofast:run-content-campaigns --limit=10')->everyFiveMinutes();
+
 // Crawl Priority Recalculate — setiap hari pukul 01:00
 Schedule::job(CrawlPriorityRecalculateJob::class, 'maintenance')->dailyAt('01:00');
 

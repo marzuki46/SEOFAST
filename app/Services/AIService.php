@@ -121,10 +121,14 @@ class AIService
         $this->lastDiagnostics = []; // reset for this call
 
         // Log debug info
+        // Never write provider credentials to a diagnostic file. This file is
+        // useful for troubleshooting but must remain safe if copied from a host.
+        $safeConfig = $this->config;
+        unset($safeConfig['apiKey']);
         $debugData = [
             'time' => date('Y-m-d H:i:s'),
             'role' => $this->role,
-            'config' => $this->config,
+            'config' => $safeConfig,
             'systemPrompt' => substr($systemPrompt, 0, 100),
             'userPrompt' => substr($userPrompt, 0, 100),
             'backtrace' => collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5))->map(function($t) {

@@ -74,6 +74,11 @@ class Product extends Model
         return $this->hasMany(Content::class);
     }
 
+    public function contentCampaigns(): HasMany
+    {
+        return $this->hasMany(ContentCampaign::class);
+    }
+
     public function isLaunched(): bool
     {
         return !is_null($this->launched_at);
