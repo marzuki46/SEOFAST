@@ -125,6 +125,10 @@ class ProcessAiGenerationJob implements ShouldQueue
         $langPh1    = $lang === 'id' ? "BUAT LSI, ENTITIES, DAN ANCHOR KEYWORD DALAM BAHASA INDONESIA.\n" : '';
         $userPrompt = "{$langPh1}Topic: {$keyword}\nLanguage: {$lang}\nCountry: {$country}";
         $campaign = $content->campaign;
+        if ($campaign) {
+            $campaign = app(\App\Services\ContentCampaignPromptService::class)->applyDefaults($campaign);
+            $userPrompt .= "\n\n".app(\App\Services\ContentCampaignPromptService::class)->temporalContext($campaign->timezone ?: config('app.timezone', 'UTC'));
+        }
         if ($campaign?->entity_prompt) {
             $userPrompt .= "\n\nCAMPAIGN ENTITY/LSI PROMPT (gunakan sebagai arahan tambahan):\n"
                 .mb_substr(strip_tags($campaign->entity_prompt), 0, 6000);
@@ -371,6 +375,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n{$styleReq}";
         $campaign = $content->campaign;
         if ($campaign) {
+            $campaign = app(\App\Services\ContentCampaignPromptService::class)->applyDefaults($campaign);
             $requirements = str_replace(
                 '- Minimum 1000 words',
                 '- Word count target: '.(int) $campaign->word_count_min.'-'.$campaign->word_count_max.' words',

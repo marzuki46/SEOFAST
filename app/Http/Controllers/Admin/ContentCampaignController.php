@@ -9,6 +9,7 @@ use App\Models\ContentCampaignTarget;
 use App\Models\Product;
 use App\Models\SiloBlueprint;
 use App\Models\Tenant;
+use App\Services\ContentCampaignPromptService;
 use App\Services\ContentCampaignScheduleService;
 use App\Services\ContentCampaignService;
 use Illuminate\Http\Request;
@@ -27,6 +28,14 @@ class ContentCampaignController extends Controller
         $silos = SiloBlueprint::withoutGlobalScopes()->with('product')->orderBy('silo_name')->get(['id', 'silo_name', 'product_id']);
 
         return view('admin.content-campaigns.index', compact('campaigns', 'products', 'silos'));
+    }
+
+    public function topics(ContentCampaign $campaign)
+    {
+        $this->assertTenantAccess($campaign);
+        $topics = $campaign->topics()->with('campaignTarget')->latest()->paginate(50)->withQueryString();
+
+        return view('admin.content-campaigns.topics', compact('campaign', 'topics'));
     }
 
     public function store(Request $request, ContentCampaignScheduleService $scheduler)
@@ -54,12 +63,44 @@ class ContentCampaignController extends Controller
 
             return $campaign;
         });
+        $campaign = app(ContentCampaignPromptService::class)->applyDefaults($campaign);
         $campaign->targets()->pluck('id')->each(fn (int $targetId) => GenerateCampaignLandingPageJob::dispatch($targetId));
         if ($campaign->status === 'active') {
             $scheduler->ensureNext($campaign);
         }
 
         return back()->with('success', 'Campaign konten berhasil dibuat.');
+    }
+
+    public function settings(ContentCampaign $campaign, ContentCampaignPromptService $prompts)
+    {
+        $this->assertTenantAccess($campaign);
+        $campaign = $prompts->applyDefaults($campaign);
+
+        return view('admin.content-campaigns.settings', compact('campaign'));
+    }
+
+    public function updateSettings(Request $request, ContentCampaign $campaign)
+    {
+        $this->assertTenantAccess($campaign);
+        $data = $request->validate([
+            'audience' => ['nullable', 'string', 'max:500'],
+            'brand_voice' => ['nullable', 'string', 'max:255'],
+            'niche' => ['nullable', 'string', 'max:255'],
+            'business_data' => ['nullable', 'string', 'max:10000'],
+            'entity_seed' => ['nullable', 'string', 'max:500'],
+            'keyword_prompt' => ['required', 'string', 'max:6000'],
+            'entity_prompt' => ['required', 'string', 'max:6000'],
+            'landing_prompt' => ['required', 'string', 'max:6000'],
+            'content_prompt' => ['required', 'string', 'max:6000'],
+            'word_count_min' => ['required', 'integer', 'min:300', 'max:5000'],
+            'word_count_max' => ['required', 'integer', 'min:400', 'max:8000', 'gte:word_count_min'],
+            'cta_label' => ['nullable', 'string', 'max:120'],
+            'cta_url' => ['nullable', 'url', 'max:2048'],
+        ]);
+        $campaign->update($data);
+
+        return back()->with('success', 'Prompt dan data reusable campaign berhasil disimpan.');
     }
 
     public function update(Request $request, ContentCampaign $campaign, ContentCampaignScheduleService $scheduler)

@@ -43,9 +43,6 @@
                         <th class="px-6 py-3.5">Title / Target Keyword</th>
                         <th class="px-6 py-3.5">Hierarchy</th>
                         <th class="px-6 py-3.5">Silo Category</th>
-                        <th class="px-6 py-3.5">GSC Coverage</th>
-                        <th class="px-6 py-3.5">CQI Score</th>
-                        <th class="px-6 py-3.5">Read.</th>
                         <th class="px-6 py-3.5">Status</th>
                         <th class="px-6 py-3.5 text-right">Actions</th>
                     </tr>
@@ -72,33 +69,6 @@
                         </td>
                         <td class="px-6 py-4 text-slate-600">
                             {{ $post->siloBlueprint?->silo_name ?? 'N/A' }}
-                        </td>
-                        <td class="px-6 py-4 text-xs">
-                            @if($post->latestUrlInspection)
-                                <span class="font-medium text-slate-700">{{ $post->latestUrlInspection->index_status_result }}</span>
-                            @else
-                                <span class="text-slate-400 font-normal">Not Inspected</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4">
-                            @if($post->cqi_score)
-                                <div class="flex items-center gap-2">
-                                    <div class="w-12 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                        <div class="h-1.5 rounded-full {{ $post->cqi_score >= 80 ? 'bg-emerald-500' : 'bg-amber-500' }}" style="width: {{ $post->cqi_score }}%"></div>
-                                    </div>
-                                    <span class="font-bold text-slate-800">{{ round($post->cqi_score) }}%</span>
-                                </div>
-                            @else
-                                <span class="text-slate-400">--</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 text-center text-sm">
-                            @if($post->readability_score)
-                                @php $r = $post->readability_score; @endphp
-                                <span class="font-bold {{ $r < 40 ? 'text-red-500' : ($r > 70 ? 'text-emerald-500' : 'text-amber-500') }}">{{ number_format($r, 1) }}</span>
-                            @else
-                                <span class="text-slate-400">--</span>
-                            @endif
                         </td>
                         <td class="px-6 py-4">
                             @if($post->status === 'published')
@@ -167,7 +137,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400">
                             No posts found. Start by writing your first article using AI!
                         </td>
                     </tr>

@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\ContentCampaign;
+use Carbon\CarbonImmutable;
+
+class ContentCampaignPromptService
+{
+    public function defaults(): array
+    {
+        return [
+            'keyword_prompt' => <<<'PROMPT'
+Riset keyword-first. Buat keyword utama 2-4 kata yang benar-benar dicari, berbeda dari semua keyword lama, tidak memakai nama brand sebagai keyword utama, dan sesuai target landing page. Buat judul natural 45-65 karakter; untuk Bahasa Indonesia gunakan “Cara”, bukan “Panduan”. Hindari judul klise AI dan keyword cannibalization.
+PROMPT,
+            'entity_prompt' => <<<'PROMPT'
+Untuk setiap topik, hasilkan entity utama, sinonim, atribut, subtopik, pertanyaan terkait, istilah industri, dan variasi anchor yang benar-benar relevan. Entity harus membantu cakupan semantik artikel, bukan daftar keyword acak. Gunakan bahasa target campaign dan hindari pengulangan entity yang sudah sering dipakai.
+PROMPT,
+            'landing_prompt' => <<<'PROMPT'
+Buat positioning landing page yang jelas dan natural: masalah audiens, manfaat utama, bukti atau batasan yang tersedia, dan CTA yang tidak memaksa. Jangan membuat klaim harga, fitur, angka, atau testimonial yang tidak ada di data bisnis.
+PROMPT,
+            'content_prompt' => <<<'PROMPT'
+Tulis seperti editor manusia yang memahami audiens. Gunakan struktur TOFU/MOFU/BOFU sesuai topic, E-E-A-T, contoh praktis, transisi natural, dan variasi kalimat. Jangan mengulang artikel lama, jangan mengarang fakta bisnis, jangan memakai pola pembuka AI yang klise, dan jangan memaksakan keyword.
+PROMPT,
+        ];
+    }
+
+    public function applyDefaults(ContentCampaign $campaign): ContentCampaign
+    {
+        $defaults = $this->defaults();
+        $updates = [];
+        foreach ($defaults as $key => $value) {
+            if (blank($campaign->getAttribute($key))) {
+                $updates[$key] = $value;
+            }
+        }
+        if (blank($campaign->word_count_min)) {
+            $updates['word_count_min'] = 900;
+        }
+        if (blank($campaign->word_count_max)) {
+            $updates['word_count_max'] = 1400;
+        }
+        if ($updates !== []) {
+            $campaign->update($updates);
+        }
+
+        return $campaign->fresh();
+    }
+
+    public function temporalContext(string $timezone = 'UTC'): string
+    {
+        $now = CarbonImmutable::now($timezone);
+
+        return "KONTEKS WAKTU AKTUAL:\n"
+            .'- Tanggal: '.$now->translatedFormat('l, d F Y')."\n"
+            .'- Jam: '.$now->format('H:i').' ('.$timezone.")\n"
+            .'- Bulan aktif: '.$now->translatedFormat('F Y')."\n"
+            .'- Tahun aktif: '.$now->year."\n"
+            .'Aturan: gunakan tanggal/tahun aktif jika menyebut waktu, harga, promo, tren, atau pembaruan. Jangan menyebut tahun lama sebagai kondisi saat ini.';
+    }
+}

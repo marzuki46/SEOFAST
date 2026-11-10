@@ -273,6 +273,9 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('content-campaigns')->name('admin.content-campaigns.')->group(function () {
             Route::get('/', [ContentCampaignController::class, 'index'])->name('index');
             Route::post('/', [ContentCampaignController::class, 'store'])->name('store');
+            Route::get('/{campaign}/topics', [ContentCampaignController::class, 'topics'])->name('topics');
+            Route::get('/{campaign}/settings', [ContentCampaignController::class, 'settings'])->name('settings');
+            Route::put('/{campaign}/settings', [ContentCampaignController::class, 'updateSettings'])->name('settings.update');
             Route::put('/{campaign}', [ContentCampaignController::class, 'update'])->name('update');
             Route::post('/{campaign}/research', [ContentCampaignController::class, 'research'])->name('research');
             Route::post('/{campaign}/toggle', [ContentCampaignController::class, 'toggle'])->name('toggle');

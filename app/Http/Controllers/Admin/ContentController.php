@@ -28,7 +28,7 @@ class ContentController extends Controller
         $contents = Content::withoutGlobalScopes()
             ->where('status', 'published')
             ->whereNull('deleted_at')
-            ->with(['siloBlueprint', 'latestUrlInspection'])
+            ->with(['siloBlueprint'])
             ->latest()
             ->paginate(50);
 
