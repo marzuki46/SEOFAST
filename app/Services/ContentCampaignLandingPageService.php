@@ -14,9 +14,10 @@ class ContentCampaignLandingPageService
         $product = $campaign->product;
         $ai = new AIService($campaign->tenant, 'default');
         $fallbackTitle = Str::title($target->keyword);
+        $landingPrompt = $this->clean($campaign->landing_prompt, 6000);
         $result = $ai->generateJson(
             'Balas HANYA JSON valid. Jangan menghasilkan HTML, JavaScript, URL eksternal, klaim harga, atau fitur yang tidak ada di data bisnis.',
-            Str::limit("Buat struktur landing page SEO untuk keyword target: {$target->keyword}\nProduk: {$product?->name}\nData bisnis: {$campaign->business_data}\nFormat: {\"title\":\"...\",\"headline\":\"...\",\"subheadline\":\"...\",\"cta_label\":\"...\",\"benefits\":[\"...\"]}", 12000),
+            Str::limit("Buat struktur landing page SEO untuk keyword target: {$target->keyword}\nProduk: {$product?->name}\nNiche: {$campaign->niche}\nData bisnis: {$campaign->business_data}\nArahan landing page tambahan:\n{$landingPrompt}\nFormat: {\"title\":\"...\",\"headline\":\"...\",\"subheadline\":\"...\",\"cta_label\":\"...\",\"benefits\":[\"...\"]}", 18000),
             ['temperature' => 0.5]
         ) ?? [];
 

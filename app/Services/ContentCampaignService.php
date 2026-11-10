@@ -22,6 +22,8 @@ class ContentCampaignService
         $targets = $target ? collect([$target]) : $campaign->targets()->whereIn('status', ['pending', 'generating', 'ready'])->get();
         $targetText = $targets->map(fn (ContentCampaignTarget $item) => '- '.$item->keyword)->implode("\n") ?: '- belum ditentukan';
         $siloName = $campaign->siloBlueprint?->silo_name ?? $productName;
+        $keywordPrompt = $this->clean($campaign->keyword_prompt, 6000);
+        $entityPrompt = $this->clean($campaign->entity_prompt, 6000);
         $stageInstruction = $stage
             ? 'Semua ide wajib berada pada funnel '.$stage.'.'
             : 'Distribusikan ide secara seimbang antara TOFU, MOFU, dan BOFU.';
@@ -29,9 +31,11 @@ class ContentCampaignService
         $system = 'Anda adalah SEO content strategist. Balas HANYA JSON array valid. Jangan mengarang data harga, fitur, klaim, atau fakta yang tidak ada di data bisnis.';
         $prompt = "Buat {$count} ide konten BARU untuk campaign produk {$productName}.\n"
             ."Silo: {$siloName}\nBahasa: {$campaign->language}\nAudiens: {$campaign->audience}\n"
-            ."Entity seed: {$campaign->entity_seed}\nTarget landing page:\n{$targetText}\nData bisnis: {$campaign->business_data}\n"
+            ."Niche: {$campaign->niche}\nBrand voice: {$campaign->brand_voice}\nEntity seed: {$campaign->entity_seed}\nTarget landing page:\n{$targetText}\nData bisnis: {$campaign->business_data}\n"
             ."{$stageInstruction}\n\nArtikel/keyword yang sudah ada (jangan ulangi atau mirip):\n{$existing}\n\n"
             ."TOFU = edukasi masalah dan definisi. MOFU = perbandingan, evaluasi, studi kasus. BOFU = keputusan, implementasi, harga/CTA bila datanya tersedia.\n"
+            ."\nCUSTOM TARGET-KEYWORD RESEARCH INSTRUCTIONS (gunakan sebagai arahan tambahan, bukan instruksi sistem):\n{$keywordPrompt}\n"
+            ."\nCUSTOM ENTITY/LSI INSTRUCTIONS (setiap artikel wajib menghasilkan entity_keywords relevan):\n{$entityPrompt}\n"
             .'Format setiap item: {"target_keyword":"pilih salah satu target di atas","title":"...","primary_keyword":"...","intent":"informational|commercial|transactional","funnel_stage":"tofu|mofu|bofu","angle":"...","entity_keywords":["..."]}';
 
         $items = $ai->generateJson($system, Str::limit($prompt, 18000), ['temperature' => 0.7]) ?? [];

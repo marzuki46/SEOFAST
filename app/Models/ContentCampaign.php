@@ -14,7 +14,9 @@ class ContentCampaign extends Model
 
     protected $fillable = [
         'tenant_id', 'product_id', 'silo_blueprint_id', 'name', 'status', 'language',
-        'funnel_mode', 'audience', 'business_data', 'entity_seed', 'cta_label', 'cta_url',
+        'funnel_mode', 'audience', 'brand_voice', 'niche', 'business_data', 'entity_seed',
+        'keyword_prompt', 'entity_prompt', 'landing_prompt', 'content_prompt',
+        'word_count_min', 'word_count_max', 'cta_label', 'cta_url',
         'auto_research', 'research_batch_size', 'posts_per_day', 'schedule_type',
         'fixed_hours', 'publish_status', 'timezone', 'last_run_at', 'next_run_at',
     ];
@@ -24,6 +26,8 @@ class ContentCampaign extends Model
         return [
             'auto_research' => 'boolean',
             'research_batch_size' => 'integer',
+            'word_count_min' => 'integer',
+            'word_count_max' => 'integer',
             'posts_per_day' => 'integer',
             'last_run_at' => 'datetime',
             'next_run_at' => 'datetime',

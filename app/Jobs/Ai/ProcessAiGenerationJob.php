@@ -124,6 +124,11 @@ class ProcessAiGenerationJob implements ShouldQueue
         }
         $langPh1    = $lang === 'id' ? "BUAT LSI, ENTITIES, DAN ANCHOR KEYWORD DALAM BAHASA INDONESIA.\n" : '';
         $userPrompt = "{$langPh1}Topic: {$keyword}\nLanguage: {$lang}\nCountry: {$country}";
+        $campaign = $content->campaign;
+        if ($campaign?->entity_prompt) {
+            $userPrompt .= "\n\nCAMPAIGN ENTITY/LSI PROMPT (gunakan sebagai arahan tambahan):\n"
+                .mb_substr(strip_tags($campaign->entity_prompt), 0, 6000);
+        }
 
         $result = $aiService->generateJson($sysPrompt, $userPrompt);
 
@@ -364,6 +369,18 @@ class ProcessAiGenerationJob implements ShouldQueue
         $styleReq = $this->styleInstructions($lang, $tone);
 
         $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n{$styleReq}";
+        $campaign = $content->campaign;
+        if ($campaign) {
+            $requirements = str_replace(
+                '- Minimum 1000 words',
+                '- Word count target: '.(int) $campaign->word_count_min.'-'.$campaign->word_count_max.' words',
+                $requirements
+            );
+            if ($campaign->content_prompt) {
+                $requirements .= "\n\nCAMPAIGN ARTICLE PROMPT (gunakan untuk semua artikel campaign):\n"
+                    .mb_substr(strip_tags($campaign->content_prompt), 0, 6000);
+            }
+        }
 
         $sysTemplate = \App\Models\SystemSetting::get(
             'ai_prompt_phase2_sys',
