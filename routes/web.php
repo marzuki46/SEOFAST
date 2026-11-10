@@ -280,6 +280,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::prefix('content')->name('admin.content.')->group(function () {
             Route::get('/', [ContentController::class, 'index'])->name('index');
+            Route::get('/pipeline', [ContentController::class, 'pipeline'])->name('pipeline');
             Route::get('/prapost', [ContentController::class, 'prapost'])->name('prapost');
             Route::get('/calendar', [ContentController::class, 'calendar'])->name('calendar');
             Route::get('/drafts', [ContentController::class, 'drafts'])->name('drafts');

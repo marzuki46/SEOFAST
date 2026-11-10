@@ -15,6 +15,11 @@ use Illuminate\Support\Str;
 
 class ContentController extends Controller
 {
+    public function pipeline()
+    {
+        return view('admin.content.pipeline');
+    }
+
     /**
      * Display a listing of the resource.
      */

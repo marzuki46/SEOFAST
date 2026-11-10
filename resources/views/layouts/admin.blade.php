@@ -97,11 +97,14 @@
                             <span>Content Pipeline</span>
                         </div>
                         <div class="space-y-1 mt-1 pl-2 border-l border-slate-800 ml-3">
+                            <a href="{{ route('admin.content.pipeline') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition duration-150 {{ request()->routeIs('admin.content.pipeline') ? 'text-white bg-slate-800' : 'text-slate-300 hover:text-white' }}">
+                                Content Pipeline — Pilih Metode
+                            </a>
                             <a href="{{ route('admin.silo.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.silo.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
-                                1. Riset Keyword (Silo)
+                                1. Metode Lama: Riset Keyword (Silo)
                             </a>
                             <a href="{{ route('admin.content-campaigns.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.content-campaigns.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
-                                2. Campaign Funnel & Schedule
+                                2. Metode Baru: Auto Post Content
                             </a>
                             <a href="{{ route('admin.links.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition duration-150 {{ request()->routeIs('admin.links.*') ? 'text-white' : 'text-slate-400 hover:text-slate-200' }}">
                                 3. Internal Link Map
