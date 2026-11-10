@@ -17,7 +17,7 @@
                 <span class="text-3xl">🧱</span>
             </div>
             <ol class="mb-6 space-y-3 text-sm text-slate-600"><li><b>1.</b> Riset keyword dan buat Silo.</li><li><b>2.</b> Generate pillar/cluster blueprint.</li><li><b>3.</b> Review di Pra Post.</li><li><b>4.</b> Jalankan AI Queue dan internal linking.</li></ol>
-            <div class="flex flex-wrap gap-3"><a href="{{ route('admin.silo.index') }}" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Buka Silo</a><a href="{{ route('admin.content.prapost') }}" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Buka Pra Post</a></div>
+            <div class="flex flex-wrap gap-3"><a href="{{ route('admin.silo.index') }}" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Mulai Metode Lama</a><a href="{{ route('admin.content.prapost') }}" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Pra Post</a><a href="{{ route('admin.links.index') }}" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Internal Link</a><a href="{{ route('admin.content.create') }}" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">AI Queue</a><a href="{{ route('admin.content.drafts') }}" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Drafts</a><a href="{{ route('admin.content.calendar') }}" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Calendar</a></div>
         </section>
 
         <section class="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
