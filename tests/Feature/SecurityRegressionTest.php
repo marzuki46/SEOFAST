@@ -6,13 +6,14 @@ use App\Http\Middleware\ForceHttps;
 use App\Models\Buyer;
 use App\Models\BuyerOrder;
 use App\Models\Content;
-use App\Models\Product;
 use App\Models\PageError;
+use App\Models\Product;
 use App\Models\SiloBlueprint;
 use App\Models\Tenant;
 use App\Models\User;
 use Database\Seeders\AdminUserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
@@ -99,13 +100,33 @@ class SecurityRegressionTest extends TestCase
         ));
     }
 
-    public function test_scanner_probe_is_not_written_to_404_tracker(): void
+    public function test_scanner_probe_is_classified_without_storing_query_data(): void
     {
-        $this->get('/wp-login.php')->assertNotFound();
+        $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.10'])
+            ->get('/wp-login.php?password=secret-value')
+            ->assertNotFound();
 
-        $this->assertDatabaseMissing('page_errors', [
+        $this->assertDatabaseHas('page_errors', [
             'url' => url('/wp-login.php'),
+            'category' => 'hacker',
+            'status_code' => 404,
         ]);
+        $this->assertDatabaseHas('page_error_visits', [
+            'ip_address' => '203.0.113.10',
+            'category' => 'hacker',
+        ]);
+        $this->assertFalse(PageError::where('url', 'like', '%password=secret-value%')->exists());
+    }
+
+    public function test_public_four_xx_requests_are_throttled_per_ip(): void
+    {
+        config(['security.four_xx_per_minute' => 2]);
+        $ip = '203.0.113.11';
+        RateLimiter::clear('4xx-throttle:'.$ip);
+
+        $this->withServerVariables(['REMOTE_ADDR' => $ip])->get('/missing-one')->assertNotFound();
+        $this->withServerVariables(['REMOTE_ADDR' => $ip])->get('/missing-two')->assertNotFound();
+        $this->withServerVariables(['REMOTE_ADDR' => $ip])->get('/missing-three')->assertRedirect(route('home'));
     }
 
     private function makeContent(string $slug, string $status = 'draft'): array

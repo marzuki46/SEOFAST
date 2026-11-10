@@ -419,6 +419,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('errors')->name('admin.errors.')->group(function () {
             Route::get('/', [PageErrorController::class, 'index'])->name('index');
             Route::get('/export', [PageErrorController::class, 'export'])->name('export');
+            Route::get('/ip/{ip}', [PageErrorController::class, 'ipDetails'])->where('ip', '[0-9a-fA-F:.]+')->name('ip');
             Route::post('/clear-all', [PageErrorController::class, 'clearAll'])->name('clear_all');
             Route::post('/{pageError}/redirect', [PageErrorController::class, 'createRedirect'])->name('create_redirect');
             Route::delete('/{pageError}', [PageErrorController::class, 'destroy'])->name('destroy');

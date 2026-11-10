@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\PageError;
+use App\Models\PageErrorVisit;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -13,26 +14,29 @@ class Capture404
 {
     public function handle(Request $request, Closure $next): Response
     {
-        return $next($request);
+        if ($this->isTrackableRequest($request)) {
+            $key = '4xx-throttle:'.($request->ip() ?: 'unknown');
+            $limit = max(1, (int) config('security.four_xx_per_minute', 30));
+            if (RateLimiter::tooManyAttempts($key, $limit)) {
+                return redirect()->route('home');
+            }
+        }
+
+        $response = $next($request);
+        if ($this->isTrackableRequest($request) && $response->getStatusCode() >= 400 && $response->getStatusCode() < 500) {
+            RateLimiter::hit('4xx-throttle:'.($request->ip() ?: 'unknown'), 60);
+        }
+
+        return $response;
     }
 
     public function terminate(Request $request, Response $response): void
     {
-        if ($response->getStatusCode() !== 404) {
+        if ($response->getStatusCode() < 400 || $response->getStatusCode() >= 500 || ! $this->isTrackableRequest($request)) {
             return;
         }
 
-        // Skip common non-page requests
         $path = $request->getPathInfo();
-        if (
-            ! in_array($request->getMethod(), ['GET', 'HEAD'], true)
-            || str_starts_with($path, '/admin')
-            || str_starts_with($path, '/buyer')
-            || $request->expectsJson()
-            || $this->isScannerProbe($request)
-        ) {
-            return;
-        }
 
         // Do not let a bot flood the 404 tracker and turn it into a database DoS.
         $rateLimitKey = '404-tracker:'.$request->ip();
@@ -41,16 +45,25 @@ class Capture404
         }
         RateLimiter::hit($rateLimitKey, 60);
 
-        $rawUrl = $request->fullUrl();
+        $statusCode = $response->getStatusCode();
+        $isProbe = $this->isScannerProbe($request);
+        $rawUrl = $isProbe ? url($path) : $request->fullUrl();
         $url = Str::limit($rawUrl, 2048, '');
-        $urlHash = md5($rawUrl);
+        $urlHash = md5($rawUrl.'|'.$statusCode);
         $referer = Str::limit((string) $request->header('referer'), 2048, '');
+        $ip = Str::limit((string) ($request->ip() ?: 'unknown'), 45, '');
+        $category = $this->classify($request, $isProbe);
+        $userAgent = Str::limit((string) $request->userAgent(), 512, '');
 
         $pageError = PageError::firstOrCreate(
             ['url_hash' => $urlHash],
             [
                 'url' => $url,
+                'status_code' => $statusCode,
                 'referer' => $referer ?: null,
+                'last_ip_address' => $ip,
+                'category' => $category,
+                'last_user_agent' => $userAgent ?: null,
                 'count' => 0,
                 'first_seen' => now(),
                 'last_seen' => now(),
@@ -59,10 +72,53 @@ class Capture404
 
         $pageError->forceFill([
             'url' => $url,
+            'status_code' => $statusCode,
             'referer' => $referer ?: null,
+            'last_ip_address' => $ip,
+            'category' => $category,
+            'last_user_agent' => $userAgent ?: null,
             'last_seen' => now(),
         ])->save();
         $pageError->increment('count');
+
+        PageErrorVisit::create([
+            'page_error_id' => $pageError->id,
+            'ip_address' => $ip,
+            'path' => Str::limit($path, 2048, ''),
+            'status_code' => $statusCode,
+            'category' => $category,
+            'user_agent' => $userAgent ?: null,
+            'referer' => $referer ?: null,
+            'created_at' => now(),
+        ]);
+    }
+
+    private function isTrackableRequest(Request $request): bool
+    {
+        return in_array($request->getMethod(), ['GET', 'HEAD'], true)
+            && ! str_starts_with($request->getPathInfo(), '/admin')
+            && ! str_starts_with($request->getPathInfo(), '/buyer')
+            && ! $request->expectsJson();
+    }
+
+    private function classify(Request $request, bool $isProbe): string
+    {
+        if ($isProbe) {
+            return 'hacker';
+        }
+
+        $agent = strtolower((string) $request->userAgent());
+        if (preg_match('/googlebot|bingbot|yandexbot|baiduspider|duckduckbot|slurp/', $agent)) {
+            return 'search_engine_crawler';
+        }
+        if (preg_match('/bot|crawler|spider|headless|scrapy|curl|wget|python-requests/', $agent)) {
+            return 'bot';
+        }
+        if (str_contains($agent, 'mozilla')) {
+            return 'person';
+        }
+
+        return 'other';
     }
 
     private function isScannerProbe(Request $request): bool
