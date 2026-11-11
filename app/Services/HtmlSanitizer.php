@@ -89,7 +89,25 @@ final class HtmlSanitizer
 
         $scheme = strtolower((string) parse_url($value, PHP_URL_SCHEME));
 
-        return in_array($scheme, ['http', 'https', 'mailto', 'tel'], true);
+        if (! in_array($scheme, ['http', 'https', 'mailto', 'tel'], true)) {
+            return false;
+        }
+
+        // AI/imported content must not silently redirect visitors to an
+        // unrelated domain. Relative URLs and this application's own host are
+        // safe; external hosts must be explicitly allowlisted in config.
+        if (in_array($scheme, ['http', 'https'], true)) {
+            $host = strtolower((string) parse_url($value, PHP_URL_HOST));
+            $appUrl = (string) config('app.url');
+            $appHost = strtolower((string) parse_url($appUrl !== '' ? $appUrl : url('/'), PHP_URL_HOST));
+            $allowedHosts = array_map('strtolower', (array) config('content.allowed_external_hosts', []));
+
+            if ($host !== $appHost && ! in_array($host, $allowedHosts, true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function removeElement(DOMElement $element, bool $removeChildren): void

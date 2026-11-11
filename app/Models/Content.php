@@ -425,7 +425,9 @@ class Content extends Model
             return '';
         }
 
-        $currentHash = hash('sha256', $markdown);
+        // Version the render cache so sanitizer/heading/link policy changes
+        // are applied to already-published content on the next request.
+        $currentHash = hash('sha256', 'html-v2:'.$markdown);
 
         if ($this->rendered_html_path && $this->content_hash === $currentHash) {
             return $this->rendered_html_path;
@@ -433,6 +435,28 @@ class Content extends Model
 
         // Pass HTML output as is (Phase 6 now generates HTML instead of Markdown)
         $html = $markdown;
+
+        // AI output is normally HTML, while older/imported posts may still be
+        // Markdown. Give both formats stable heading IDs for the TOC and anchors.
+        $headingIds = [];
+        $html = preg_replace_callback('/<h([23])([^>]*)>(.*?)<\/h\1>/is', function ($matches) use (&$headingIds) {
+            $attributes = $matches[2];
+            if (preg_match('/\bid=["\']([^"\']+)["\']/i', $attributes, $idMatch)) {
+                $id = $idMatch[1];
+            } else {
+                $id = Str::slug(trim(strip_tags(html_entity_decode($matches[3], ENT_QUOTES | ENT_HTML5, 'UTF-8'))));
+                $id = $id ?: 'section';
+                $baseId = $id;
+                $suffix = 2;
+                while (isset($headingIds[$id])) {
+                    $id = $baseId.'-'.$suffix++;
+                }
+                $attributes .= ' id="'.$id.'"';
+            }
+            $headingIds[$id] = true;
+
+            return '<h'.$matches[1].$attributes.'>'.$matches[3].'</h'.$matches[1].'>';
+        }, $html) ?? $html;
 
         // Replace headings: H3
         $html = preg_replace_callback('/^\s*###\s+(.+)$/m', function ($matches) {
@@ -525,18 +549,44 @@ class Content extends Model
      */
     public function getTocAttribute(): array
     {
-        $markdown = $this->body_raw;
-        if (! $markdown) {
+        $body = (string) $this->body_raw;
+        if ($body === '') {
             return [];
         }
 
         $toc = [];
-        preg_match_all('/^\s*(#{2,3})\s+(.+)$/m', $markdown, $matches, PREG_SET_ORDER);
+        $seen = [];
+
+        // Current pipeline stores HTML; keep Markdown parsing for legacy posts.
+        preg_match_all('/<h([23])(?:\s+[^>]*)?>(.*?)<\/h\1>/is', $body, $htmlMatches, PREG_SET_ORDER);
+        foreach ($htmlMatches as $match) {
+            $title = trim(preg_replace('/\s+/', ' ', strip_tags(html_entity_decode($match[2], ENT_QUOTES | ENT_HTML5, 'UTF-8'))));
+            $id = Str::slug($title) ?: 'section';
+            $baseId = $id;
+            $suffix = 2;
+            while (isset($seen[$id])) {
+                $id = $baseId.'-'.$suffix++;
+            }
+            $seen[$id] = true;
+            $toc[] = ['level' => (int) $match[1], 'title' => $title, 'id' => $id];
+        }
+
+        if ($toc === []) {
+            preg_match_all('/^\s*(#{2,3})\s+(.+)$/m', $body, $matches, PREG_SET_ORDER);
+        } else {
+            $matches = [];
+        }
 
         foreach ($matches as $match) {
             $level = strlen(trim($match[1])); // 2 for ##, 3 for ###
             $title = trim($match[2]);
             $id = Str::slug($title);
+            $baseId = $id ?: 'section';
+            $suffix = 2;
+            while (isset($seen[$id])) {
+                $id = $baseId.'-'.$suffix++;
+            }
+            $seen[$id] = true;
             $toc[] = [
                 'level' => $level,
                 'title' => $title,

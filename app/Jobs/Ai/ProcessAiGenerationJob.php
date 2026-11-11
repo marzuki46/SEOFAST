@@ -389,7 +389,8 @@ class ProcessAiGenerationJob implements ShouldQueue
 - BAN ALL AI CLICHES: Never use phrases like 'Di era digital yang serba cepat ini', 'Di tengah pesatnya perkembangan', 'Mari kita telusuri lebih dalam', 'Kesimpulannya', 'Tidak dapat dipungkiri bahwa', 'Menyelami', 'Menavigasi'.
 - ZERO FLUFF: Write directly to the point. Provide concrete actionable steps, real numbers, factual examples, local context, and technical precision.
 - STRUCTURE: Always generate and follow a logical Content Outline before drafting. Use descriptive H2 and H3 headings matching real user search intent, not generic titles.
-- INCLUDE: Add comparison tables (Markdown format) or structured step-by-step lists where appropriate to maximize reader utility.";
+- INCLUDE: Add comparison tables (Markdown format) or structured step-by-step lists where appropriate to maximize reader utility.
+- LINKS: Never invent a domain, brand URL, source URL, or affiliate link. Use only the mandatory internal links supplied below. If no valid URL is supplied, do not create a link.";
 
         $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n{$styleReq}{$antiSlopDirectives}";
         $campaign = $content->campaign;
