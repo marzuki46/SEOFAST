@@ -243,7 +243,22 @@ class ContentCampaignController extends Controller
             return $campaign;
         });
         $campaign = app(ContentCampaignPromptService::class)->applyDefaults($campaign);
-        $campaign->targets()->pluck('id')->each(fn (int $targetId) => GenerateCampaignLandingPageJob::dispatch($targetId));
+        $targets = $campaign->targets()->get();
+        if ($campaign->destination_url) {
+            $targets->each(function (ContentCampaignTarget $target): void {
+                $target->update([
+                    'landing_url' => $target->campaign->destination_url,
+                    'anchor_variations' => [
+                        $target->keyword,
+                        'informasi tentang '.$target->keyword,
+                        'solusi '.$target->keyword,
+                    ],
+                    'status' => 'ready',
+                ]);
+            });
+        } else {
+            $targets->pluck('id')->each(fn (int $targetId) => GenerateCampaignLandingPageJob::dispatch($targetId));
+        }
         if ($campaign->status === 'active') {
             $scheduler->ensureNext($campaign);
         }
@@ -276,6 +291,7 @@ class ContentCampaignController extends Controller
             'word_count_max' => ['required', 'integer', 'min:400', 'max:8000', 'gte:word_count_min'],
             'cta_label' => ['nullable', 'string', 'max:120'],
             'cta_url' => ['nullable', 'url', 'max:2048'],
+            'destination_url' => ['nullable', 'url', 'max:2048'],
         ]);
         $campaign->update($data);
 
@@ -371,6 +387,7 @@ class ContentCampaignController extends Controller
             'word_count_max' => ['required', 'integer', 'min:400', 'max:8000', 'gte:word_count_min'],
             'cta_label' => ['nullable', 'string', 'max:120'],
             'cta_url' => ['nullable', 'url', 'max:2048'],
+            'destination_url' => ['nullable', 'url', 'max:2048'],
             'auto_research' => ['nullable', 'boolean'],
             'research_batch_size' => ['required', 'integer', 'min:1', 'max:20'],
             'posts_per_day' => ['required', 'integer', 'min:1', 'max:24'],

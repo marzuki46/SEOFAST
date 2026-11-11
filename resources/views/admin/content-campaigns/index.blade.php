@@ -345,7 +345,7 @@
                     <div>
                         <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Auto Post Content</span>
                         <h2 class="mt-1 text-2xl font-bold text-slate-900">Buat Campaign Baru</h2>
-                        <p class="mt-1 text-xs text-slate-500">AI otomatis menggunakan konfigurasi Niche, Brand Voice, dan Prompt dari menu pengaturan.</p>
+                    <p class="mt-1 text-xs text-slate-500">Nama hanya label campaign. Konten ditentukan oleh target keyword dan URL tujuan opsional.</p>
                     </div>
                     <button type="button" @click="showCreate = false" class="rounded-lg p-2 text-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700">&times;</button>
                 </div>
@@ -361,6 +361,12 @@
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Target Keyword Landing Page <span class="text-red-500">*</span> <span class="font-normal text-xs text-slate-500">(Satu per baris atau koma)</span></label>
                         <textarea name="target_keywords" required maxlength="5000" rows="3" placeholder="jasa pembuatan website solo&#10;web developer solo&#10;bikin landing page solo" class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 font-mono text-xs"></textarea>
                         <p class="mt-1 text-xs text-slate-500">Setiap target keyword di atas akan dibuatkan landing page otomatis & menerima dorongan internal link dari artikel baru.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">URL Tujuan Artikel <span class="font-normal text-xs text-slate-400">(Opsional)</span></label>
+                        <input type="url" name="destination_url" maxlength="2048" placeholder="https://juki.eu.org/jasa-pembuatan-website-solo" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100">
+                        <p class="mt-1 text-xs text-slate-500">Jika diisi, semua artikel campaign hanya boleh menautkan URL ini dengan anchor berdasarkan keyword. Jika kosong, landing page campaign dibuat otomatis.</p>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
@@ -401,7 +407,7 @@
                     <input type="hidden" name="language" value="id">
                     <input type="hidden" name="funnel_mode" value="balanced">
                     <input type="hidden" name="research_batch_size" value="5">
-                    <input type="hidden" name="publish_status" value="draft">
+                    <input type="hidden" name="publish_status" value="published">
                     <input type="hidden" name="timezone" value="Asia/Jakarta">
                     <input type="hidden" name="auto_research" value="1">
 

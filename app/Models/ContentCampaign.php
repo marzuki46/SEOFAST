@@ -18,7 +18,7 @@ class ContentCampaign extends Model
         'keyword_prompt', 'entity_prompt', 'landing_prompt', 'content_prompt',
         'word_count_min', 'word_count_max', 'cta_label', 'cta_url',
         'auto_research', 'research_batch_size', 'posts_per_day', 'schedule_type',
-        'fixed_hours', 'publish_status', 'timezone', 'last_run_at', 'next_run_at',
+        'fixed_hours', 'publish_status', 'destination_url', 'timezone', 'last_run_at', 'next_run_at',
     ];
 
     protected function casts(): array
