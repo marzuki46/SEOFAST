@@ -320,38 +320,15 @@ class ContentCampaignController extends Controller
             $schedule->update(['scheduled_at' => now()]);
         }
 
-        // Jalankan background job secara asinkron (jangan blocking web request)
-        $phpBinary = PHP_BINARY ?: '/opt/cpanel/ea-php84/root/usr/bin/php';
-        if (! file_exists($phpBinary)) {
-            $phpBinary = 'php';
-        }
-        $artisanPath = base_path('artisan');
-
-        if (config('queue.default') === 'sync') {
-            // Jalankan via proc_open / exec di background tanpa memblokir HTTP response
-            $cmd = escapeshellcmd("{$phpBinary} {$artisanPath} seofast:run-content-campaigns");
-            if (DIRECTORY_SEPARATOR === '\\') {
-                pclose(popen("start /B {$cmd}", 'r'));
-            } else {
-                pclose(popen("{$cmd} > /dev/null 2>&1 &", 'r'));
-            }
-        } else {
-            \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id);
-            // Jalankan worker background agar queue 'ai' segera selesai tanpa tunggu cron
-            $cmd = escapeshellcmd("{$phpBinary} {$artisanPath} queue:work --queue=ai,default --stop-when-empty --tries=1 --timeout=360");
-            if (DIRECTORY_SEPARATOR === '\\') {
-                pclose(popen("start /B {$cmd}", 'r'));
-            } else {
-                pclose(popen("{$cmd} > /dev/null 2>&1 &", 'r'));
-            }
-        }
+        // Jalankan background job secara langsung
+        \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id);
 
         // Pastikan jadwal siklus berikutnya tetap terjaga
         if ($campaign->status === 'active') {
             $scheduler->ensureNext($campaign->fresh());
         }
 
-        return back()->with('success', "Trigger posting berhasil dijadwalkan untuk campaign '{$campaign->name}'. Sistem AI sedang memproses pembuatan konten di background.");
+        return back()->with('success', "Trigger posting berhasil dijadwalkan untuk campaign '{$campaign->name}'. Job telah masuk antrean.");
     }
 
     private function validated(Request $request): array
