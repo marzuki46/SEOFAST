@@ -328,14 +328,22 @@ class ContentCampaignController extends Controller
         $artisanPath = base_path('artisan');
 
         if (config('queue.default') === 'sync') {
-            // Hindari eksekusi AI sinkron di HTTP request yang memicu Cloudflare Timeout 522/524
-            \Illuminate\Support\Facades\Process::background()
-                ->run("{$phpBinary} {$artisanPath} seofast:run-content-campaigns");
+            // Jalankan via proc_open / exec di background tanpa memblokir HTTP response
+            $cmd = escapeshellcmd("{$phpBinary} {$artisanPath} seofast:run-content-campaigns");
+            if (DIRECTORY_SEPARATOR === '\\') {
+                pclose(popen("start /B {$cmd}", 'r'));
+            } else {
+                pclose(popen("{$cmd} > /dev/null 2>&1 &", 'r'));
+            }
         } else {
             \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id);
-            // Jalankan queue worker di background agar antrean 'ai' langsung diproses tanpa menunggu daemon supervisor
-            \Illuminate\Support\Facades\Process::background()
-                ->run("{$phpBinary} {$artisanPath} queue:work --queue=ai,default --stop-when-empty --tries=1 --timeout=360");
+            // Jalankan worker background agar queue 'ai' segera selesai tanpa tunggu cron
+            $cmd = escapeshellcmd("{$phpBinary} {$artisanPath} queue:work --queue=ai,default --stop-when-empty --tries=1 --timeout=360");
+            if (DIRECTORY_SEPARATOR === '\\') {
+                pclose(popen("start /B {$cmd}", 'r'));
+            } else {
+                pclose(popen("{$cmd} > /dev/null 2>&1 &", 'r'));
+            }
         }
 
         // Pastikan jadwal siklus berikutnya tetap terjaga
