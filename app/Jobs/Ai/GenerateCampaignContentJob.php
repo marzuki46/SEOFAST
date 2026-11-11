@@ -99,31 +99,36 @@ class GenerateCampaignContentJob implements ShouldQueue
             while (Content::withoutGlobalScopes()->whereSlug($slug)->exists()) {
                 $slug = $base.'-'.$counter++;
             }
-            $content = Content::create([
-                'tenant_id' => $campaign->tenant_id,
-                'product_id' => $campaign->product_id,
-                'campaign_id' => $campaign->id,
-                'campaign_target_id' => $topic->campaign_target_id,
-                'content_topic_id' => $topic->id,
-                'silo_blueprint_id' => $campaign->silo_blueprint_id,
-                'target_keyword' => $topic->primary_keyword,
-                'slug' => $slug,
-                'meta_title' => $topic->title,
-                'meta_description' => Str::limit($topic->angle ?: $topic->title, 155),
-                'hierarchy_level' => $topic->funnel_stage === 'tofu' ? 'pillar' : 'cluster',
-                'status' => 'ai_processing',
-            ]);
-            $job = AiGenerationJob::create([
-                'tenant_id' => $campaign->tenant_id,
-                'content_id' => $content->id,
-                'job_type' => 'campaign_generation',
-                'status' => 'pending',
-                'llm_model_used' => null,
-            ]);
-            $topic->update(['status' => 'used', 'content_id' => $content->id]);
-            $schedule->update(['status' => 'completed', 'content_id' => $content->id, 'content_topic_id' => $topic->id]);
-            $campaign->update(['last_run_at' => now(), 'next_run_at' => $scheduler->nextRunAt($campaign)]);
-            $scheduler->ensureNext($campaign->fresh());
+            [$content, $job] = DB::transaction(function () use ($campaign, $topic, $slug, $schedule, $scheduler) {
+                $content = Content::create([
+                    'tenant_id' => $campaign->tenant_id,
+                    'product_id' => $campaign->product_id,
+                    'campaign_id' => $campaign->id,
+                    'campaign_target_id' => $topic->campaign_target_id,
+                    'content_topic_id' => $topic->id,
+                    'silo_blueprint_id' => $campaign->silo_blueprint_id,
+                    'target_keyword' => $topic->primary_keyword,
+                    'slug' => $slug,
+                    'meta_title' => $topic->title,
+                    'meta_description' => Str::limit($topic->angle ?: $topic->title, 155),
+                    'hierarchy_level' => $topic->funnel_stage === 'tofu' ? 'pillar' : 'cluster',
+                    'status' => 'ai_processing',
+                ]);
+                $job = AiGenerationJob::create([
+                    'tenant_id' => $campaign->tenant_id,
+                    'content_id' => $content->id,
+                    // The schema calls campaign-generated content an initial generation.
+                    'job_type' => 'initial_generation',
+                    'status' => 'pending',
+                    'llm_model_used' => null,
+                ]);
+                $topic->update(['status' => 'used', 'content_id' => $content->id]);
+                $schedule->update(['status' => 'completed', 'content_id' => $content->id, 'content_topic_id' => $topic->id]);
+                $campaign->update(['last_run_at' => now(), 'next_run_at' => $scheduler->nextRunAt($campaign)]);
+                $scheduler->ensureNext($campaign->fresh());
+
+                return [$content, $job];
+            });
             ProcessAiGenerationJob::dispatch($content->id, $job->id, $campaign->publish_status);
         } finally {
             $lock->release();
