@@ -354,19 +354,20 @@
                     @csrf
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Campaign <span class="text-red-500">*</span></label>
-                        <input name="name" required maxlength="120" placeholder="Contoh: Jasa Pembuatan Website di Solo" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100">
+                        <input name="name" required maxlength="120" placeholder="Contoh: Campaign SEO Website Solo" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100">
+                        <p class="mt-1 text-xs text-slate-500">Nama ini hanya label administrasi, bukan sumber topik atau tujuan konten.</p>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Target Keyword Landing Page <span class="text-red-500">*</span> <span class="font-normal text-xs text-slate-500">(Satu per baris atau koma)</span></label>
-                        <textarea name="target_keywords" required maxlength="5000" rows="3" placeholder="jasa pembuatan website solo&#10;web developer solo&#10;bikin landing page solo" class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 font-mono text-xs"></textarea>
-                        <p class="mt-1 text-xs text-slate-500">Setiap target keyword di atas akan dibuatkan landing page otomatis & menerima dorongan internal link dari artikel baru.</p>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Target Keyword <span class="font-normal text-xs text-slate-400">(Opsional, satu per baris atau koma)</span></label>
+                        <textarea name="target_keywords" maxlength="5000" rows="3" placeholder="jasa pembuatan website solo&#10;web developer solo&#10;bikin landing page solo" class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 font-mono text-xs"></textarea>
+                        <p class="mt-1 text-xs text-slate-500">Jika kosong, AI meriset topik dari niche, produk, audiens, dan data bisnis. Nama campaign tidak dipakai sebagai topik.</p>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">URL Tujuan Artikel <span class="font-normal text-xs text-slate-400">(Opsional)</span></label>
                         <input type="url" name="destination_url" maxlength="2048" placeholder="https://juki.eu.org/jasa-pembuatan-website-solo" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100">
-                        <p class="mt-1 text-xs text-slate-500">Jika diisi, semua artikel campaign hanya boleh menautkan URL ini dengan anchor berdasarkan keyword. Jika kosong, landing page campaign dibuat otomatis.</p>
+                        <p class="mt-1 text-xs text-slate-500">Jika diisi, artikel dapat menautkan URL ini dengan anchor berdasarkan keyword. Jika kosong, tidak ada URL tujuan campaign dan landing page tidak dibuat otomatis.</p>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">

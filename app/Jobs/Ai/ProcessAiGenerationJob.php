@@ -307,9 +307,10 @@ class ProcessAiGenerationJob implements ShouldQueue
         }
 
         $campaignTarget = $content->campaignTarget()->with('page')->first();
-        if ($campaignTarget?->landing_url) {
-            $anchor = e($campaignTarget->anchor_variations[0] ?? $campaignTarget->keyword);
-            $landingUrl = e($campaignTarget->landing_url);
+        $campaignUrl = $campaignTarget?->landing_url ?: $content->campaign?->destination_url;
+        if ($campaignUrl) {
+            $anchor = e($campaignTarget?->anchor_variations[0] ?? $campaignTarget?->keyword ?? $content->target_keyword);
+            $landingUrl = e($campaignUrl);
             $linkInstructions .= "\n\nCAMPAIGN LANDING PAGE (WAJIB ditautkan secara natural satu kali):\n- [{$anchor}]({$landingUrl})\n";
         }
 
@@ -778,9 +779,10 @@ class ProcessAiGenerationJob implements ShouldQueue
         // Guarantee one safe, server-owned link to the campaign landing page if
         // the model omitted the required link from its HTML output.
         $campaignTarget = $content->campaignTarget()->with('page')->first();
-        if ($campaignTarget?->landing_url && ! str_contains($finalBody, $campaignTarget->landing_url)) {
-            $anchor = e($campaignTarget->anchor_variations[0] ?? $campaignTarget->keyword);
-            $landingUrl = e($campaignTarget->landing_url);
+        $campaignUrl = $campaignTarget?->landing_url ?: $content->campaign?->destination_url;
+        if ($campaignUrl && ! str_contains($finalBody, $campaignUrl)) {
+            $anchor = e($campaignTarget?->anchor_variations[0] ?? $campaignTarget?->keyword ?? $content->target_keyword);
+            $landingUrl = e($campaignUrl);
             $finalBody .= '<p class="campaign-landing-cta"><a href="'.$landingUrl.'">Pelajari '.$anchor.'</a></p>';
         }
 

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\Ai\GenerateCampaignLandingPageJob;
 use App\Models\ContentCampaign;
 use App\Models\ContentCampaignTarget;
 use App\Models\Product;
@@ -221,7 +220,6 @@ class ContentCampaignController extends Controller
     {
         $data = $this->validated($request);
         $keywords = $this->parseKeywords($data['target_keywords'] ?? '');
-        abort_unless($keywords !== [], 422, 'Masukkan minimal satu keyword target.');
         $this->assertSiloMatchesProduct($data['silo_blueprint_id'] ?? null, $data['product_id']);
         unset($data['target_keywords']);
         $campaign = DB::transaction(function () use ($data, $keywords) {
@@ -244,7 +242,7 @@ class ContentCampaignController extends Controller
         });
         $campaign = app(ContentCampaignPromptService::class)->applyDefaults($campaign);
         $targets = $campaign->targets()->get();
-        if ($campaign->destination_url) {
+        if ($campaign->destination_url && $targets->isNotEmpty()) {
             $targets->each(function (ContentCampaignTarget $target): void {
                 $target->update([
                     'landing_url' => $target->campaign->destination_url,
@@ -256,8 +254,6 @@ class ContentCampaignController extends Controller
                     'status' => 'ready',
                 ]);
             });
-        } else {
-            $targets->pluck('id')->each(fn (int $targetId) => GenerateCampaignLandingPageJob::dispatch($targetId));
         }
         if ($campaign->status === 'active') {
             $scheduler->ensureNext($campaign);
@@ -295,6 +291,8 @@ class ContentCampaignController extends Controller
         ]);
         $campaign->update($data);
 
+        $this->syncDestinationUrl($campaign->fresh());
+
         return back()->with('success', 'Prompt dan data reusable campaign berhasil disimpan.');
     }
 
@@ -304,6 +302,7 @@ class ContentCampaignController extends Controller
         $data = $this->validated($request);
         $this->assertSiloMatchesProduct($data['silo_blueprint_id'] ?? null, $data['product_id']);
         $campaign->update($data);
+        $this->syncDestinationUrl($campaign->fresh());
         if ($campaign->status === 'active') {
             $scheduler->ensureNext($campaign->fresh());
         }
@@ -405,6 +404,33 @@ class ContentCampaignController extends Controller
         }
         $silo = SiloBlueprint::withoutGlobalScopes()->findOrFail($siloId);
         abort_unless(! $silo->product_id || (int) $silo->product_id === $productId, 422, 'Silo tersebut terkait produk lain.');
+    }
+
+    private function syncDestinationUrl(ContentCampaign $campaign): void
+    {
+        $targets = $campaign->targets()->get();
+        if ($targets->isEmpty()) {
+            return;
+        }
+
+        if (! $campaign->destination_url) {
+            $targets->each(fn (ContentCampaignTarget $target) => $target->update([
+                'landing_url' => null,
+                'anchor_variations' => null,
+            ]));
+
+            return;
+        }
+
+        $targets->each(fn (ContentCampaignTarget $target) => $target->update([
+            'landing_url' => $campaign->destination_url,
+            'anchor_variations' => [
+                $target->keyword,
+                'informasi tentang '.$target->keyword,
+                'solusi '.$target->keyword,
+            ],
+            'status' => 'ready',
+        ]));
     }
 
     private function assertTenantAccess(ContentCampaign $campaign): void
