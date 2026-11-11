@@ -347,6 +347,40 @@
         'jasa/ai/content-engine' => ['kicker' => 'Untuk tim konten yang ingin bertumbuh tanpa kehilangan suara brand', 'before' => 'Produksi konten terasa lambat, tetapi konten AI yang tidak dikurasi juga dapat membuat brand terdengar sama seperti semua orang.', 'turn' => 'Kami menyusun riset entity, brief, drafting, internal link, dan human review dalam satu alur yang terjaga.', 'after' => 'Tim dapat memproduksi lebih konsisten tanpa menyerahkan kepercayaan pelanggan kepada mesin.'],
         default => ['kicker' => 'Untuk bisnis yang ingin bergerak dengan lebih yakin', 'before' => 'Kebutuhan digital sudah terasa, tetapi langkah pertamanya masih terlihat rumit dan penuh risiko.', 'turn' => 'Kami memecah masalah menjadi prioritas yang jelas, solusi yang dapat diuji, dan proses yang dapat dipahami.', 'after' => 'Anda dapat bergerak maju dengan sistem yang sesuai kebutuhan, bukan sekadar mengikuti tren.'],
     };
+    $depth = match (true) {
+        $isSeo => [
+            'h3' => 'Bagaimana strategi ini bekerja secara mendalam',
+            'h4' => 'Dari sinyal pencarian menjadi keputusan bisnis',
+            'h5' => 'Memadukan intent, entity, dan pengalaman halaman',
+            'h6' => 'Konteks Solo: relevansi lokal harus terasa nyata',
+            'text' => 'SEO yang matang menghubungkan apa yang dicari orang dengan alasan mereka mempercayai dan menghubungi sebuah bisnis. Karena itu optimasi tidak berhenti pada keyword, melainkan mencakup struktur website, bukti layanan, kejelasan lokasi, kecepatan halaman, dan jalur konversi.',
+            'detail' => 'Setiap rekomendasi diprioritaskan berdasarkan dampak terhadap kemampuan Google memahami halaman dan kemampuan calon pelanggan mengambil keputusan. Hasilnya adalah fondasi yang dapat dirawat, diukur, dan dikembangkan bersama konten maupun layanan baru.',
+        ],
+        $isAutomation => [
+            'h3' => 'Bagaimana workflow dirancang agar benar-benar dapat diandalkan',
+            'h4' => 'Dari pekerjaan manual menjadi alur yang dapat diawasi',
+            'h5' => 'Memetakan trigger, data, keputusan, dan pemilik proses',
+            'h6' => 'Konteks Solo: otomasi harus cocok dengan ritme tim',
+            'text' => 'Otomasi yang matang bukan sekadar memindahkan data dari aplikasi A ke aplikasi B. Ia harus memahami kapan proses dimulai, data apa yang valid, siapa yang perlu menerima informasi, dan apa yang terjadi jika satu layanan sedang gagal.',
+            'detail' => 'Kami menyusun workflow secara bertahap agar tim dapat menguji manfaatnya sebelum proses diperluas. Dokumentasi, log, retry, dan kontrol akses membuat sistem tetap bisa dipahami setelah proyek selesai.',
+        ],
+        $isAi => [
+            'h3' => 'Bagaimana AI diterapkan tanpa kehilangan pertimbangan manusia',
+            'h4' => 'Dari output model menjadi bantuan kerja yang bertanggung jawab',
+            'h5' => 'Memilih sumber, batasan, evaluasi, dan titik persetujuan',
+            'h6' => 'Konteks Solo: teknologi harus berbicara dengan bahasa bisnis',
+            'text' => 'AI yang matang membutuhkan konteks, sumber pengetahuan, aturan penggunaan, dan cara mengukur kualitas. Model boleh membantu mempercepat pekerjaan, tetapi keputusan yang menyangkut pelanggan, reputasi, dan data penting tetap memiliki jalur pemeriksaan manusia.',
+            'detail' => 'Dengan pendekatan bertahap, prototype dapat diuji menggunakan contoh pekerjaan nyata sebelum diintegrasikan ke workflow yang lebih besar. Ini membantu bisnis memahami manfaat, risiko, dan batas penggunaan AI secara jujur.',
+        ],
+        default => [
+            'h3' => 'Bagaimana solusi ini diterapkan dalam praktik',
+            'h4' => 'Mengubah kebutuhan bisnis menjadi pengalaman yang jelas',
+            'h5' => 'Memilih prioritas, teknologi, dan ukuran keberhasilan',
+            'h6' => 'Konteks Solo: solusi harus dekat dengan cara bisnis bekerja',
+            'text' => 'Solusi digital yang matang selalu dimulai dari masalah pengguna dan proses bisnis. Teknologi dipilih setelah tujuan, batasan, data, dan cara mengukur hasil dipahami bersama.',
+            'detail' => 'Dengan pendekatan bertahap, bisnis dapat memulai dari fondasi yang paling penting lalu mengembangkan sistem ketika kebutuhan dan data sudah siap.',
+        ],
+    };
     $seoOverrides = [
         'jasa/seo' => ['title' => 'Jasa SEO Solo & Optimasi Google Maps untuk Bisnis | Juki', 'description' => 'Jasa SEO di Solo untuk menaikkan visibilitas Google, Google Maps, dan inquiry melalui audit teknis, SEO lokal, konten, schema, dan internal link.'],
         'jasa/otomasi' => ['title' => 'Jasa Otomasi Bisnis di Solo & Integrasi API | Juki', 'description' => 'Jasa otomasi bisnis di Solo untuk menghubungkan website, CRM, WhatsApp, spreadsheet, n8n, dan API agar pekerjaan manual berkurang dan respons lebih cepat.'],
@@ -429,6 +463,13 @@
     .juki-modern .jm-empathy-card:last-child { border-radius:0 18px 18px 0; background:rgba(206,154,69,.16); }
     .juki-modern .jm-empathy-card b { display:block; margin-bottom:18px; color:#e8c982; font-family:'Outfit',sans-serif; font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; }
     .juki-modern .jm-empathy-card p { margin:0; color:#e1e8f0; font-size:1.08rem; line-height:1.7; }
+    .juki-modern .jm-depth { background:#f3efe6; }
+    .juki-modern .jm-depth-body { max-width:900px; margin-top:30px; padding-left:26px; border-left:3px solid var(--jm-gold); }
+    .juki-modern .jm-depth-body h3 { margin:0 0 14px; font-size:1.7rem; }
+    .juki-modern .jm-depth-body h4 { margin:28px 0 8px; color:#9a6b16; font-family:'Outfit',sans-serif; font-size:1.3rem; }
+    .juki-modern .jm-depth-body h5 { margin:20px 0 7px; color:var(--jm-ink); font-size:1.05rem; }
+    .juki-modern .jm-depth-body h6 { margin:18px 0 6px; color:#9a6b16; font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; }
+    .juki-modern .jm-depth-body p { max-width:820px; margin:0; color:var(--jm-muted); line-height:1.8; }
     .juki-modern .jm-timeline { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:34px; }
     .juki-modern .jm-step { position:relative; padding:22px; border-top:3px solid var(--jm-gold); background:var(--jm-soft); }
     .juki-modern .jm-step b { color:#9a6b16; font-size:.75rem; letter-spacing:.12em; }
@@ -481,6 +522,7 @@ document.addEventListener('DOMContentLoaded', function () {
     <section class="jm-section jm-empathy" data-reveal><div class="jm-wrap"><span class="jm-kicker">{{ $empathy['kicker'] }}</span><h2>Karena di balik kebutuhan digital, ada rasa khawatir yang ingin diselesaikan.</h2><div class="jm-empathy-grid"><article class="jm-empathy-card"><b>Sebelum</b><p>{{ $empathy['before'] }}</p></article><article class="jm-empathy-card"><b>Titik balik</b><p>{{ $empathy['turn'] }}</p></article><article class="jm-empathy-card"><b>Sesudah</b><p>{{ $empathy['after'] }}</p></article></div></div></section>
     <section class="jm-section jm-dark" data-reveal><div class="jm-wrap"><span class="jm-kicker">Yang masuk ke dalam strategi</span><h2>Setiap komponen memiliki pekerjaan yang jelas.</h2><p class="jm-intro">Bukan daftar fitur untuk terlihat sibuk. Setiap elemen dipilih karena membantu visibilitas, kecepatan kerja, akurasi, atau keputusan bisnis.</p><div class="jm-grid">@foreach($service['signals'] as $signal)<article class="jm-card"><span class="jm-kicker">Signal {{ str_pad((string) ($loop->index + 1), 2, '0', STR_PAD_LEFT) }}</span><h3>{{ $signal }}</h3><p>Dirancang sebagai bagian dari sistem layanan {{ strtolower($service['label']) }}, bukan solusi terpisah yang sulit dipelihara.</p></article>@endforeach</div></div></section>
     @if($contentBlocks)<section class="jm-section jm-section-alt" data-reveal><div class="jm-wrap"><span class="jm-kicker">Panduan strategi {{ $service['label'] }} di Solo</span><h2>Modul yang menghubungkan kebutuhan bisnis dengan langkah digital yang nyata.</h2><p class="jm-intro">Landing page ini dirancang untuk membantu Anda memahami ruang lingkup layanan, bukan sekadar membaca daftar fitur. Setiap modul menjawab pertanyaan yang biasanya muncul sebelum bisnis memilih partner.</p><div class="jm-content-grid">@foreach($contentBlocks as $block)<article class="jm-content-card"><span class="jm-kicker">{{ $block['kicker'] }}</span><h3>{{ $block['title'] }}</h3><p>{{ $block['text'] }}</p></article>@endforeach</div></div></section>@endif
+    <section class="jm-section jm-depth" data-reveal><div class="jm-wrap"><span class="jm-kicker">Struktur pemikiran</span><h2>Pembahasan yang cukup dalam untuk membantu Anda mengambil keputusan.</h2><div class="jm-depth-body"><h3>{{ $depth['h3'] }}</h3><p>{{ $depth['text'] }}</p><h4>{{ $depth['h4'] }}</h4><p>{{ $depth['detail'] }}</p><h5>{{ $depth['h5'] }}</h5><p>{{ $service['lead'] }} Implementasi dipilih berdasarkan kebutuhan, kesiapan tim, dan target yang ingin dicapai—bukan karena satu teknologi sedang populer.</p><h6>{{ $depth['h6'] }}</h6><p>Bisnis di Solo, Surakarta, Sukoharjo, dan Solo Raya membutuhkan solusi yang mudah dikomunikasikan, realistis untuk dijalankan, dan tetap dapat berkembang ketika pelanggan serta operasional bertambah.</p></div></div></section>
     <section class="jm-section jm-section-alt" data-reveal><div class="jm-wrap"><span class="jm-kicker">Cara kerja</span><h2>Dari kebutuhan yang kabur menjadi sistem yang bisa dijalankan.</h2><div class="jm-timeline">@foreach($service['steps'] as $step)<article class="jm-step"><b>0{{ $loop->iteration }}</b><h3>{{ $step }}</h3><p>Tujuan, batasan, dan hasil tahap ini disepakati agar proyek bergerak dengan arah yang sama.</p></article>@endforeach</div></div></section>
     <section class="jm-section" data-reveal><div class="jm-wrap"><span class="jm-kicker">Terhubung dengan ekosistem Juki</span><h2>Satu layanan dapat membuka peluang berikutnya.</h2><p class="jm-intro">Bangun sistem secara bertahap tanpa kehilangan arah. Pilih layanan yang paling relevan dengan posisi bisnis Anda saat ini.</p><div class="jm-related">@foreach($service['related'] as $link)<a href="{{ url($link[0]) }}"><span>{{ $link[1] }}</span><span aria-hidden="true">↗</span></a>@endforeach</div></div></section>
     @if($service['faqs'])<section class="jm-section jm-section-alt" data-reveal><div class="jm-wrap"><span class="jm-kicker">Pertanyaan umum</span><h2>Hal yang perlu jelas sebelum mulai.</h2><div class="jm-faq">@foreach($service['faqs'] as $faq)<details><summary>{{ $faq[0] }}</summary><p>{{ $faq[1] }}</p></details>@endforeach</div></div></section>@endif
