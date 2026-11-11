@@ -144,11 +144,34 @@
     .juki-web-landing .jw-showcase-card h3 { margin:20px 0 8px; color:#fff; font-size:1.45rem; }
     .juki-web-landing .jw-showcase-card p { margin:0; color:#cbd5e1; line-height:1.7; }
     .juki-web-landing .jw-showcase-number { display:flex; align-items:center; justify-content:space-between; color:#e8c982; font-family:'Outfit',sans-serif; font-size:2.5rem; font-weight:700; }
+    .juki-web-landing .jw-showcase-progress { width:100%; height:2px; margin-top:34px; overflow:hidden; background:rgba(255,255,255,.18); }
+    .juki-web-landing .jw-showcase-progress span { display:block; width:0; height:100%; background:var(--jw-gold); transition:width .15s linear; }
     .juki-web-landing .jw-bento .jw-service:first-child { grid-column:span 2; background:var(--jw-ink); color:#fff; }
     .juki-web-landing .jw-bento .jw-service:first-child h3,.juki-web-landing .jw-bento .jw-service:first-child p { color:#fff; }
     .juki-web-landing .jw-bento .jw-service:first-child p { color:#d7dee8; }
     .juki-web-landing .jw-bento .jw-service:nth-child(4) { background:var(--jw-soft); transform:translateY(18px); }
     .juki-web-landing .jw-bento .jw-service:nth-child(4):hover { transform:translateY(13px); }
+    .juki-web-landing .jw-section-benefits { background:radial-gradient(circle at 90% 10%,rgba(206,154,69,.12),transparent 35%),#f8f7f3; }
+    .juki-web-landing .jw-section-pricing { background:#fff; }
+    .juki-web-landing .jw-section-pricing .jw-grid { align-items:stretch; }
+    .juki-web-landing .jw-section-pricing .jw-service { position:relative; overflow:hidden; }
+    .juki-web-landing .jw-section-pricing .jw-service:nth-child(2) { border:2px solid var(--jw-gold); transform:translateY(-12px); box-shadow:0 22px 42px rgba(154,107,22,.15); }
+    .juki-web-landing .jw-section-pricing .jw-service:nth-child(2):before { content:'PALING DIPILIH'; position:absolute; top:0; right:0; padding:7px 12px; border-radius:0 0 0 10px; background:var(--jw-gold); color:var(--jw-ink); font-size:.62rem; font-weight:800; letter-spacing:.1em; }
+    .juki-web-landing .jw-section-aida { background:linear-gradient(180deg,#fbf6eb 0%,#fff 100%); }
+    .juki-web-landing .jw-timeline { position:relative; }
+    .juki-web-landing .jw-timeline:before { content:""; position:absolute; top:50%; left:8%; right:8%; height:1px; background:#ddc58f; }
+    .juki-web-landing .jw-timeline .jw-step { position:relative; z-index:1; border:1px solid #eadfca; border-top:3px solid var(--jw-gold); border-radius:14px; background:rgba(255,255,255,.92); transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease; }
+    .juki-web-landing .jw-timeline .jw-step.is-active { transform:translateY(-10px); border-color:var(--jw-gold); box-shadow:0 18px 35px rgba(154,107,22,.14); }
+    .juki-web-landing .jw-section-seo { color:#fff; background:linear-gradient(135deg,#15253f,#213756); }
+    .juki-web-landing .jw-section-seo h2,.juki-web-landing .jw-section-seo .jw-kicker { color:#fff; }
+    .juki-web-landing .jw-section-seo .jw-kicker { color:#e8c982; }
+    .juki-web-landing .jw-section-seo .jw-intro,.juki-web-landing .jw-section-seo .jw-list li { color:#d5dce6; }
+    .juki-web-landing .jw-section-seo .jw-list svg { color:#e8c982; }
+    .juki-web-landing .jw-section-process { background:#f8f7f3; }
+    .juki-web-landing .jw-section-process .jw-step { min-height:165px; border:0; border-left:3px solid var(--jw-gold); background:#fff; border-radius:0 14px 14px 0; }
+    .juki-web-landing .jw-section-related { background:#fff; }
+    .juki-web-landing .jw-section-related .jw-related a { min-height:82px; background:#fff; box-shadow:0 8px 22px rgba(21,37,63,.06); }
+    .juki-web-landing .jw-section-faq { background:#f8f7f3; }
     .juki-web-landing .jw-js .jw-reveal { opacity:0; transform:translateY(18px); transition:opacity .6s ease,transform .6s ease; }
     .juki-web-landing .jw-js .jw-reveal.is-visible { opacity:1; transform:none; }
     .juki-web-landing .jw-longform { max-width:820px; }
@@ -171,7 +194,7 @@
     .juki-web-landing .jw-final { padding:70px 0; background:var(--jw-ink); color:#fff; text-align:center; }
     .juki-web-landing .jw-final h2 { max-width:700px; margin:10px auto 16px; color:#fff; }
     .juki-web-landing .jw-final p { max-width:630px; margin:0 auto; color:#cbd5e1; line-height:1.7; }
-    @media (max-width:900px) { .juki-web-landing .jw-hero-inner,.juki-web-landing .jw-columns,.juki-web-landing .jw-sticky-layout,.juki-web-landing .jw-showcase-grid { grid-template-columns:1fr; gap:32px; } .juki-web-landing .jw-sticky-offer,.juki-web-landing .jw-showcase-sticky { position:relative; top:auto; order:-1; } .juki-web-landing .jw-grid,.juki-web-landing .jw-aida { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-bento .jw-service:first-child { grid-column:auto; } .juki-web-landing .jw-bento .jw-service:nth-child(4) { transform:none; } .juki-web-landing .jw-showcase-card:nth-child(2),.juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:0; } }
+    @media (max-width:900px) { .juki-web-landing .jw-hero-inner,.juki-web-landing .jw-columns,.juki-web-landing .jw-sticky-layout,.juki-web-landing .jw-showcase-grid { grid-template-columns:1fr; gap:32px; } .juki-web-landing .jw-sticky-offer,.juki-web-landing .jw-showcase-sticky { position:relative; top:auto; order:-1; } .juki-web-landing .jw-grid,.juki-web-landing .jw-aida { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-bento .jw-service:first-child { grid-column:auto; } .juki-web-landing .jw-bento .jw-service:nth-child(4),.juki-web-landing .jw-section-pricing .jw-service:nth-child(2) { transform:none; } .juki-web-landing .jw-showcase-card:nth-child(2),.juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:0; } .juki-web-landing .jw-timeline:before { display:none; } }
     @media (max-width:620px) { .juki-web-landing .jw-container { width:min(100% - 24px,1180px); } .juki-web-landing .jw-hero-inner { padding:58px 0 52px; } .juki-web-landing .jw-proof-grid,.juki-web-landing .jw-grid,.juki-web-landing .jw-aida,.juki-web-landing .jw-related { grid-template-columns:1fr; } .juki-web-landing .jw-section,.juki-web-landing .jw-showcase { padding:58px 0; } .juki-web-landing .jw-actions .jw-btn { width:100%; } .juki-web-landing .jw-hero-visual { min-height:280px; } .juki-web-landing .jw-visual-note { right:0; bottom:4px; } .juki-web-landing .jw-longform { padding-left:18px; } }
     @media (prefers-reduced-motion:reduce) { .juki-web-landing *,.juki-web-landing *:before,.juki-web-landing *:after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } .juki-web-landing .jw-js .jw-reveal { opacity:1; transform:none; } }
 </style>
@@ -192,18 +215,53 @@ document.addEventListener('DOMContentLoaded', function () {
     var revealItems = landing.querySelectorAll('.jw-reveal');
     if (!('IntersectionObserver' in window)) {
         revealItems.forEach(function (item) { item.classList.add('is-visible'); });
-        return;
+    } else {
+        var observer = new IntersectionObserver(function (entries, currentObserver) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('is-visible');
+                currentObserver.unobserve(entry.target);
+            });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+        revealItems.forEach(function (item) { observer.observe(item); });
     }
 
-    var observer = new IntersectionObserver(function (entries, currentObserver) {
-        entries.forEach(function (entry) {
-            if (!entry.isIntersecting) return;
-            entry.target.classList.add('is-visible');
-            currentObserver.unobserve(entry.target);
-        });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    var progressBar = landing.querySelector('.jw-showcase-progress span');
+    var showcase = landing.querySelector('.jw-showcase');
+    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var updateProgress = function () {
+        if (!progressBar || !showcase) return;
+        var rect = showcase.getBoundingClientRect();
+        var travel = Math.max(1, rect.height - window.innerHeight);
+        var progress = Math.min(1, Math.max(0, -rect.top / travel));
+        progressBar.style.width = (progress * 100) + '%';
+    };
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
 
-    revealItems.forEach(function (item) { observer.observe(item); });
+    var timelineSteps = landing.querySelectorAll('[data-timeline-step]');
+    if ('IntersectionObserver' in window && timelineSteps.length) {
+        var timelineObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                entry.target.classList.toggle('is-active', entry.isIntersecting);
+            });
+        }, { rootMargin: '-30% 0px -45% 0px', threshold: 0 });
+        timelineSteps.forEach(function (step) { timelineObserver.observe(step); });
+    }
+
+    var visual = landing.querySelector('.jw-browser');
+    if (visual && !reducedMotion && window.matchMedia('(pointer:fine)').matches) {
+        var heroVisual = landing.querySelector('.jw-hero-visual');
+        heroVisual.addEventListener('pointermove', function (event) {
+            var bounds = heroVisual.getBoundingClientRect();
+            var x = (event.clientX - bounds.left) / bounds.width - .5;
+            var y = (event.clientY - bounds.top) / bounds.height - .5;
+            visual.style.transform = 'perspective(900px) rotateY(' + (x * 4) + 'deg) rotateX(' + (y * -3) + 'deg) rotateZ(1.5deg)';
+        });
+        heroVisual.addEventListener('pointerleave', function () {
+            visual.style.transform = 'rotateZ(1.5deg)';
+        });
+    }
 });
 </script>
 @endsection
@@ -242,6 +300,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <h2>Rapi ketika dilihat. Terarah ketika digunakan.</h2>
                 <p class="jw-intro">Website profesional di Solo tidak harus terlihat ramai untuk terlihat bernilai. Kami menggunakan kontras, ruang, tipografi, dan urutan pesan untuk membuat keputusan terasa lebih mudah.</p>
                 <a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin melihat konsep website profesional untuk bisnis saya.') }}">Lihat konsep untuk bisnis saya →</a>
+                <div class="jw-showcase-progress" aria-hidden="true"><span></span></div>
             </div>
             <div>
                 <article class="jw-showcase-card jw-reveal"><div class="jw-showcase-number"><span>01</span><span aria-hidden="true">↗</span></div><div><span class="jw-card-label">Attention</span><h3>Orang langsung tahu Anda menjual apa.</h3><p>Hero bukan tempat untuk jargon. Ia menyampaikan layanan utama, wilayah Solo, manfaat, dan CTA dalam satu pandangan pertama.</p></div></article>
@@ -268,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </aside>
         </div>
     </section>
-    <section class="jw-section">
+    <section class="jw-section jw-section-benefits">
         <div class="jw-container"><span class="jw-kicker">Satu website. Satu tujuan: lebih banyak inquiry.</span><h2>Yang Anda dapatkan bukan halaman cantik—tetapi aset bisnis yang siap bekerja.</h2><p class="jw-intro">Kami merancang pesan, struktur, tampilan, dan CTA berdasarkan cara calon pelanggan memilih jasa. Hasilnya terlihat profesional, mudah dipahami, dan punya jalur jelas menuju WhatsApp atau inquiry.</p>
             <div class="jw-grid jw-bento">
                 <article class="jw-service"><div class="jw-service-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div><h3>Terlihat kredibel</h3><p>Visual premium, pesan yang tajam, dan struktur yang membuat calon pelanggan yakin untuk bertanya.</p></article>
@@ -278,13 +337,13 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         </div>
     </section>
-    <section class="jw-section jw-section-alt">
+    <section class="jw-section jw-section-pricing jw-section-alt">
         <div class="jw-container"><span class="jw-kicker">Pilih titik mulai Anda</span><h2>Solusi website untuk kebutuhan yang berbeda.</h2><div class="jw-grid"><article class="jw-service"><span class="jw-card-label">Mulai Rp 2,5 juta</span><h3>Website bisnis</h3><p>Company profile, landing page, atau toko online untuk bisnis yang ingin tampil profesional dan mulai menerima inquiry.</p><a class="jw-btn jw-btn-primary" style="margin-top:20px" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya tertarik Paket Website mulai Rp 2.500.000.') }}">Tanya paket ini →</a></article><article class="jw-service"><span class="jw-card-label">Mulai Rp 10 juta</span><h3>Sistem informasi</h3><p>CRM, ERP, inventory, POS, dashboard, atau aplikasi web custom yang mengikuti proses kerja perusahaan.</p><a class="jw-btn jw-btn-primary" style="margin-top:20px" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin konsultasi sistem informasi bisnis.') }}">Diskusikan kebutuhan →</a></article><article class="jw-service"><span class="jw-card-label">Custom / enterprise</span><h3>Solusi terintegrasi</h3><p>Website, SEO, otomasi, AI, dan integrasi API untuk kebutuhan khusus dengan scope yang disusun bersama.</p><a class="jw-btn jw-btn-primary" style="margin-top:20px" href="{{ url('/contact') }}">Kirim brief proyek →</a></article></div></div>
     </section>
-    <section class="jw-section jw-section-alt" aria-label="Alur keputusan pelanggan">
-        <div class="jw-container"><span class="jw-kicker">Mengapa halaman ini efektif</span><h2>Alur AIDA yang terasa natural, bukan teori di atas kertas.</h2><div class="jw-aida"><article class="jw-step"><b>01 · Attention</b><h3>Masalah langsung terasa</h3><p>Headline berbicara kepada bisnis yang ingin dipercaya dan mendapatkan inquiry.</p></article><article class="jw-step"><b>02 · Interest</b><h3>Solusinya mudah dipahami</h3><p>Kartu manfaat menjelaskan apa yang dibangun dan untuk siapa.</p></article><article class="jw-step"><b>03 · Desire</b><h3>Nilainya menjadi nyata</h3><p>Paket, harga awal, SEO, proses, dan kepemilikan mengurangi keraguan.</p></article><article class="jw-step"><b>04 · Action</b><h3>CTA ada di saat yang tepat</h3><p>Pengunjung dapat langsung menghubungi Juki tanpa mencari-cari tombol.</p></article></div></div>
+    <section class="jw-section jw-section-aida jw-section-alt" aria-label="Alur keputusan pelanggan">
+        <div class="jw-container"><span class="jw-kicker">Mengapa halaman ini efektif</span><h2>Alur AIDA yang terasa natural, bukan teori di atas kertas.</h2><div class="jw-aida jw-timeline"><article class="jw-step" data-timeline-step><b>01 · Attention</b><h3>Masalah langsung terasa</h3><p>Headline berbicara kepada bisnis yang ingin dipercaya dan mendapatkan inquiry.</p></article><article class="jw-step" data-timeline-step><b>02 · Interest</b><h3>Solusinya mudah dipahami</h3><p>Kartu manfaat menjelaskan apa yang dibangun dan untuk siapa.</p></article><article class="jw-step" data-timeline-step><b>03 · Desire</b><h3>Nilainya menjadi nyata</h3><p>Paket, harga awal, SEO, proses, dan kepemilikan mengurangi keraguan.</p></article><article class="jw-step" data-timeline-step><b>04 · Action</b><h3>CTA ada di saat yang tepat</h3><p>Pengunjung dapat langsung menghubungi Juki tanpa mencari-cari tombol.</p></article></div></div>
     </section>
-    <section class="jw-section"><div class="jw-container jw-columns"><div><span class="jw-kicker">Dibangun untuk ditemukan dan dipercaya</span><h2>Premium di mata pelanggan. Sehat di mata Google.</h2><p class="jw-intro">Keindahan visual tidak berdiri sendiri. Setiap halaman disusun agar mudah dipindai, cepat digunakan, dan memiliki konteks SEO yang jelas.</p></div><ul class="jw-list"><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Mobile-first, aksesibel, dan nyaman dibaca.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Meta title, schema, sitemap, canonical, dan internal link.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Struktur cepat, aman, dan siap dikembangkan.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Integrasi WhatsApp, formulir, API, dan kebutuhan bisnis.</span></li></ul></div></section>
+    <section class="jw-section jw-section-seo"><div class="jw-container jw-columns"><div><span class="jw-kicker">Dibangun untuk ditemukan dan dipercaya</span><h2>Premium di mata pelanggan. Sehat di mata Google.</h2><p class="jw-intro">Keindahan visual tidak berdiri sendiri. Setiap halaman disusun agar mudah dipindai, cepat digunakan, dan memiliki konteks SEO yang jelas.</p></div><ul class="jw-list"><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Mobile-first, aksesibel, dan nyaman dibaca.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Meta title, schema, sitemap, canonical, dan internal link.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Struktur cepat, aman, dan siap dikembangkan.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Integrasi WhatsApp, formulir, API, dan kebutuhan bisnis.</span></li></ul></div></section>
     <section class="jw-section jw-section-alt">
         <div class="jw-container"><span class="jw-kicker">Jasa pembuatan website profesional di Solo</span><h2>Semua yang penting untuk membuat calon pelanggan yakin.</h2><p class="jw-intro">Bukan artikel panjang. Bukan template yang diganti warna. Ini adalah sistem halaman yang memandu pengunjung dari “siapa Anda?” menjadi “bagaimana saya mulai?”.</p><div class="jw-grid jw-grid-3">
             <article class="jw-service"><span class="jw-card-label">01 · Posisi</span><h3>Pesan yang langsung terbaca</h3><p>Headline menjelaskan layanan dan hasil yang dicari pelanggan. Untuk bisnis lokal, konteks Solo, Surakarta, dan area layanan muncul secara natural sehingga pengunjung dan Google memahami relevansinya.</p></article>
@@ -319,9 +378,9 @@ document.addEventListener('DOMContentLoaded', function () {
         </div></div>
     </section>
     <section class="jw-section jw-section-alt"><div class="jw-container"><span class="jw-kicker">Bukan sekadar online</span><h2>Jadikan website sebagai tempat pertama pelanggan memilih Anda.</h2><p class="jw-intro">Saat pencarian berubah menjadi kunjungan, halaman ini bekerja sebagai perkenalan, sales deck, dan pintu konsultasi sekaligus. Itulah standar yang kami kejar untuk setiap website profesional di Solo.</p></div></section>
-    <section class="jw-section"><div class="jw-container"><span class="jw-kicker">Cara kerja sederhana</span><h2>Dari ide menjadi website yang siap dipakai.</h2><div class="jw-aida"><article class="jw-step"><b>01</b><h3>Konsultasi</h3><p>Ceritakan bisnis, target pelanggan, layanan, dan tujuan utama Anda.</p></article><article class="jw-step"><b>02</b><h3>Rancang</h3><p>Kami susun pesan, struktur halaman, visual, dan kebutuhan teknis.</p></article><article class="jw-step"><b>03</b><h3>Bangun</h3><p>Website dikembangkan responsif, SEO-ready, dan diuji sebelum live.</p></article><article class="jw-step"><b>04</b><h3>Tumbuhkan</h3><p>Setelah live, lanjutkan dengan SEO, konten, otomasi, atau AI.</p></article></div></div></section>
-    <section class="jw-section jw-section-alt"><div class="jw-container"><span class="jw-kicker">Layanan yang bisa mengikuti</span><h2>Website adalah fondasi. Pertumbuhan berikutnya ada di sini.</h2><p class="jw-intro">Hubungkan website Anda dengan layanan yang relevan ketika bisnis mulai tumbuh.</p><div class="jw-related">@foreach($relatedLinks as $rl)<a href="{{ url($rl['url']) }}"><span>{{ $rl['title'] }}</span><span aria-hidden="true">↗</span></a>@endforeach</div></div></section>
-    <section class="jw-section jw-section-alt"><div class="jw-container"><span class="jw-kicker">Pertanyaan umum</span><h2>Masih ingin memastikan sebelum mulai?</h2><div class="jw-faq"><details><summary>Berapa harga website?</summary><p>Paket website mulai Rp 2.500.000. Sistem informasi mulai Rp 10.000.000. Kebutuhan custom dibahas berdasarkan fitur dan scope proyek.</p></details><details><summary>Berapa lama pengerjaannya?</summary><p>Website standar dapat diselesaikan maksimal dua minggu. Sistem modular sekitar satu bulan, sedangkan proyek custom menyesuaikan kompleksitas.</p></details><details><summary>Apakah website sudah SEO-friendly?</summary><p>Ya. Struktur heading, metadata, schema, sitemap, performa, mobile-first, dan internal link disiapkan sejak awal.</p></details><details><summary>Bisakah saya mulai dari kebutuhan sederhana?</summary><p>Bisa. Anda dapat memulai dari company profile atau landing page, lalu menambah SEO, katalog, otomasi, atau aplikasi ketika kebutuhan bisnis berkembang.</p></details><details><summary>Teknologi apa yang digunakan?</summary><p>Teknologi dipilih berdasarkan kebutuhan proyek, termasuk WordPress, Laravel, CodeIgniter, PHP modern, database, REST API, dan integrasi WhatsApp.</p></details><details><summary>Apa yang harus saya siapkan?</summary><p>Cukup sampaikan jenis bisnis, layanan utama, target pelanggan, referensi visual, dan tujuan website. Jika belum lengkap, kami bantu menyusunnya saat konsultasi.</p></details></div></div></section>
+    <section class="jw-section jw-section-process"><div class="jw-container"><span class="jw-kicker">Cara kerja sederhana</span><h2>Dari ide menjadi website yang siap dipakai.</h2><div class="jw-aida"><article class="jw-step"><b>01</b><h3>Konsultasi</h3><p>Ceritakan bisnis, target pelanggan, layanan, dan tujuan utama Anda.</p></article><article class="jw-step"><b>02</b><h3>Rancang</h3><p>Kami susun pesan, struktur halaman, visual, dan kebutuhan teknis.</p></article><article class="jw-step"><b>03</b><h3>Bangun</h3><p>Website dikembangkan responsif, SEO-ready, dan diuji sebelum live.</p></article><article class="jw-step"><b>04</b><h3>Tumbuhkan</h3><p>Setelah live, lanjutkan dengan SEO, konten, otomasi, atau AI.</p></article></div></div></section>
+    <section class="jw-section jw-section-related jw-section-alt"><div class="jw-container"><span class="jw-kicker">Layanan yang bisa mengikuti</span><h2>Website adalah fondasi. Pertumbuhan berikutnya ada di sini.</h2><p class="jw-intro">Hubungkan website Anda dengan layanan yang relevan ketika bisnis mulai tumbuh.</p><div class="jw-related">@foreach($relatedLinks as $rl)<a href="{{ url($rl['url']) }}"><span>{{ $rl['title'] }}</span><span aria-hidden="true">↗</span></a>@endforeach</div></div></section>
+    <section class="jw-section jw-section-faq jw-section-alt"><div class="jw-container"><span class="jw-kicker">Pertanyaan umum</span><h2>Masih ingin memastikan sebelum mulai?</h2><div class="jw-faq"><details><summary>Berapa harga website?</summary><p>Paket website mulai Rp 2.500.000. Sistem informasi mulai Rp 10.000.000. Kebutuhan custom dibahas berdasarkan fitur dan scope proyek.</p></details><details><summary>Berapa lama pengerjaannya?</summary><p>Website standar dapat diselesaikan maksimal dua minggu. Sistem modular sekitar satu bulan, sedangkan proyek custom menyesuaikan kompleksitas.</p></details><details><summary>Apakah website sudah SEO-friendly?</summary><p>Ya. Struktur heading, metadata, schema, sitemap, performa, mobile-first, dan internal link disiapkan sejak awal.</p></details><details><summary>Bisakah saya mulai dari kebutuhan sederhana?</summary><p>Bisa. Anda dapat memulai dari company profile atau landing page, lalu menambah SEO, katalog, otomasi, atau aplikasi ketika kebutuhan bisnis berkembang.</p></details><details><summary>Teknologi apa yang digunakan?</summary><p>Teknologi dipilih berdasarkan kebutuhan proyek, termasuk WordPress, Laravel, CodeIgniter, PHP modern, database, REST API, dan integrasi WhatsApp.</p></details><details><summary>Apa yang harus saya siapkan?</summary><p>Cukup sampaikan jenis bisnis, layanan utama, target pelanggan, referensi visual, dan tujuan website. Jika belum lengkap, kami bantu menyusunnya saat konsultasi.</p></details></div></div></section>
     <section class="jw-final"><div class="jw-container"><span class="jw-kicker" style="color:#e8c982">Action berikutnya</span><h2>Website Anda seharusnya membantu menjual, bukan hanya terlihat ada.</h2><p>Ceritakan kebutuhan Anda. Kami bantu menentukan solusi yang paling masuk akal untuk bisnis, anggaran, dan target pelanggan Anda. Mulai dengan percakapan singkat tanpa komitmen dan dapatkan arah yang jelas untuk bisnis di Solo yang ingin tampil serius dan siap bertumbuh.</p><div class="jw-actions" style="justify-content:center"><a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin konsultasi jasa pembuatan website untuk bisnis saya.') }}">Konsultasi via WhatsApp <span aria-hidden="true">→</span></a><a class="jw-btn jw-btn-ghost" href="{{ url('/contact') }}">Kirim brief proyek</a></div></div></section>
 </main>
 @else
