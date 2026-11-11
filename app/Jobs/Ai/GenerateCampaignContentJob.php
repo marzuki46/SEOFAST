@@ -134,4 +134,25 @@ class GenerateCampaignContentJob implements ShouldQueue
             $lock->release();
         }
     }
+
+    public function failed(?\Throwable $exception): void
+    {
+        $schedule = ContentCampaignSchedule::withoutGlobalScopes()->find($this->scheduleId);
+        if (! $schedule) {
+            return;
+        }
+
+        $schedule->update([
+            'status' => 'failed',
+            'locked_at' => null,
+            'error_message' => Str::limit($exception?->getMessage() ?: 'Campaign content job failed.', 1000),
+        ]);
+
+        if ($schedule->content_topic_id) {
+            ContentTopic::withoutGlobalScopes()
+                ->whereKey($schedule->content_topic_id)
+                ->where('status', 'processing')
+                ->update(['status' => 'idea', 'content_id' => null]);
+        }
+    }
 }

@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\ContentCampaign;
 use App\Models\ContentCampaignSchedule;
+use App\Models\Content;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Log;
 
 class ContentCampaignScheduleService
 {
@@ -13,13 +15,67 @@ class ContentCampaignScheduleService
         if ($campaign->status !== 'active') {
             return null;
         }
-        $existing = $campaign->schedules()->whereIn('status', ['pending', 'processing'])->where('scheduled_at', '>=', now())->first();
+
+        $this->recoverStaleSchedules($campaign);
+
+        $now = now();
+        $existing = $campaign->schedules()
+            ->where(function ($query) use ($now) {
+                $query->where(fn ($q) => $q->where('status', 'pending')->where('scheduled_at', '>=', $now))
+                    ->orWhere(fn ($q) => $q->where('status', 'processing')->where('locked_at', '>=', $now->copy()->subMinutes(15)));
+            })
+            ->orderBy('scheduled_at')
+            ->first();
         if ($existing) {
+            $campaign->forceFill(['next_run_at' => $existing->scheduled_at])->saveQuietly();
+
             return $existing;
         }
         $at = $this->nextRunAt($campaign);
+        $schedule = $campaign->schedules()->create(['scheduled_at' => $at, 'status' => 'pending']);
+        $campaign->forceFill(['next_run_at' => $at])->saveQuietly();
 
-        return $campaign->schedules()->create(['scheduled_at' => $at, 'status' => 'pending']);
+        return $schedule;
+    }
+
+    /**
+     * Return abandoned processing schedules to the queue without creating
+     * duplicate content. A worker crash must not permanently block a campaign.
+     */
+    private function recoverStaleSchedules(ContentCampaign $campaign): void
+    {
+        $cutoff = now()->subMinutes(15);
+        $stale = $campaign->schedules()
+            ->where('status', 'processing')
+            ->where(function ($query) use ($cutoff) {
+                $query->whereNull('locked_at')->orWhere('locked_at', '<', $cutoff);
+            })
+            ->get();
+
+        foreach ($stale as $schedule) {
+            if ($schedule->content_id && Content::withoutGlobalScopes()->whereKey($schedule->content_id)->whereNotIn('status', ['ai_processing'])->exists()) {
+                $schedule->update(['status' => 'completed', 'locked_at' => null]);
+                continue;
+            }
+
+            if ($schedule->content_topic_id) {
+                $campaign->topics()->whereKey($schedule->content_topic_id)->where('status', 'processing')->update([
+                    'status' => 'idea',
+                    'content_id' => null,
+                ]);
+            }
+
+            $schedule->update([
+                'status' => 'pending',
+                'locked_at' => null,
+                'error_message' => 'Recovered after an abandoned queue worker.',
+            ]);
+
+            Log::warning('Recovered stale content campaign schedule', [
+                'campaign_id' => $campaign->id,
+                'schedule_id' => $schedule->id,
+            ]);
+        }
     }
 
     public function nextRunAt(ContentCampaign $campaign): CarbonImmutable
