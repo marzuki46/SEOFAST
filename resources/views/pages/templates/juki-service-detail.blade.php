@@ -46,15 +46,18 @@
 }
 </script>
 @if($isWebsiteService)
-<script type="application/ld+json">@json([
-    '@context' => 'https://schema.org',
-    '@type' => 'FAQPage',
-    'mainEntity' => [
-        ['@type' => 'Question', 'name' => 'Berapa lama pembuatan website?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Waktu pengerjaan bergantung pada jenis dan ruang lingkup website. Setelah kebutuhan dipetakan, Juki memberikan rencana kerja dan milestone yang jelas.']],
-        ['@type' => 'Question', 'name' => 'Apakah website dibuat SEO-friendly?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Ya. Struktur heading, metadata, performa, responsif mobile, sitemap, dan fondasi on-page SEO disiapkan sejak proses pengembangan.']],
-        ['@type' => 'Question', 'name' => 'Apakah website bisa terhubung ke WhatsApp?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Bisa. Alur inquiry, tombol WhatsApp, formulir kontak, dan integrasi API dapat disesuaikan dengan kebutuhan bisnis.']],
-    ],
-])</script>
+@php
+    $faqSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'FAQPage',
+        'mainEntity' => [
+            ['@type' => 'Question', 'name' => 'Berapa lama pembuatan website?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Waktu pengerjaan bergantung pada jenis dan ruang lingkup website. Setelah kebutuhan dipetakan, Juki memberikan rencana kerja dan milestone yang jelas.']],
+            ['@type' => 'Question', 'name' => 'Apakah website dibuat SEO-friendly?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Ya. Struktur heading, metadata, performa, responsif mobile, sitemap, dan fondasi on-page SEO disiapkan sejak proses pengembangan.']],
+            ['@type' => 'Question', 'name' => 'Apakah website bisa terhubung ke WhatsApp?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Bisa. Alur inquiry, tombol WhatsApp, formulir kontak, dan integrasi API dapat disesuaikan dengan kebutuhan bisnis.']],
+        ],
+    ];
+@endphp
+<script type="application/ld+json">{!! json_encode($faqSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endif
 @endsection
 
