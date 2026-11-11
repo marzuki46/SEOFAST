@@ -195,7 +195,13 @@ class ContentCampaignController extends Controller
             }
         }
 
-        $topics = $campaign->topics()->with('campaignTarget')->latest()->paginate(20)->withQueryString();
+        $topics = $campaign->topics()
+            ->with(['campaignTarget', 'siloBlueprint', 'product', 'content'])
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        $campaign->load(['siloBlueprint', 'product']);
 
         return view('admin.content-campaigns.topics', compact('campaign', 'topics'));
     }

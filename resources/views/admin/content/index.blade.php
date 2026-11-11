@@ -52,6 +52,7 @@
                         <th class="px-6 py-3.5">Hierarchy</th>
                         <th class="px-6 py-3.5">Silo Category</th>
                         <th class="px-6 py-3.5">Status</th>
+                        <th class="px-6 py-3.5">Tanggal</th>
                         <th class="px-6 py-3.5 text-right">Actions</th>
                     </tr>
                 </thead>
@@ -101,6 +102,17 @@
                                 <span class="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/20">Failed CQI</span>
                             @else
                                 <span class="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-600/20">{{ ucfirst($post->status) }}</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-slate-500">
+                            @if($post->published_at)
+                                <div class="font-medium text-slate-900">{{ $post->published_at->format('d M Y, H:i') }}</div>
+                                <div class="text-[11px] text-emerald-600 font-medium">Terbit ({{ $post->published_at->diffForHumans() }})</div>
+                            @elseif($post->created_at)
+                                <div class="font-medium text-slate-700">{{ $post->created_at->format('d M Y, H:i') }}</div>
+                                <div class="text-[11px] text-slate-400">Dibuat ({{ $post->created_at->diffForHumans() }})</div>
+                            @else
+                                <span class="text-slate-400">—</span>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right">
@@ -159,7 +171,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                        <td colspan="7" class="px-6 py-12 text-center text-slate-400">
                             No posts found. Start by writing your first article using AI!
                         </td>
                     </tr>
