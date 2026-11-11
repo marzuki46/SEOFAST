@@ -1,6 +1,6 @@
 <article class="flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-slate-300 hover:shadow-md transition-all group">
-    <a href="{{ route('blog.show', $post->slug) }}" class="block overflow-hidden bg-slate-100">
-        <img src="{{ $post->featured_image_url ?: asset('images/seofast-placeholder.svg') }}" alt="{{ $post->featured_image_alt ?? $post->title }}" loading="lazy" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+    <a href="{{ route('blog.show', $post->slug) }}" class="block overflow-hidden bg-slate-100 aspect-[16/9] relative">
+        <img src="{{ $post->featured_image_url ?: asset('images/seofast-placeholder.svg') }}" alt="{{ $post->featured_image_alt ?? $post->title }}" loading="lazy" width="400" height="225" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
     </a>
     <div class="p-6 flex flex-col flex-1">
         <div class="flex items-center gap-2 text-xs text-slate-500 mb-4 flex-wrap">

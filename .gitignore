@@ -30,6 +30,7 @@ Thumbs.db
 
 # Laravel specific
 storage/
+public/uploads/
 bootstrap/cache/
 
 # Random temp files

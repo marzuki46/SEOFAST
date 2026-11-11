@@ -205,6 +205,12 @@
                         {{ $post->title }}
                     </h1>
 
+                    @if($post->featured_image_url)
+                        <figure class="mt-8 mb-2 overflow-hidden rounded-3xl border border-slate-200 shadow-sm bg-slate-100">
+                            <img src="{{ $post->featured_image_url }}" alt="{{ $post->featured_image_alt ?? $post->title }}" class="w-full h-auto max-h-[520px] object-cover" loading="eager" fetchpriority="high" decoding="async">
+                        </figure>
+                    @endif
+
 
                 </header>
 

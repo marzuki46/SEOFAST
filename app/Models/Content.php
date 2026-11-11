@@ -39,11 +39,12 @@ class Content extends Model
                 SitemapController::flushCache();
             }
             if ($content->isDirty('status') && $content->status === 'published' && ! $content->featured_image_url) {
-                $title = $content->meta_title ?: $content->target_keyword;
-                $slug = $content->target_keyword ?: 'content';
-                $ogUrl = app(ImageService::class)->generateOgImage($title, $slug);
-                if ($ogUrl) {
-                    $content->featured_image_url = $ogUrl;
+                $title = $content->meta_title ?: ($content->title ?: $content->target_keyword);
+                $slug = $content->slug ?: Str::slug($content->target_keyword ?: 'content');
+                $imgUrl = app(ImageService::class)->createArticleFeaturedImage($title, $content->target_keyword ?: '', $slug);
+                if ($imgUrl) {
+                    $content->featured_image_url = $imgUrl;
+                    $content->featured_image_alt = $title;
                 }
             }
         });

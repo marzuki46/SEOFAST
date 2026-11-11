@@ -11,6 +11,7 @@ use App\Services\AiRecoveryManager;
 use App\Services\AIService;
 use App\Services\ContentCampaignPromptService;
 use App\Services\ContentEditorialService;
+use App\Services\ImageService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -859,6 +860,22 @@ class ProcessAiGenerationJob implements ShouldQueue
             app(ContentEditorialService::class)->polish($content);
         } catch (\Exception $e) {
             Log::warning("Editorial polish failed for job {$job->id}: ".$e->getMessage());
+        }
+
+        // Featured Image Generation (AI illustration compressed to WebP under 100 KB)
+        if (! $content->featured_image_url) {
+            try {
+                $title = $content->meta_title ?: ($content->title ?: $keyword);
+                $imgUrl = app(ImageService::class)->createArticleFeaturedImage($title, $keyword, $content->slug);
+                if ($imgUrl) {
+                    $content->update([
+                        'featured_image_url' => $imgUrl,
+                        'featured_image_alt' => $title,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning("Featured image generation failed for job {$job->id}: ".$e->getMessage());
+            }
         }
 
         // Clean up retry hints
