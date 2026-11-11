@@ -2,17 +2,22 @@
 
 namespace App\Jobs\Ai;
 
-use App\Models\Content;
 use App\Models\AiGenerationJob;
+use App\Models\Content;
+use App\Models\ContentEmbedding;
 use App\Models\DeterministicLink;
-use App\Services\AIService;
+use App\Models\SystemSetting;
 use App\Services\AiRecoveryManager;
+use App\Services\AIService;
+use App\Services\ContentCampaignPromptService;
+use App\Services\ContentEditorialService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ProcessAiGenerationJob implements ShouldQueue
 {
@@ -33,13 +38,14 @@ class ProcessAiGenerationJob implements ShouldQueue
     public function handle(): void
     {
         $content = Content::withoutGlobalScopes()->find($this->contentId);
-        $job     = AiGenerationJob::withoutGlobalScopes()->find($this->jobId);
+        $job = AiGenerationJob::withoutGlobalScopes()->find($this->jobId);
 
-        if (!$content || !$job) {
+        if (! $content || ! $job) {
             Log::error('ProcessAiGenerationJob: model not found', [
                 'content_id' => $this->contentId,
-                'job_id'     => $this->jobId,
+                'job_id' => $this->jobId,
             ]);
+
             return;
         }
 
@@ -47,6 +53,7 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         if (in_array($currentStatus, ['completed', 'failed'])) {
             Log::info("ProcessAiGenerationJob: job {$this->jobId} already in terminal state '{$currentStatus}'. Skipping.");
+
             return;
         }
 
@@ -65,6 +72,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             $job->update(['status' => 'pending']);
             self::dispatch($this->contentId, $this->jobId, $this->targetStatus)
                 ->delay(now()->addSeconds(30));
+
             return;
         }
 
@@ -77,7 +85,7 @@ class ProcessAiGenerationJob implements ShouldQueue
                 'phase_5' => $this->runPhase5($content, $job),
                 'phase_6' => $this->runPhase6($content, $job),
                 'phase_7' => $this->runPhase7($content, $job),
-                default   => Log::warning("ProcessAiGenerationJob: unknown status '{$currentStatus}' for job {$this->jobId}"),
+                default => Log::warning("ProcessAiGenerationJob: unknown status '{$currentStatus}' for job {$this->jobId}"),
             };
         } catch (\Exception $e) {
             $this->handleError($job, $content, $e, $currentStatus);
@@ -97,56 +105,60 @@ class ProcessAiGenerationJob implements ShouldQueue
 
     private function runPhase1(Content $content, AiGenerationJob $job): void
     {
-        $keyword     = $content->target_keyword;
+        $keyword = $content->target_keyword;
         $seedKeyword = $content->siloBlueprint?->seed_keyword ?? $keyword;
-        $lang        = $content->siloBlueprint?->target_language ?? 'id';
-        $country     = $content->siloBlueprint?->target_country ?? 'ID';
-        $li          = $this->langInstruct($lang);
+        $lang = $content->siloBlueprint?->target_language ?? 'id';
+        $country = $content->siloBlueprint?->target_country ?? 'ID';
+        $li = $this->langInstruct($lang);
 
         Log::info("AI Phase 1 (LSI + Entities) START | job={$job->id} | keyword={$keyword}");
 
         $aiService = new AIService($content->tenant, 'default');
 
         // METHOD 1: Generate structured JSON with LSI, Entities, and Anchor keywords
-        $brandNames       = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
-        $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
+        $brandNames = SystemSetting::get('ai_prompt_brand_names', '');
+        $brandPositioning = SystemSetting::get('ai_prompt_brand_positioning', '');
 
-        $sysTemplate = \App\Models\SystemSetting::get(
+        $sysTemplate = SystemSetting::get(
             'ai_prompt_phase1_sys',
             'You are an Expert SEO Strategist. Generate LSI keywords, semantic entities, and anchor keywords (anchor texts for internal links) relevant to "{keyword}". Return ONLY a valid JSON object with exactly this structure: {"lsi": ["keyword1", "keyword2", "keyword3"], "entities": ["entity1", "entity2", "entity3"], "anchors": ["anchor text 1", "anchor text 2", "anchor text 3"]}. NO MARKDOWN, NO EXTRA TEXT.'
         );
-        $tone      = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
-        $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country, '{tone}' => $tone]);
+        $tone = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
+        $sysPrompt = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country, '{tone}' => $tone]);
         if ($brandNames || $brandPositioning) {
             $sysPrompt .= "\n\nRelevant brand context (use when appropriate):\n";
-            if ($brandNames) $sysPrompt .= "Brand names: {$brandNames}\n";
-            if ($brandPositioning) $sysPrompt .= "Brand positioning: {$brandPositioning}\n";
+            if ($brandNames) {
+                $sysPrompt .= "Brand names: {$brandNames}\n";
+            }
+            if ($brandPositioning) {
+                $sysPrompt .= "Brand positioning: {$brandPositioning}\n";
+            }
         }
-        $langPh1    = $lang === 'id' ? "BUAT LSI, ENTITIES, DAN ANCHOR KEYWORD DALAM BAHASA INDONESIA.\n" : '';
+        $langPh1 = $lang === 'id' ? "BUAT LSI, ENTITIES, DAN ANCHOR KEYWORD DALAM BAHASA INDONESIA.\n" : '';
         $userPrompt = "{$langPh1}Topic: {$keyword}\nLanguage: {$lang}\nCountry: {$country}";
         $campaign = $content->campaign;
         if ($campaign) {
-            $campaign = app(\App\Services\ContentCampaignPromptService::class)->applyDefaults($campaign);
-            $userPrompt .= "\n\n".app(\App\Services\ContentCampaignPromptService::class)->temporalContext($campaign->timezone ?: config('app.timezone', 'UTC'));
+            $campaign = app(ContentCampaignPromptService::class)->applyDefaults($campaign);
+            $userPrompt .= "\n\n".app(ContentCampaignPromptService::class)->temporalContext($campaign->timezone ?: config('app.timezone', 'UTC'));
         }
         if ($campaign?->entity_prompt) {
             $userPrompt .= "\n\nCAMPAIGN ENTITY/LSI PROMPT (gunakan sebagai arahan tambahan):\n"
-                .mb_substr(strip_tags($campaign->entity_prompt), 0, 6000);
+                .mb_substr(strip_tags($campaign->entity_prompt), 0, 50000);
         }
 
         $result = $aiService->generateJson($sysPrompt, $userPrompt);
 
-        if (is_array($result) && !empty($result['lsi']) && !empty($result['entities'])) {
+        if (is_array($result) && ! empty($result['lsi']) && ! empty($result['entities'])) {
             $lsiList = is_array($result['lsi']) ? $result['lsi'] : [$result['lsi']];
             $entityList = is_array($result['entities']) ? $result['entities'] : [$result['entities']];
             $anchorList = isset($result['anchors']) ? (is_array($result['anchors']) ? $result['anchors'] : [$result['anchors']]) : [];
         } else {
             // METHOD 2 (fallback): Generate plain comma-separated string, parse manually
-            Log::warning("Phase 1 JSON failed, trying comma-separated fallback.");
+            Log::warning('Phase 1 JSON failed, trying comma-separated fallback.');
             $fallbackPrompt = "Generate LSI keywords, semantic entities, and anchor keywords for '{$keyword}'. Return as: LSI: kw1, kw2, kw3 | ENTITIES: ent1, ent2, ent3 | ANCHORS: anchor1, anchor2, anchor3";
             $fallback = $aiService->generate($sysPrompt, $userPrompt);
 
-            if (!$fallback || mb_strlen(trim($fallback)) < 10) {
+            if (! $fallback || mb_strlen(trim($fallback)) < 10) {
                 throw new \Exception('Phase 1 (LSI/Entities) returned empty or insufficient result.');
             }
 
@@ -170,22 +182,22 @@ class ProcessAiGenerationJob implements ShouldQueue
         }
 
         // Fallback anchors dari LSI jika AI tidak menghasilkan anchors
-        if (empty($anchorList) && !empty($lsiList)) {
+        if (empty($anchorList) && ! empty($lsiList)) {
             $anchorList = $lsiList;
         }
 
         $stored = json_encode([
-            'lsi'      => $lsiList,
+            'lsi' => $lsiList,
             'entities' => $entityList,
-            'anchors'  => $anchorList,
+            'anchors' => $anchorList,
         ], JSON_UNESCAPED_UNICODE);
 
         $job->update([
-            'status'      => 'phase_2',
+            'status' => 'phase_2',
             'phase_1_lsi' => $stored,
         ]);
 
-        Log::info("AI Phase 1 (LSI + Entities + Anchors) DONE | job={$job->id} | lsi=" . count($lsiList) . " | entities=" . count($entityList) . " | anchors=" . count($anchorList));
+        Log::info("AI Phase 1 (LSI + Entities + Anchors) DONE | job={$job->id} | lsi=".count($lsiList).' | entities='.count($entityList).' | anchors='.count($anchorList));
 
         self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
     }
@@ -198,17 +210,17 @@ class ProcessAiGenerationJob implements ShouldQueue
     {
         $toneMap = $lang === 'id'
             ? [
-                'formal'         => 'Gunakan gaya bahasa FORMAL, profesional, dan berwibawa. Hindari bahasa slang atau informal.',
-                'friendly'       => 'Gunakan gaya bahasa RAMAH, hangat, dan mudah dicerna. Seperti mengobrol dengan teman.',
-                'persuasive'     => 'Gunakan gaya bahasa PERSUASIF dan meyakinkan. Dorong pembaca untuk mengambil tindakan.',
-                'authoritative'  => 'Gunakan gaya bahasa OTORITATIF dan tegas. Tampilkan data, statistik, dan fakta kuat.',
+                'formal' => 'Gunakan gaya bahasa FORMAL, profesional, dan berwibawa. Hindari bahasa slang atau informal.',
+                'friendly' => 'Gunakan gaya bahasa RAMAH, hangat, dan mudah dicerna. Seperti mengobrol dengan teman.',
+                'persuasive' => 'Gunakan gaya bahasa PERSUASIF dan meyakinkan. Dorong pembaca untuk mengambil tindakan.',
+                'authoritative' => 'Gunakan gaya bahasa OTORITATIF dan tegas. Tampilkan data, statistik, dan fakta kuat.',
                 'conversational' => 'Gunakan gaya bahasa PERCAKAPAN natural. Seperti seorang ahli yang sedang menjelaskan dengan santai.',
             ]
             : [
-                'formal'         => 'Use a FORMAL, professional, and authoritative tone. Avoid slang or informal language.',
-                'friendly'       => 'Use a FRIENDLY, warm, and approachable tone. Like chatting with a friend.',
-                'persuasive'     => 'Use a PERSUASIVE and convincing tone. Encourage the reader to take action.',
-                'authoritative'  => 'Use an AUTHORITATIVE and firm tone. Back claims with data, stats, and strong facts.',
+                'formal' => 'Use a FORMAL, professional, and authoritative tone. Avoid slang or informal language.',
+                'friendly' => 'Use a FRIENDLY, warm, and approachable tone. Like chatting with a friend.',
+                'persuasive' => 'Use a PERSUASIVE and convincing tone. Encourage the reader to take action.',
+                'authoritative' => 'Use an AUTHORITATIVE and firm tone. Back claims with data, stats, and strong facts.',
                 'conversational' => 'Use a CONVERSATIONAL, natural tone. Like an expert explaining casually.',
             ];
 
@@ -216,19 +228,19 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         $base = $lang === 'id'
             ? "### FORMAT & TONE PENULISAN:\n"
-            . "- {$toneInstruction}\n"
-            . "- Setiap paragraf 3–5 kalimat dengan variasi acak (jangan semua paragraf sama panjangnya).\n"
-            . "- Gunakan kata transisi (sehingga, oleh karena itu, selain itu, dengan demikian, sebagai contoh) untuk menghubungkan antar paragraf agar mengalir natural sebagai satu kesatuan.\n"
-            . "- Apabila menampilkan data, perbandingan, atau informasi terstruktur — GUNAKAN TABEL.\n"
-            . "- Boleh menggunakan bullet list atau numbered list, tapi secukupnya saja, jangan dominasi artikel."
+            ."- {$toneInstruction}\n"
+            ."- Setiap paragraf 3–5 kalimat dengan variasi acak (jangan semua paragraf sama panjangnya).\n"
+            ."- Gunakan kata transisi (sehingga, oleh karena itu, selain itu, dengan demikian, sebagai contoh) untuk menghubungkan antar paragraf agar mengalir natural sebagai satu kesatuan.\n"
+            ."- Apabila menampilkan data, perbandingan, atau informasi terstruktur — GUNAKAN TABEL.\n"
+            .'- Boleh menggunakan bullet list atau numbered list, tapi secukupnya saja, jangan dominasi artikel.'
             : "- {$toneInstruction}\n"
-            . "- Each paragraph should have 3–5 sentences with random variation (not all same length).\n"
-            . "- Use transition words (therefore, moreover, consequently, for example, additionally) to connect paragraphs into one cohesive flow.\n"
-            . "- When displaying data, comparisons, or structured information — use TABLES.\n"
-            . "- Lists (bullet/numbered) are allowed but use sparingly, don't let them dominate the article.";
+            ."- Each paragraph should have 3–5 sentences with random variation (not all same length).\n"
+            ."- Use transition words (therefore, moreover, consequently, for example, additionally) to connect paragraphs into one cohesive flow.\n"
+            ."- When displaying data, comparisons, or structured information — use TABLES.\n"
+            ."- Lists (bullet/numbered) are allowed but use sparingly, don't let them dominate the article.";
 
-        $brandNames       = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
-        $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
+        $brandNames = SystemSetting::get('ai_prompt_brand_names', '');
+        $brandPositioning = SystemSetting::get('ai_prompt_brand_positioning', '');
         if ($brandNames || $brandPositioning) {
             $brands = [];
             if ($brandNames) {
@@ -241,7 +253,7 @@ class ProcessAiGenerationJob implements ShouldQueue
                     ? "Positioning brand yang harus diintegrasikan: {$brandPositioning}."
                     : "Brand positioning to integrate: {$brandPositioning}.";
             }
-            $base .= "\n\n### BRAND INTEGRATION:\n" . implode("\n", $brands);
+            $base .= "\n\n### BRAND INTEGRATION:\n".implode("\n", $brands);
         }
 
         return $base;
@@ -249,14 +261,14 @@ class ProcessAiGenerationJob implements ShouldQueue
 
     private function runPhase2(Content $content, AiGenerationJob $job): void
     {
-        $keyword     = $content->target_keyword;
+        $keyword = $content->target_keyword;
         $seedKeyword = $content->siloBlueprint?->seed_keyword ?? $keyword;
-        $lang        = $content->siloBlueprint?->target_language ?? 'id';
-        $country     = $content->siloBlueprint?->target_country ?? 'ID';
-        $li          = $this->langInstruct($lang);
-        $rawLsi     = $job->phase_1_lsi;
+        $lang = $content->siloBlueprint?->target_language ?? 'id';
+        $country = $content->siloBlueprint?->target_country ?? 'ID';
+        $li = $this->langInstruct($lang);
+        $rawLsi = $job->phase_1_lsi;
 
-        if (!$rawLsi) {
+        if (! $rawLsi) {
             throw new \Exception('Phase 2 (Draft) FAILED: phase_1_lsi is empty in DB.');
         }
 
@@ -272,12 +284,12 @@ class ProcessAiGenerationJob implements ShouldQueue
             $lsiList = array_map('trim', explode(',', $rawLsi));
         }
 
-        $lsiText      = implode(', ', $lsiList);
-        $entityText   = !empty($entityList) ? implode(', ', $entityList) : '';
+        $lsiText = implode(', ', $lsiList);
+        $entityText = ! empty($entityList) ? implode(', ', $entityList) : '';
 
         Log::info("AI Phase 2 (Draft) START | job={$job->id} | keyword={$keyword}");
 
-        $strategy = \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic');
+        $strategy = SystemSetting::get('internal_link_strategy', 'deterministic');
         $linkInstructions = '';
 
         if (in_array($strategy, ['deterministic', 'both'])) {
@@ -287,7 +299,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             if ($deterministicLinks->isNotEmpty()) {
                 $linkInstructions = "\n\nMANDATORY INTERNAL LINKS (Embed organically in text using Markdown):\n";
                 foreach ($deterministicLinks as $link) {
-                    $url = url('/blog/' . ($link->targetContent?->slug ?? '#'));
+                    $url = url('/blog/'.($link->targetContent?->slug ?? '#'));
                     $linkInstructions .= "- [{$link->mandatory_anchor_text}]({$url})\n";
                 }
             }
@@ -315,7 +327,7 @@ class ProcessAiGenerationJob implements ShouldQueue
                     $anchor = $dLink ? ($dLink->mandatory_anchor_text ?? $cluster->target_keyword) : $cluster->target_keyword;
 
                     $slugStr = is_string($cluster->slug) ? $cluster->slug : ($cluster->slug['id'] ?? '#');
-                    $url = url('/blog/' . ltrim($slugStr, '/'));
+                    $url = url('/blog/'.ltrim($slugStr, '/'));
 
                     $linkInstructions .= "- Cluster Topic: {$cluster->target_keyword} => Link Markdown: [{$anchor}]({$url})\n";
                 }
@@ -328,32 +340,32 @@ class ProcessAiGenerationJob implements ShouldQueue
             'aida' => [
                 'label' => 'AIDA Framework',
                 'outline' => "Struktur konten WAJIB mengikuti kerangka AIDA:\n"
-                    . "1. **Attention (A)** — Buka dengan hook kuat: fakta mengejutkan, pertanyaan provokatif, atau statistik impactful yang relevan dengan keyword.\n"
-                    . "2. **Interest (I)** — Bangkitkan minat: jelaskan mengapa topik ini penting, apa masalahnya, dan siapa yang terdampak. Gunakan storytelling atau data.\n"
-                    . "3. **Desire (D)** — Tanamkan keinginan: paparkan solusi, manfaat, bukti sosial, studi kasus, atau perbandingan. Tunjukkan mengapa ini adalah pendekatan terbaik.\n"
-                    . "4. **Action (A)** — Tutup dengan ajakan: langkah konkret yang harus dilakukan pembaca selanjutnya (CTA).",
+                    ."1. **Attention (A)** — Buka dengan hook kuat: fakta mengejutkan, pertanyaan provokatif, atau statistik impactful yang relevan dengan keyword.\n"
+                    ."2. **Interest (I)** — Bangkitkan minat: jelaskan mengapa topik ini penting, apa masalahnya, dan siapa yang terdampak. Gunakan storytelling atau data.\n"
+                    ."3. **Desire (D)** — Tanamkan keinginan: paparkan solusi, manfaat, bukti sosial, studi kasus, atau perbandingan. Tunjukkan mengapa ini adalah pendekatan terbaik.\n"
+                    .'4. **Action (A)** — Tutup dengan ajakan: langkah konkret yang harus dilakukan pembaca selanjutnya (CTA).',
             ],
             'pas' => [
                 'label' => 'PAS Framework (Problem — Agitate — Solution)',
                 'outline' => "Struktur konten WAJIB mengikuti kerangka PAS:\n"
-                    . "1. **Problem (P)** — Identifikasi masalah spesifik yang dialami target audiens terkait keyword. Jelaskan dengan jelas dan relatable.\n"
-                    . "2. **Agitate (A)** — Perkuat masalahnya: jelaskan konsekuensi, rasa sakit, dan urgensi jika masalah tidak segera diselesaikan.\n"
-                    . "3. **Solution (S)** — Berikan solusi lengkap: langkah-langkah praktis, strategi, tools, dan panduan yang menyelesaikan masalah.",
+                    ."1. **Problem (P)** — Identifikasi masalah spesifik yang dialami target audiens terkait keyword. Jelaskan dengan jelas dan relatable.\n"
+                    ."2. **Agitate (A)** — Perkuat masalahnya: jelaskan konsekuensi, rasa sakit, dan urgensi jika masalah tidak segera diselesaikan.\n"
+                    .'3. **Solution (S)** — Berikan solusi lengkap: langkah-langkah praktis, strategi, tools, dan panduan yang menyelesaikan masalah.',
             ],
             'how_to' => [
                 'label' => 'How-To Guide Framework',
                 'outline' => "Struktur konten WAJIB mengikuti kerangka How-To Guide:\n"
-                    . "1. **Pendahuluan** — Jelaskan apa yang akan dicapai pembaca dan mengapa panduan ini penting.\n"
-                    . "2. **Prasyarat / Persiapan** — Apa saja yang dibutuhkan sebelum memulai (tools, pengetahuan, akun, dll).\n"
-                    . "3. **Langkah-langkah Detail** — Setiap langkah sebagai H2 terpisah, jelaskan dengan jelas. Sertakan tips, screenshot (deskripsikan), dan troubleshooting.\n"
-                    . "4. **Kesimpulan** — Ringkas hasil akhir dan berikan langkah selanjutnya.",
+                    ."1. **Pendahuluan** — Jelaskan apa yang akan dicapai pembaca dan mengapa panduan ini penting.\n"
+                    ."2. **Prasyarat / Persiapan** — Apa saja yang dibutuhkan sebelum memulai (tools, pengetahuan, akun, dll).\n"
+                    ."3. **Langkah-langkah Detail** — Setiap langkah sebagai H2 terpisah, jelaskan dengan jelas. Sertakan tips, screenshot (deskripsikan), dan troubleshooting.\n"
+                    .'4. **Kesimpulan** — Ringkas hasil akhir dan berikan langkah selanjutnya.',
             ],
             'listicle' => [
                 'label' => 'Listicle Framework',
                 'outline' => "Struktur konten WAJIB mengikuti kerangka Listicle:\n"
-                    . "1. **Pendahuluan** — Konteks mengapa daftar ini relevan dan bermanfaat.\n"
-                    . "2. **Daftar Item** — Setiap item sebagai H2. Format: [Nomor]. [Judul Item]. Jelaskan secara detail, berikan data/contoh untuk setiap item.\n"
-                    . "3. **Kesimpulan** — Rekap dan rekomendasi item terbaik.",
+                    ."1. **Pendahuluan** — Konteks mengapa daftar ini relevan dan bermanfaat.\n"
+                    ."2. **Daftar Item** — Setiap item sebagai H2. Format: [Nomor]. [Judul Item]. Jelaskan secara detail, berikan data/contoh untuk setiap item.\n"
+                    .'3. **Kesimpulan** — Rekap dan rekomendasi item terbaik.',
             ],
         ];
 
@@ -364,18 +376,18 @@ class ProcessAiGenerationJob implements ShouldQueue
         }
 
         $eeatInstructions = "\n\n### E-E-A-T REQUIREMENTS (Wajib dipenuhi):\n"
-            . "- **Experience (Pengalaman)** — Tunjukkan pengalaman praktis. Gunakan contoh nyata, studi kasus, anekdot personal yang relevan.\n"
-            . "- **Expertise (Keahlian)** — Tunjukkan otoritas. Gunakan terminologi yang tepat, referensi sumber kredibel, data/statistik terbaru.\n"
-            . "- **Authoritativeness (Otoritas)** — Bangun kredibilitas. Sertakan kutipan ahli, link ke sumber resmi, sertifikasi, atau penghargaan.\n"
-            . "- **Trustworthiness (Kepercayaan)** — Jaga akurasi. Cantumkan tanggal publikasi, author bio singkat, sumber data, dan hindari klaim berlebihan.";
+            ."- **Experience (Pengalaman)** — Tunjukkan pengalaman praktis. Gunakan contoh nyata, studi kasus, anekdot personal yang relevan.\n"
+            ."- **Expertise (Keahlian)** — Tunjukkan otoritas. Gunakan terminologi yang tepat, referensi sumber kredibel, data/statistik terbaru.\n"
+            ."- **Authoritativeness (Otoritas)** — Bangun kredibilitas. Sertakan kutipan ahli, link ke sumber resmi, sertifikasi, atau penghargaan.\n"
+            .'- **Trustworthiness (Kepercayaan)** — Jaga akurasi. Cantumkan tanggal publikasi, author bio singkat, sumber data, dan hindari klaim berlebihan.';
 
-        $tone    = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
+        $tone = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
         $styleReq = $this->styleInstructions($lang, $tone);
 
         $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n{$styleReq}";
         $campaign = $content->campaign;
         if ($campaign) {
-            $campaign = app(\App\Services\ContentCampaignPromptService::class)->applyDefaults($campaign);
+            $campaign = app(ContentCampaignPromptService::class)->applyDefaults($campaign);
             $requirements = str_replace(
                 '- Minimum 1000 words',
                 '- Word count target: '.(int) $campaign->word_count_min.'-'.$campaign->word_count_max.' words',
@@ -383,15 +395,15 @@ class ProcessAiGenerationJob implements ShouldQueue
             );
             if ($campaign->content_prompt) {
                 $requirements .= "\n\nCAMPAIGN ARTICLE PROMPT (gunakan untuk semua artikel campaign):\n"
-                    .mb_substr(strip_tags($campaign->content_prompt), 0, 6000);
+                    .mb_substr(strip_tags($campaign->content_prompt), 0, 50000);
             }
         }
 
-        $sysTemplate = \App\Models\SystemSetting::get(
+        $sysTemplate = SystemSetting::get(
             'ai_prompt_phase2_sys',
-            "You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 1000 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Also naturally integrate the Entity keywords throughout the content. Return ONLY the article draft."
+            'You are an Expert SEO Writer writing in {lang}. Write a comprehensive article draft (minimum 1000 words) using the provided LSI keywords. **Make the LSI keywords bold**. You must naturally inject the provided MANDATORY INTERNAL LINKS using Markdown. Also naturally integrate the Entity keywords throughout the content. Return ONLY the article draft.'
         );
-        $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country, '{tone}' => $tone]);
+        $sysPrompt = strtr($sysTemplate, ['{keyword}' => $keyword, '{lang}' => $lang, '{country}' => $country, '{tone}' => $tone]);
         $userPrompt = "{$li}\n\nKeyword: **{$keyword}**\nSeed: {$seedKeyword}\nLSI Keywords: {$lsiText}\n";
         if ($entityText) {
             $userPrompt .= "Entity Keywords: {$entityText}\n";
@@ -399,24 +411,24 @@ class ProcessAiGenerationJob implements ShouldQueue
         $userPrompt .= "\n{$requirements}\n{$linkInstructions}{$frameworkInstructions}{$eeatInstructions}";
 
         // Inject retry improvements from failed CQI audit
-        $improvementsHint = \App\Models\SystemSetting::get('_ai_retry_improvements_' . $this->jobId, '');
+        $improvementsHint = SystemSetting::get('_ai_retry_improvements_'.$this->jobId, '');
         if ($improvementsHint) {
             $userPrompt .= "\n\nPREVIOUS AUDIT FEEDBACK (address these issues in this revision):\n{$improvementsHint}";
         }
 
         $aiService = new AIService($content->tenant, 'default');
-        $draft     = $aiService->generate($sysPrompt, $userPrompt);
+        $draft = $aiService->generate($sysPrompt, $userPrompt);
 
-        if (!$draft || mb_strlen(trim($draft)) < 300) {
+        if (! $draft || mb_strlen(trim($draft)) < 300) {
             throw new \Exception('Phase 2 (Draft) returned empty or insufficient content (< 300 chars).');
         }
 
         $job->update([
-            'status'       => 'phase_3',
+            'status' => 'phase_3',
             'phase_1_draft' => $draft,
         ]);
 
-        Log::info("AI Phase 2 (Draft) DONE | job={$job->id} | draft_length=" . mb_strlen($draft));
+        Log::info("AI Phase 2 (Draft) DONE | job={$job->id} | draft_length=".mb_strlen($draft));
 
         self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
     }
@@ -429,12 +441,12 @@ class ProcessAiGenerationJob implements ShouldQueue
     private function runPhase3(Content $content, AiGenerationJob $job): void
     {
         $keyword = $content->target_keyword;
-        $draft   = $job->phase_1_draft;
-        $lang    = $content->siloBlueprint?->target_language ?? 'id';
-        $li      = $this->langInstruct($lang);
+        $draft = $job->phase_1_draft;
+        $lang = $content->siloBlueprint?->target_language ?? 'id';
+        $li = $this->langInstruct($lang);
         $framework = $content->content_framework ?? $content->siloBlueprint?->content_framework ?? 'default';
 
-        if (!$draft) {
+        if (! $draft) {
             throw new \Exception('Phase 3 (Questions) FAILED: phase_1_draft is empty in DB.');
         }
 
@@ -448,17 +460,17 @@ class ProcessAiGenerationJob implements ShouldQueue
             ? " Also audit whether the draft follows the {$framework} content framework structure correctly."
             : '';
 
-        $sysTemplate = \App\Models\SystemSetting::get(
+        $sysTemplate = SystemSetting::get(
             'ai_prompt_phase3_sys',
             "You are a strict Senior SEO Content Auditor. Read the draft below and generate a list of at least 10 'Critical Questions' that a human expert would ask, which this draft currently fails to answer adequately. Be thorough and cover depth, relevance, E-E-A-T signals (Experience, Expertise, Authoritativeness, Trustworthiness), and practical implementation. Respond ONLY with a valid JSON array of strings:\n[\"Question 1?\", \"Question 2?\"]"
         );
-        $sysPrompt  = strtr($sysTemplate, ['{keyword}' => $keyword]);
+        $sysPrompt = strtr($sysTemplate, ['{keyword}' => $keyword]);
         $userPrompt = "Target keyword: {$keyword}\n{$langHint}{$frameworkHint}\n\nDraft to audit:\n\n{$draft}";
 
         $aiService = new AIService($content->tenant, 'default');
-        $critique  = $aiService->generateJson($sysPrompt, $userPrompt);
+        $critique = $aiService->generateJson($sysPrompt, $userPrompt);
 
-        if (!$critique || !is_array($critique) || count($critique) < 10) {
+        if (! $critique || ! is_array($critique) || count($critique) < 10) {
             $criticalQuestions = [
                 "Apa strategi {$keyword} yang paling efektif?",
                 "Bagaimana cara mengukur keberhasilan {$keyword}?",
@@ -473,12 +485,12 @@ class ProcessAiGenerationJob implements ShouldQueue
             ];
             $critique = is_array($critique) ? array_merge($critique, $criticalQuestions) : $criticalQuestions;
             $critique = array_slice($critique, 0, 10);
-            Log::warning("Phase 3: Kurang dari 10 pertanyaan, padding defaults.");
+            Log::warning('Phase 3: Kurang dari 10 pertanyaan, padding defaults.');
         }
 
         $job->update(['phase_2_critique' => $critique]);
 
-        Log::info("AI Phase 3 (Questions) DONE | job={$job->id} | questions=" . count($critique));
+        Log::info("AI Phase 3 (Questions) DONE | job={$job->id} | questions=".count($critique));
 
         $job->update(['status' => 'phase_4']);
         self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
@@ -490,13 +502,13 @@ class ProcessAiGenerationJob implements ShouldQueue
 
     private function runPhase4(Content $content, AiGenerationJob $job): void
     {
-        $keyword  = $content->target_keyword;
-        $draft    = $job->phase_1_draft;
+        $keyword = $content->target_keyword;
+        $draft = $job->phase_1_draft;
         $critique = $job->phase_2_critique;
-        $lang     = $content->siloBlueprint?->target_language ?? 'id';
-        $li       = $this->langInstruct($lang);
+        $lang = $content->siloBlueprint?->target_language ?? 'id';
+        $li = $this->langInstruct($lang);
 
-        if (!$draft || !$critique) {
+        if (! $draft || ! $critique) {
             throw new \Exception('Phase 4 (Answers) FAILED: missing draft or critique from DB.');
         }
 
@@ -505,33 +517,33 @@ class ProcessAiGenerationJob implements ShouldQueue
             $questions = ['What advanced strategies are not yet covered?', 'How to avoid common mistakes?'];
         }
 
-        Log::info("AI Phase 4 (Answers) START | job={$job->id} | keyword={$keyword} | questions=" . count($questions));
+        Log::info("AI Phase 4 (Answers) START | job={$job->id} | keyword={$keyword} | questions=".count($questions));
 
         $criticalQs = implode("\n- ", $questions);
 
-        $tone    = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
+        $tone = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
         $styleReq = $this->styleInstructions($lang, $tone);
 
-        $sysTemplate = \App\Models\SystemSetting::get(
+        $sysTemplate = SystemSetting::get(
             'ai_prompt_phase4_sys',
             "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions' in paragraph form. DO NOT generate code blocks, HTML, or technical implementations. Write in natural language only. Return ONLY the answers in Markdown formatting."
         );
-        $sysPrompt  = strtr($sysTemplate, ['{lang}' => $lang, '{keyword}' => $keyword, '{tone}' => $tone]);
+        $sysPrompt = strtr($sysTemplate, ['{lang}' => $lang, '{keyword}' => $keyword, '{tone}' => $tone]);
         $userPrompt = "{$li}\n\nTopic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}\n\n{$styleReq}";
 
         $aiService = new AIService($content->tenant, 'default');
-        $answers   = $aiService->generate($sysPrompt, $userPrompt);
+        $answers = $aiService->generate($sysPrompt, $userPrompt);
 
-        if (!$answers || mb_strlen(trim($answers)) < 100) {
+        if (! $answers || mb_strlen(trim($answers)) < 100) {
             throw new \Exception('Phase 4 (Answers) returned empty or insufficient content (< 100 chars).');
         }
 
         $job->update([
-            'status'          => 'phase_5',
+            'status' => 'phase_5',
             'phase_4_answers' => $answers,
         ]);
 
-        Log::info("AI Phase 4 (Answers) DONE | job={$job->id} | answers_length=" . mb_strlen($answers));
+        Log::info("AI Phase 4 (Answers) DONE | job={$job->id} | answers_length=".mb_strlen($answers));
 
         self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
     }
@@ -543,20 +555,20 @@ class ProcessAiGenerationJob implements ShouldQueue
 
     private function runPhase5(Content $content, AiGenerationJob $job): void
     {
-        $keyword  = $content->target_keyword;
-        $draft    = $job->phase_1_draft;
-        $answers  = $job->phase_4_answers;
-        $lang     = $content->siloBlueprint?->target_language ?? 'id';
-        $li       = $this->langInstruct($lang);
+        $keyword = $content->target_keyword;
+        $draft = $job->phase_1_draft;
+        $answers = $job->phase_4_answers;
+        $lang = $content->siloBlueprint?->target_language ?? 'id';
+        $li = $this->langInstruct($lang);
 
-        if (!$draft || !$answers) {
+        if (! $draft || ! $answers) {
             throw new \Exception('Phase 5 (Combine+HTML) FAILED: missing draft or answers from DB.');
         }
 
         Log::info("AI Phase 5 (Combine) START | job={$job->id} | keyword={$keyword}");
 
-        $brandNames       = \App\Models\SystemSetting::get('ai_prompt_brand_names', '');
-        $brandPositioning = \App\Models\SystemSetting::get('ai_prompt_brand_positioning', '');
+        $brandNames = SystemSetting::get('ai_prompt_brand_names', '');
+        $brandPositioning = SystemSetting::get('ai_prompt_brand_positioning', '');
 
         // Step A: Combine draft + answers
         $framework = $content->content_framework ?? $content->siloBlueprint?->content_framework ?? 'default';
@@ -564,32 +576,32 @@ class ProcessAiGenerationJob implements ShouldQueue
             ? " CRITICAL: Preserve the {$framework} content framework structure exactly as in the original draft."
             : '';
 
-        $tone    = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
+        $tone = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
         $styleReq = $this->styleInstructions($lang, $tone);
 
-        $sysP5 = \App\Models\SystemSetting::get(
+        $sysP5 = SystemSetting::get(
             'ai_prompt_phase5_sys',
             "You are a Master SEO Content Editor writing in {lang}. Rewrite and drastically expand the original draft by seamlessly weaving in the provided 'Detailed Answers'. Preserve all existing Markdown links EXACTLY as they are. Do NOT add an FAQ section; weave the answers seamlessly into the body paragraphs with proper H2/H3 headings. Strengthen E-E-A-T signals (Experience, Expertise, Authoritativeness, Trustworthiness). Return ONLY the improved Markdown."
         );
         $sysP5 .= $frameworkNote;
         $sysP5 = strtr($sysP5, [
-            '{lang}'              => $lang,
-            '{keyword}'           => $keyword,
-            '{tone}'              => $tone,
-            '{brand_names}'       => $brandNames,
+            '{lang}' => $lang,
+            '{keyword}' => $keyword,
+            '{tone}' => $tone,
+            '{brand_names}' => $brandNames,
             '{brand_positioning}' => $brandPositioning,
         ]);
         $userP5 = "{$li}\n\nKeyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}\n\n{$styleReq}";
 
         $aiService = new AIService($content->tenant, 'default');
-        $combined  = $aiService->generate($sysP5, $userP5);
+        $combined = $aiService->generate($sysP5, $userP5);
 
-        $draftLen    = mb_strlen(trim($draft));
+        $draftLen = mb_strlen(trim($draft));
         $combinedLen = mb_strlen(trim($combined));
 
-        if (!$combined || $combinedLen < $draftLen * 0.75) {
+        if (! $combined || $combinedLen < $draftLen * 0.75) {
             Log::warning("Phase 5 Combine fell back to concatenation (combined={$combinedLen}, draft={$draftLen})");
-            $combined = $draft . "\n\n## Pembahasan Lanjutan\n\n" . $answers;
+            $combined = $draft."\n\n## Pembahasan Lanjutan\n\n".$answers;
         }
 
         // Step B: Convert to HTML
@@ -597,15 +609,15 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         $styleReq = $this->styleInstructions($lang, $tone);
 
-        $sysP6 = \App\Models\SystemSetting::get(
+        $sysP6 = SystemSetting::get(
             'ai_prompt_phase6_sys',
-            "You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, <table>, <thead>, <tbody>, <th>, <td>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body."
+            'You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, <table>, <thead>, <tbody>, <th>, <td>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body.'
         );
         $sysP6 = strtr($sysP6, [
-            '{lang}'              => $lang,
-            '{keyword}'           => $keyword,
-            '{tone}'              => $tone,
-            '{brand_names}'       => $brandNames,
+            '{lang}' => $lang,
+            '{keyword}' => $keyword,
+            '{tone}' => $tone,
+            '{brand_names}' => $brandNames,
             '{brand_positioning}' => $brandPositioning,
         ]);
         $sysP6 .= "\n\n{$styleReq}";
@@ -636,21 +648,21 @@ class ProcessAiGenerationJob implements ShouldQueue
             $finalBody = trim($finalBody);
         }
 
-        if (!$finalBody || mb_strlen(trim($finalBody)) < 300) {
-            Log::warning("Phase 5 HTML AI failed. Using Markdown fallback.");
-            $finalBody = \Illuminate\Support\Str::markdown($combined);
+        if (! $finalBody || mb_strlen(trim($finalBody)) < 300) {
+            Log::warning('Phase 5 HTML AI failed. Using Markdown fallback.');
+            $finalBody = Str::markdown($combined);
         }
 
-        if (!$finalBody || mb_strlen(trim($finalBody)) < 100) {
+        if (! $finalBody || mb_strlen(trim($finalBody)) < 100) {
             throw new \Exception('Phase 5 (HTML) failed to produce valid HTML even after fallback.');
         }
 
-        Log::info("AI Phase 5 (HTML) DONE | job={$job->id} | html_length=" . mb_strlen($finalBody));
+        Log::info("AI Phase 5 (HTML) DONE | job={$job->id} | html_length=".mb_strlen($finalBody));
 
         // Step C: CQI Quality Gate on final article
         Log::info("AI Phase 5 (CQI Audit) START | job={$job->id}");
-        $cqiThreshold = (int) \App\Models\SystemSetting::get('ai_cqi_threshold', 75);
-        $retryCount   = (int) ($job->retry_count ?? 0);
+        $cqiThreshold = (int) SystemSetting::get('ai_cqi_threshold', 75);
+        $retryCount = (int) ($job->retry_count ?? 0);
 
         $frameworkAudit = $framework !== 'default'
             ? ", and whether the article follows the {$framework} content framework structure"
@@ -659,8 +671,8 @@ class ProcessAiGenerationJob implements ShouldQueue
         $cqiSys = "You are a strict Senior SEO Content Auditor. Score the following HTML article on depth, relevance, readability, E-E-A-T signals{$frameworkAudit}. Respond ONLY with valid JSON with this exact structure:\n{\"cqi_score\": <integer 0-100>, \"gaps\": [\"gap1\", \"gap2\"], \"improvements\": [\"improvement1\", \"improvement2\"]}";
         $cqiResult = $aiService->generateJson($cqiSys, "Target keyword: **{$keyword}**\n\nArticle HTML:\n{$finalBody}");
 
-        if (!$cqiResult || !isset($cqiResult['cqi_score'])) {
-            Log::warning("Phase 5 CQI audit failed, defaulting to score 80.");
+        if (! $cqiResult || ! isset($cqiResult['cqi_score'])) {
+            Log::warning('Phase 5 CQI audit failed, defaulting to score 80.');
             $cqiResult = ['cqi_score' => 80, 'gaps' => [], 'improvements' => []];
         }
 
@@ -669,7 +681,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         // Save combined, HTML, and CQI audit
         $job->update([
             'phase_5_combined' => $combined,
-            'phase_6_html'     => $finalBody,
+            'phase_6_html' => $finalBody,
             'phase_2_critique' => $cqiResult,  // overwrite questions — Phase 4 already consumed them
         ]);
 
@@ -679,22 +691,24 @@ class ProcessAiGenerationJob implements ShouldQueue
                     $job, $content,
                     "CQI score {$cqiScore} below threshold {$cqiThreshold} after {$retryCount} retries."
                 );
+
                 return;
             }
 
             $improvements = implode('; ', $cqiResult['improvements'] ?? ['Improve depth and E-E-A-T signals.']);
-            \App\Models\SystemSetting::set('_ai_retry_improvements_' . $this->jobId, $improvements);
+            SystemSetting::set('_ai_retry_improvements_'.$this->jobId, $improvements);
 
             $job->update([
-                'status'      => 'phase_2',
+                'status' => 'phase_2',
                 'retry_count' => $retryCount + 1,
-                'error_log'   => ['cqi_score' => $cqiScore, 'retry' => $retryCount + 1, 'improvements' => $improvements],
+                'error_log' => ['cqi_score' => $cqiScore, 'retry' => $retryCount + 1, 'improvements' => $improvements],
             ]);
             $content->update(['status' => 'ai_processing']);
 
-            Log::warning("CQI {$cqiScore} < {$cqiThreshold}. Retrying Phase 2 (attempt " . ($retryCount + 1) . "/2).");
+            Log::warning("CQI {$cqiScore} < {$cqiThreshold}. Retrying Phase 2 (attempt ".($retryCount + 1).'/2).');
 
             self::dispatch($this->contentId, $this->jobId, $this->targetStatus)->delay(now()->addSeconds(5));
+
             return;
         }
 
@@ -710,11 +724,11 @@ class ProcessAiGenerationJob implements ShouldQueue
 
     private function runPhase6(Content $content, AiGenerationJob $job): void
     {
-        $keyword  = $content->target_keyword;
+        $keyword = $content->target_keyword;
         $finalBody = $job->phase_6_html;
-        $critique  = $job->phase_2_critique;
+        $critique = $job->phase_2_critique;
 
-        if (!$finalBody) {
+        if (! $finalBody) {
             throw new \Exception('Phase 6 (Save) FAILED: phase_6_html is empty in DB.');
         }
 
@@ -749,7 +763,8 @@ class ProcessAiGenerationJob implements ShouldQueue
             $capitalized = preg_replace_callback('/\b([a-z])/u', function ($m) {
                 return mb_strtoupper($m[1], 'UTF-8');
             }, $matches[2]);
-            return $matches[1] . $capitalized . $matches[3];
+
+            return $matches[1].$capitalized.$matches[3];
         }, $finalBody);
 
         // Guarantee one safe, server-owned link to the campaign landing page if
@@ -762,14 +777,14 @@ class ProcessAiGenerationJob implements ShouldQueue
         }
 
         $contentHash = hash('sha256', $finalBody);
-        $cqiScore    = (int) ($critique['cqi_score'] ?? 80);
+        $cqiScore = (int) ($critique['cqi_score'] ?? 80);
         $targetStatus = $this->targetStatus ?? 'draft';
-        $blogPrefix  = \App\Models\SystemSetting::get('permalink_blog', 'blog');
+        $blogPrefix = SystemSetting::get('permalink_blog', 'blog');
 
         // Save final output to job
         $job->update([
-            'status'       => 'phase_7',
-            'phase_4_final'=> $finalBody,
+            'status' => 'phase_7',
+            'phase_4_final' => $finalBody,
         ]);
 
         // Mark deterministic links as injected
@@ -777,7 +792,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             DeterministicLink::where('source_content_id', $content->id)
                 ->update(['is_injected' => true, 'injected_at' => now()]);
         } catch (\Exception $e) {
-            Log::warning("DeterministicLink update failed for job {$job->id}: " . $e->getMessage());
+            Log::warning("DeterministicLink update failed for job {$job->id}: ".$e->getMessage());
         }
 
         // Capitalize title
@@ -789,17 +804,17 @@ class ProcessAiGenerationJob implements ShouldQueue
         try {
             $content->body_raw = $finalBody;
             $content->update([
-                'title'        => $newTitle,
-                'cqi_score'    => $cqiScore,
+                'title' => $newTitle,
+                'cqi_score' => $cqiScore,
                 'content_hash' => $contentHash,
-                'status'       => $targetStatus,
+                'status' => $targetStatus,
                 'published_at' => $content->published_at ?? now(),
             ]);
             $content->save();
 
-            Log::info("AI Phase 6 (Saved) DONE | job={$job->id} | status={$targetStatus} | cqi={$cqiScore} | body=" . mb_strlen($finalBody));
+            Log::info("AI Phase 6 (Saved) DONE | job={$job->id} | status={$targetStatus} | cqi={$cqiScore} | body=".mb_strlen($finalBody));
         } catch (\Exception $e) {
-            Log::error("Content save failed for job {$job->id} but job saved to draft: " . $e->getMessage());
+            Log::error("Content save failed for job {$job->id} but job saved to draft: ".$e->getMessage());
         }
 
         self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
@@ -811,23 +826,23 @@ class ProcessAiGenerationJob implements ShouldQueue
 
     private function runPhase7(Content $content, AiGenerationJob $job): void
     {
-        $keyword   = $content->target_keyword;
+        $keyword = $content->target_keyword;
         $finalBody = $job->phase_6_html;
 
         Log::info("AI Phase 7 (SEO Meta) START | job={$job->id} | keyword={$keyword}");
 
         $job->update([
-            'status'       => 'completed',
+            'status' => 'completed',
             'completed_at' => now(),
         ]);
 
-        $blogPrefix = \App\Models\SystemSetting::get('permalink_blog', 'blog');
+        $blogPrefix = SystemSetting::get('permalink_blog', 'blog');
 
         // SEO Meta Generation (non-blocking)
         try {
             $this->generateSeoMeta($content, $keyword, $blogPrefix);
         } catch (\Exception $e) {
-            Log::warning("SEO Meta failed for job {$job->id}: " . $e->getMessage());
+            Log::warning("SEO Meta failed for job {$job->id}: ".$e->getMessage());
         }
 
         // Embeddings (non-blocking)
@@ -835,15 +850,22 @@ class ProcessAiGenerationJob implements ShouldQueue
             try {
                 $this->generateEmbeddings($content, $finalBody);
             } catch (\Exception $e) {
-                Log::warning("Embeddings failed for job {$job->id}: " . $e->getMessage());
+                Log::warning("Embeddings failed for job {$job->id}: ".$e->getMessage());
             }
+        }
+
+        // Editorial Review & Polish Team (non-blocking)
+        try {
+            app(ContentEditorialService::class)->polish($content);
+        } catch (\Exception $e) {
+            Log::warning("Editorial polish failed for job {$job->id}: ".$e->getMessage());
         }
 
         // Clean up retry hints
         try {
-            \App\Models\SystemSetting::where('key', '_ai_retry_improvements_' . $this->jobId)->delete();
+            SystemSetting::where('key', '_ai_retry_improvements_'.$this->jobId)->delete();
         } catch (\Exception $e) {
-            Log::warning("Cleanup retry hints failed for job {$job->id}: " . $e->getMessage());
+            Log::warning("Cleanup retry hints failed for job {$job->id}: ".$e->getMessage());
         }
 
         Log::info("AI Phase 7 (SEO Meta) DONE | job={$job->id}");
@@ -860,33 +882,33 @@ class ProcessAiGenerationJob implements ShouldQueue
     {
         $aiService = new AIService($content->tenant, 'default');
 
-        $metaTitlePrompt = \App\Models\SystemSetting::get(
+        $metaTitlePrompt = SystemSetting::get(
             'ai_prompt_meta_title',
             'Write a highly click-worthy SEO title for "{keyword}". Max 60 characters. Return ONLY the title.'
         );
-        $metaDescPrompt  = \App\Models\SystemSetting::get(
+        $metaDescPrompt = SystemSetting::get(
             'ai_prompt_meta_description',
             'Write an engaging SEO meta description for "{keyword}". Must be 150-160 characters with CTA. Return ONLY the description.'
         );
 
         $metaTitlePrompt = str_replace('{keyword}', $keyword, $metaTitlePrompt);
-        $metaDescPrompt  = str_replace('{keyword}', $keyword, $metaDescPrompt);
+        $metaDescPrompt = str_replace('{keyword}', $keyword, $metaDescPrompt);
 
         $generatedTitle = trim($aiService->generate('You are an expert SEO specialist.', $metaTitlePrompt), " \t\n\r\"'");
-        $generatedDesc  = trim($aiService->generate('You are an expert SEO specialist.', $metaDescPrompt), " \t\n\r\"'");
+        $generatedDesc = trim($aiService->generate('You are an expert SEO specialist.', $metaDescPrompt), " \t\n\r\"'");
 
         $generatedTitle = preg_replace_callback('/\b([a-z])/u', function ($m) {
             return mb_strtoupper($m[1], 'UTF-8');
         }, $generatedTitle);
 
         $content->updateSeoMeta([
-            'title'          => $generatedTitle ?: $content->title,
-            'description'    => $generatedDesc,
-            'canonical'      => url('/' . $blogPrefix . '/' . $content->slug),
-            'robots'         => 'index, follow',
-            'og_title'       => $generatedTitle ?: $content->title,
+            'title' => $generatedTitle ?: $content->title,
+            'description' => $generatedDesc,
+            'canonical' => url('/'.$blogPrefix.'/'.$content->slug),
+            'robots' => 'index, follow',
+            'og_title' => $generatedTitle ?: $content->title,
             'og_description' => $generatedDesc,
-            'og_image'       => $content->featured_image_url ?: \App\Models\SystemSetting::get('seo_global_og_image') ?: asset('assets/og-default.jpg'),
+            'og_image' => $content->featured_image_url ?: SystemSetting::get('seo_global_og_image') ?: asset('assets/og-default.jpg'),
         ]);
 
         Log::info("SEO Meta DONE | content={$content->id}");
@@ -898,8 +920,8 @@ class ProcessAiGenerationJob implements ShouldQueue
 
     private function generateEmbeddings(Content $content, string $finalBody): void
     {
-        $strategy = \App\Models\SystemSetting::get('internal_link_strategy', 'deterministic');
-        if (!in_array($strategy, ['semantic', 'both'])) {
+        $strategy = SystemSetting::get('internal_link_strategy', 'deterministic');
+        if (! in_array($strategy, ['semantic', 'both'])) {
             return;
         }
 
@@ -907,20 +929,22 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         $plainText = strip_tags($finalBody);
         $plainText = preg_replace('/\s+/', ' ', $plainText);
-        $chunks    = mb_str_split($plainText, 1000);
+        $chunks = mb_str_split($plainText, 1000);
 
-        \App\Models\ContentEmbedding::where('content_id', $content->id)->delete();
+        ContentEmbedding::where('content_id', $content->id)->delete();
 
         $vectorCount = 0;
         foreach ($chunks as $chunk) {
             $chunk = trim($chunk);
-            if (mb_strlen($chunk) < 50) continue;
+            if (mb_strlen($chunk) < 50) {
+                continue;
+            }
 
             $vector = $aiService->generateEmbeddings($chunk);
             if ($vector && is_array($vector)) {
-                \App\Models\ContentEmbedding::create([
-                    'content_id'  => $content->id,
-                    'chunk_text'  => $chunk,
+                ContentEmbedding::create([
+                    'content_id' => $content->id,
+                    'chunk_text' => $chunk,
                     'vector_data' => $vector,
                 ]);
                 $vectorCount++;
@@ -939,26 +963,28 @@ class ProcessAiGenerationJob implements ShouldQueue
         Log::error("ProcessAiGenerationJob ERROR | job={$job->id} | phase={$currentPhase} | msg={$e->getMessage()}");
 
         $recovery = new AiRecoveryManager($content->tenant);
-        $logs     = [];
-        $result   = $recovery->handleFailure($job, $content, $e, $currentPhase, $logs);
+        $logs = [];
+        $result = $recovery->handleFailure($job, $content, $e, $currentPhase, $logs);
 
         if (isset($result['status'])) {
             if ($result['status'] === 'wait') {
                 $job->update(['status' => 'pending']);
                 self::dispatch($this->contentId, $this->jobId, $this->targetStatus)
                     ->delay(now()->addSeconds($result['wait_time'] ?? 90));
+
                 return;
             }
 
             if ($result['status'] === 'continue') {
                 self::dispatch($this->contentId, $this->jobId, $this->targetStatus)
                     ->delay(now()->addSeconds(5));
+
                 return;
             }
         }
 
         // Recovery failed — permanently fail
-        $this->failJob($job, $content, $e->getMessage() . ' (unrecoverable after retries)');
+        $this->failJob($job, $content, $e->getMessage().' (unrecoverable after retries)');
     }
 
     // -------------------------------------------------------------------------
@@ -970,7 +996,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         Log::error("ProcessAiGenerationJob FAILED | job={$job->id} | reason={$reason}");
 
         $job->update([
-            'status'    => 'failed',
+            'status' => 'failed',
             'error_log' => ['reason' => $reason, 'failed_at' => now()->toISOString()],
         ]);
 
@@ -987,8 +1013,9 @@ class ProcessAiGenerationJob implements ShouldQueue
             ->oldest()
             ->first();
 
-        if (!$nextJob) {
+        if (! $nextJob) {
             Log::info('No more pending AI jobs.');
+
             return;
         }
 

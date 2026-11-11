@@ -23,8 +23,8 @@ class ContentCampaignService
         $targets = $target ? collect([$target]) : $campaign->targets()->whereIn('status', ['pending', 'generating', 'ready'])->get();
         $targetText = $targets->map(fn (ContentCampaignTarget $item) => '- '.$item->keyword)->implode("\n") ?: '- belum ditentukan';
         $siloName = $campaign->siloBlueprint?->silo_name ?? $productName;
-        $keywordPrompt = $this->clean($campaign->keyword_prompt, 6000);
-        $entityPrompt = $this->clean($campaign->entity_prompt, 6000);
+        $keywordPrompt = $this->clean($campaign->keyword_prompt, 50000);
+        $entityPrompt = $this->clean($campaign->entity_prompt, 50000);
         $temporalContext = app(ContentCampaignPromptService::class)->temporalContext($campaign->timezone ?: config('app.timezone', 'UTC'));
         $stageInstruction = $stage
             ? 'Semua ide wajib berada pada funnel '.$stage.'.'

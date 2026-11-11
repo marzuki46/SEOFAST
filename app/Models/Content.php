@@ -78,6 +78,9 @@ class Content extends Model
         'last_render_intact',
         'status',
         'published_at',
+        'revised_at',
+        'editorial_review_count',
+        'last_editorial_notes',
         'last_partial_update_at',
         'gsc_coverage_state',
         'current_serp_position',
@@ -106,6 +109,7 @@ class Content extends Model
             'last_render_intact' => 'boolean',
             'is_ghost_published' => 'boolean',
             'published_at' => 'datetime',
+            'revised_at' => 'datetime',
             'last_partial_update_at' => 'datetime',
             'ranking_last_checked_at' => 'datetime',
         ];

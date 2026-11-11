@@ -13,10 +13,10 @@
     <form method="POST" action="{{ route('admin.content-campaigns.settings.update', $campaign) }}" class="space-y-5">@csrf @method('PUT')
         <section x-show="tab === 'prompts'" class="space-y-4">
             <div><h3 class="text-lg font-bold text-slate-900">Prompt reusable</h3><p class="text-sm text-slate-500">Jangan memasukkan API key atau data rahasia.</p></div>
-            <label class="block text-sm font-semibold">Prompt target keyword / topic research<textarea name="keyword_prompt" required maxlength="6000" rows="5" class="mt-1 w-full rounded-lg border-slate-300">{{ old('keyword_prompt', $campaign->keyword_prompt) }}</textarea></label>
-            <label class="block text-sm font-semibold">Prompt entity / LSI keyword<textarea name="entity_prompt" required maxlength="6000" rows="5" class="mt-1 w-full rounded-lg border-slate-300">{{ old('entity_prompt', $campaign->entity_prompt) }}</textarea></label>
-            <label class="block text-sm font-semibold">Prompt landing page<textarea name="landing_prompt" required maxlength="6000" rows="4" class="mt-1 w-full rounded-lg border-slate-300">{{ old('landing_prompt', $campaign->landing_prompt) }}</textarea></label>
-            <label class="block text-sm font-semibold">Prompt penulisan artikel<textarea name="content_prompt" required maxlength="6000" rows="5" class="mt-1 w-full rounded-lg border-slate-300">{{ old('content_prompt', $campaign->content_prompt) }}</textarea></label>
+            <label class="block text-sm font-semibold">Prompt target keyword / topic research<textarea name="keyword_prompt" required maxlength="50000" rows="5" class="mt-1 w-full rounded-lg border-slate-300">{{ old('keyword_prompt', $campaign->keyword_prompt) }}</textarea></label>
+            <label class="block text-sm font-semibold">Prompt entity / LSI keyword<textarea name="entity_prompt" required maxlength="50000" rows="5" class="mt-1 w-full rounded-lg border-slate-300">{{ old('entity_prompt', $campaign->entity_prompt) }}</textarea></label>
+            <label class="block text-sm font-semibold">Prompt landing page<textarea name="landing_prompt" required maxlength="50000" rows="4" class="mt-1 w-full rounded-lg border-slate-300">{{ old('landing_prompt', $campaign->landing_prompt) }}</textarea></label>
+            <label class="block text-sm font-semibold">Prompt penulisan artikel<textarea name="content_prompt" required maxlength="50000" rows="5" class="mt-1 w-full rounded-lg border-slate-300">{{ old('content_prompt', $campaign->content_prompt) }}</textarea></label>
         </section>
 
         <section x-show="tab === 'data'" x-cloak class="space-y-4">

@@ -15,7 +15,7 @@ class ContentCampaignLandingPageService
         $product = $campaign->product;
         $ai = new AIService($campaign->tenant, 'default');
         $fallbackTitle = Str::title($target->keyword);
-        $landingPrompt = $this->clean($campaign->landing_prompt, 6000);
+        $landingPrompt = $this->clean($campaign->landing_prompt, 50000);
         $temporalContext = app(ContentCampaignPromptService::class)->temporalContext($campaign->timezone ?: config('app.timezone', 'UTC'));
         $result = $ai->generateJson(
             'Balas HANYA JSON valid. Jangan menghasilkan HTML, JavaScript, URL eksternal, klaim harga, atau fitur yang tidak ada di data bisnis.',

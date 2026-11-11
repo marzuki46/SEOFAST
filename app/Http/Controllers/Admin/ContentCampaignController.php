@@ -13,6 +13,7 @@ use App\Models\Tenant;
 use App\Services\ContentCampaignPromptService;
 use App\Services\ContentCampaignScheduleService;
 use App\Services\ContentCampaignService;
+use App\Services\ContentEditorialService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -54,6 +55,8 @@ class ContentCampaignController extends Controller
             'word_count_max' => (int) SystemSetting::get('apc_word_count_max', 1400),
             'keyword_prompt' => SystemSetting::get('apc_keyword_prompt', "Ekstrak dan kembangkan kata kunci entitas SEO:\n1. Target kata kunci utama (Primary Keyword)\n2. 5-8 Entity keywords (LSI / semantic terms) yang relevan\n3. Klasifikasi search intent pengunjung"),
             'content_prompt' => SystemSetting::get('apc_content_prompt', "Tulis artikel dengan gaya bahasa jurnalis atau praktisi profesional manusia (100% natural, bebas klise robot AI, minimal 800-1400 kata).\n- HINDARI pembuka klise seperti 'Di era digital yang serba cepat...'\n- HINDARI sub-judul 'Kesimpulan', ganti dengan langkah aksi praktis\n- JANGAN gunakan garis mendatar (---)\n- Sub-heading jelas (H2, H3) dengan studi kasus/contoh konkret\n- Sisipkan Call To Action (CTA) secara persuasif dan mengalir\n- Optimasi kaidah Google Helpful Content & E-E-A-T"),
+            'editorial_enabled' => (bool) SystemSetting::get('apc_editorial_enabled', false),
+            'editorial_prompt' => SystemSetting::get('apc_editorial_prompt', app(ContentEditorialService::class)->defaultEditorialPrompt()),
         ];
 
         return view('admin.content-campaigns.index', compact('campaigns', 'campaignOptions', 'products', 'silos', 'globalSettings'));
@@ -84,8 +87,10 @@ class ContentCampaignController extends Controller
             'cta_url' => ['nullable', 'string', 'max:2048'],
             'word_count_min' => ['nullable', 'integer', 'min:300', 'max:5000'],
             'word_count_max' => ['nullable', 'integer', 'min:400', 'max:8000'],
-            'keyword_prompt' => ['nullable', 'string', 'max:6000'],
-            'content_prompt' => ['nullable', 'string', 'max:6000'],
+            'keyword_prompt' => ['nullable', 'string', 'max:50000'],
+            'content_prompt' => ['nullable', 'string', 'max:50000'],
+            'editorial_prompt' => ['nullable', 'string', 'max:50000'],
+            'editorial_enabled' => ['nullable', 'boolean'],
         ]);
 
         if (isset($validated['ai_provider'])) {
@@ -161,6 +166,10 @@ class ContentCampaignController extends Controller
         if (isset($validated['content_prompt'])) {
             SystemSetting::set('apc_content_prompt', $validated['content_prompt'], 'content');
         }
+        if (isset($validated['editorial_prompt'])) {
+            SystemSetting::set('apc_editorial_prompt', $validated['editorial_prompt'], 'content');
+        }
+        SystemSetting::set('apc_editorial_enabled', $request->boolean('editorial_enabled'), 'content', 'boolean');
 
         SystemSetting::flushCache();
 
@@ -226,10 +235,10 @@ class ContentCampaignController extends Controller
             'niche' => ['nullable', 'string', 'max:255'],
             'business_data' => ['nullable', 'string', 'max:10000'],
             'entity_seed' => ['nullable', 'string', 'max:500'],
-            'keyword_prompt' => ['required', 'string', 'max:6000'],
-            'entity_prompt' => ['required', 'string', 'max:6000'],
-            'landing_prompt' => ['required', 'string', 'max:6000'],
-            'content_prompt' => ['required', 'string', 'max:6000'],
+            'keyword_prompt' => ['required', 'string', 'max:50000'],
+            'entity_prompt' => ['required', 'string', 'max:50000'],
+            'landing_prompt' => ['required', 'string', 'max:50000'],
+            'content_prompt' => ['required', 'string', 'max:50000'],
             'word_count_min' => ['required', 'integer', 'min:300', 'max:5000'],
             'word_count_max' => ['required', 'integer', 'min:400', 'max:8000', 'gte:word_count_min'],
             'cta_label' => ['nullable', 'string', 'max:120'],
@@ -288,10 +297,10 @@ class ContentCampaignController extends Controller
             'niche' => ['nullable', 'string', 'max:255'],
             'business_data' => ['nullable', 'string', 'max:10000'],
             'entity_seed' => ['nullable', 'string', 'max:500'],
-            'keyword_prompt' => ['nullable', 'string', 'max:6000'],
-            'entity_prompt' => ['nullable', 'string', 'max:6000'],
-            'landing_prompt' => ['nullable', 'string', 'max:6000'],
-            'content_prompt' => ['nullable', 'string', 'max:6000'],
+            'keyword_prompt' => ['nullable', 'string', 'max:50000'],
+            'entity_prompt' => ['nullable', 'string', 'max:50000'],
+            'landing_prompt' => ['nullable', 'string', 'max:50000'],
+            'content_prompt' => ['nullable', 'string', 'max:50000'],
             'word_count_min' => ['required', 'integer', 'min:300', 'max:5000'],
             'word_count_max' => ['required', 'integer', 'min:400', 'max:8000', 'gte:word_count_min'],
             'cta_label' => ['nullable', 'string', 'max:120'],

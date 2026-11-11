@@ -10,6 +10,7 @@ use App\Models\SiloBlueprint;
 use App\Models\SystemSetting;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 
 class SitemapController extends Controller
 {
@@ -41,7 +42,7 @@ class SitemapController extends Controller
 
     private function cacheKey(string $key): string
     {
-        return 'sitemap.v' . $this->cacheVersion() . '.' . $key;
+        return 'sitemap.v'.$this->cacheVersion().'.'.$key;
     }
 
     private function multiLangEnabled(): bool
@@ -57,12 +58,14 @@ class SitemapController extends Controller
     private function productPrefix(): string
     {
         $prefix = (string) SystemSetting::get('permalink_product', 'produk');
+
         return ($prefix === '' || $prefix === '0') ? 'produk' : $prefix;
     }
 
     private function homepageLastmod(): string
     {
         $lastmod = Page::withoutGlobalScopes()->where('is_homepage', true)->value('updated_at');
+
         return $lastmod?->toAtomString() ?? now()->toAtomString();
     }
 
@@ -73,15 +76,14 @@ class SitemapController extends Controller
             ->where('published_at', '<=', now())
             ->orderByDesc('updated_at')
             ->value('updated_at');
+
         return $lastmod?->toAtomString() ?? now()->toAtomString();
     }
 
     private function postLastmod(Content $content): string
     {
-        $last = $content->updated_at ?? $content->published_at;
-        if ($content->last_partial_update_at && $content->last_partial_update_at > $last) {
-            $last = $content->last_partial_update_at;
-        }
+        $last = $content->revised_at ?: ($content->last_partial_update_at ?: ($content->updated_at ?: $content->published_at));
+
         return $last?->toAtomString() ?? now()->toAtomString();
     }
 
@@ -92,17 +94,26 @@ class SitemapController extends Controller
         } else {
             $days = now()->diffInDays($content->published_at ?? now(), false);
             $priority = match (true) {
-                $days <= 30  => 0.9,
-                $days <= 90  => 0.7,
+                $days <= 30 => 0.9,
+                $days <= 90 => 0.7,
                 $days <= 180 => 0.6,
-                default      => 0.4,
+                default => 0.4,
             };
-            if ($content->hierarchy_level === 'pillar') $priority += 0.1;
-            if ((int) $content->search_volume > 0) $priority += 0.05;
-            if ($content->gsc_coverage_state === 'Submitted and indexed') $priority += 0.05;
+            if ($content->hierarchy_level === 'pillar') {
+                $priority += 0.1;
+            }
+            if ((int) $content->search_volume > 0) {
+                $priority += 0.05;
+            }
+            if ($content->gsc_coverage_state === 'Submitted and indexed') {
+                $priority += 0.05;
+            }
             $position = (int) $content->current_serp_position;
-            if ($position > 0 && $position <= 3) $priority += 0.05;
+            if ($position > 0 && $position <= 3) {
+                $priority += 0.05;
+            }
         }
+
         return max(0.1, min(1.0, round($priority, 1)));
     }
 
@@ -136,7 +147,9 @@ class SitemapController extends Controller
             } elseif (preg_match('/^(.*)-(\d{1,2})$/', $slug, $m)) {
                 $base = $m[1]; // penomoran sekuensial SiloBlueprintController: -1, -2, dst
             }
-            if ($base === null || !isset($slugSet[$base])) continue;
+            if ($base === null || ! isset($slugSet[$base])) {
+                continue;
+            }
             $dupes[$slug] = true;
         }
 
@@ -152,7 +165,7 @@ class SitemapController extends Controller
     {
         $slugs = array_keys(config('seo.page_aliases', []));
 
-        $redirectPaths = Redirect::active()->pluck('old_url')->map(fn ($url) => '/' . ltrim($url, '/'))->all();
+        $redirectPaths = Redirect::active()->pluck('old_url')->map(fn ($url) => '/'.ltrim($url, '/'))->all();
         foreach ($redirectPaths as $path) {
             $slugs[] = trim(str_replace('\\', '/', $path), '/');
         }
@@ -169,19 +182,7 @@ class SitemapController extends Controller
      */
     private function applyPostBodyFilter($query, bool $requireEn = false)
     {
-        $query = $query
-            ->whereNotNull('body_raw')
-            ->where('body_raw', '!=', '{"id":""}')
-            ->where('body_raw', '!=', '{"en":""}');
-
-        return $query->where(function ($q) use ($requireEn) {
-            if ($requireEn) {
-                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
-            } else {
-                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
-                  ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
-            }
-        });
+        return $requireEn ? $query->hasEnglishBody() : $query->hasBodyContent();
     }
 
     private function postChangefreq(float $priority): string
@@ -189,38 +190,40 @@ class SitemapController extends Controller
         return match (true) {
             $priority >= 0.8 => 'weekly',
             $priority >= 0.5 => 'monthly',
-            default          => 'yearly',
+            default => 'yearly',
         };
     }
 
     private function hreflangLinks(string $idUrl, string $enUrl, bool $includeEn = true): string
     {
-        if (!$this->multiLangEnabled()) return '';
-
-        $xml = '    <xhtml:link rel="alternate" hreflang="id" href="' . e($idUrl) . '"/>' . PHP_EOL;
-        if ($includeEn) {
-            $xml .= '    <xhtml:link rel="alternate" hreflang="en" href="' . e($enUrl) . '"/>' . PHP_EOL;
+        if (! $this->multiLangEnabled()) {
+            return '';
         }
-        $xml .= '    <xhtml:link rel="alternate" hreflang="x-default" href="' . e($idUrl) . '"/>' . PHP_EOL;
+
+        $xml = '    <xhtml:link rel="alternate" hreflang="id" href="'.e($idUrl).'"/>'.PHP_EOL;
+        if ($includeEn) {
+            $xml .= '    <xhtml:link rel="alternate" hreflang="en" href="'.e($enUrl).'"/>'.PHP_EOL;
+        }
+        $xml .= '    <xhtml:link rel="alternate" hreflang="x-default" href="'.e($idUrl).'"/>'.PHP_EOL;
 
         return $xml;
     }
 
     private function urlEntry(string $loc, string $lastmod, string $priority, string $changefreq, string $extra = ''): string
     {
-        return '  <url>' . PHP_EOL
-             . '    <loc>' . e($loc) . '</loc>' . PHP_EOL
-             . $extra
-             . '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL
-             . '    <priority>' . $priority . '</priority>' . PHP_EOL
-             . '    <changefreq>' . $changefreq . '</changefreq>' . PHP_EOL
-             . '  </url>' . PHP_EOL;
+        return '  <url>'.PHP_EOL
+             .'    <loc>'.e($loc).'</loc>'.PHP_EOL
+             .$extra
+             .'    <lastmod>'.$lastmod.'</lastmod>'.PHP_EOL
+             .'    <priority>'.$priority.'</priority>'.PHP_EOL
+             .'    <changefreq>'.$changefreq.'</changefreq>'.PHP_EOL
+             .'  </url>'.PHP_EOL;
     }
 
     private function xmlHeader(): string
     {
-        return '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL
-             . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . PHP_EOL;
+        return '<?xml version="1.0" encoding="UTF-8"?>'.PHP_EOL
+             .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">'.PHP_EOL;
     }
 
     /**
@@ -245,32 +248,32 @@ class SitemapController extends Controller
 
             $totalPages = max(1, (int) ceil($totalPosts / self::PER_PAGE));
 
-            $xml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
-            $xml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+            $xml = '<?xml version="1.0" encoding="UTF-8"?>'.PHP_EOL;
+            $xml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'.PHP_EOL;
 
-            $xml .= '  <sitemap>' . PHP_EOL;
-            $xml .= '    <loc>' . url('/sitemap-static.xml') . '</loc>' . PHP_EOL;
-            $xml .= '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
-            $xml .= '  </sitemap>' . PHP_EOL;
+            $xml .= '  <sitemap>'.PHP_EOL;
+            $xml .= '    <loc>'.url('/sitemap-static.xml').'</loc>'.PHP_EOL;
+            $xml .= '    <lastmod>'.$lastmod.'</lastmod>'.PHP_EOL;
+            $xml .= '  </sitemap>'.PHP_EOL;
 
             for ($i = 1; $i <= $totalPages; $i++) {
-                $xml .= '  <sitemap>' . PHP_EOL;
-                $xml .= '    <loc>' . url('/sitemap-posts-' . $i . '.xml') . '</loc>' . PHP_EOL;
-                $xml .= '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
-                $xml .= '  </sitemap>' . PHP_EOL;
+                $xml .= '  <sitemap>'.PHP_EOL;
+                $xml .= '    <loc>'.url('/sitemap-posts-'.$i.'.xml').'</loc>'.PHP_EOL;
+                $xml .= '    <lastmod>'.$lastmod.'</lastmod>'.PHP_EOL;
+                $xml .= '  </sitemap>'.PHP_EOL;
             }
 
             if ($multiLang) {
-                $xml .= '  <sitemap>' . PHP_EOL;
-                $xml .= '    <loc>' . url('/sitemap-en-static.xml') . '</loc>' . PHP_EOL;
-                $xml .= '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
-                $xml .= '  </sitemap>' . PHP_EOL;
+                $xml .= '  <sitemap>'.PHP_EOL;
+                $xml .= '    <loc>'.url('/sitemap-en-static.xml').'</loc>'.PHP_EOL;
+                $xml .= '    <lastmod>'.$lastmod.'</lastmod>'.PHP_EOL;
+                $xml .= '  </sitemap>'.PHP_EOL;
 
                 for ($i = 1; $i <= $totalPages; $i++) {
-                    $xml .= '  <sitemap>' . PHP_EOL;
-                    $xml .= '    <loc>' . url('/sitemap-en-posts-' . $i . '.xml') . '</loc>' . PHP_EOL;
-                    $xml .= '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
-                    $xml .= '  </sitemap>' . PHP_EOL;
+                    $xml .= '  <sitemap>'.PHP_EOL;
+                    $xml .= '    <loc>'.url('/sitemap-en-posts-'.$i.'.xml').'</loc>'.PHP_EOL;
+                    $xml .= '    <lastmod>'.$lastmod.'</lastmod>'.PHP_EOL;
+                    $xml .= '  </sitemap>'.PHP_EOL;
                 }
             }
 
@@ -304,42 +307,50 @@ class SitemapController extends Controller
             $xml .= $this->urlEntry(url('/contact'), $homeLastmod, '0.7', 'monthly');
 
             // Blog Index
-            $xml .= $this->urlEntry(url('/' . $blogPrefix), $blogLastmod, '0.9', 'daily',
-                $this->hreflangLinks(url('/' . $blogPrefix), url('/en/' . $blogPrefix)));
+            $xml .= $this->urlEntry(url('/'.$blogPrefix), $blogLastmod, '0.9', 'daily',
+                $this->hreflangLinks(url('/'.$blogPrefix), url('/en/'.$blogPrefix)));
 
             // Categories
             foreach (SiloBlueprint::withoutGlobalScopes()->get(['silo_name', 'updated_at']) as $category) {
                 $catLastmod = $category->updated_at?->toAtomString() ?? $blogLastmod;
-                $xml .= $this->urlEntry(url('/' . $blogPrefix . '/category/' . $category->slug), $catLastmod, '0.8', 'weekly',
+                $xml .= $this->urlEntry(url('/'.$blogPrefix.'/category/'.$category->slug), $catLastmod, '0.8', 'weekly',
                     $this->hreflangLinks(
-                        url('/' . $blogPrefix . '/category/' . $category->slug),
-                        url('/en/' . $blogPrefix . '/category/' . $category->slug)
+                        url('/'.$blogPrefix.'/category/'.$category->slug),
+                        url('/en/'.$blogPrefix.'/category/'.$category->slug)
                     ));
             }
 
             // Product Catalog Index
-            $xml .= $this->urlEntry(url('/' . $productPrefix), $blogLastmod, '0.9', 'daily',
-                $this->hreflangLinks(url('/' . $productPrefix), url('/en/' . $productPrefix)));
+            $xml .= $this->urlEntry(url('/'.$productPrefix), $blogLastmod, '0.9', 'daily',
+                $this->hreflangLinks(url('/'.$productPrefix), url('/en/'.$productPrefix)));
 
             // Products
             foreach (Product::withoutGlobalScopes()->where('is_active', true)->get(['slug', 'updated_at']) as $product) {
                 $prodLastmod = $product->updated_at?->toAtomString() ?? $blogLastmod;
-                $xml .= $this->urlEntry(url('/' . $productPrefix . '/' . $product->slug), $prodLastmod, '0.9', 'weekly',
+                $xml .= $this->urlEntry(url('/'.$productPrefix.'/'.$product->slug), $prodLastmod, '0.9', 'weekly',
                     $this->hreflangLinks(
-                        url('/' . $productPrefix . '/' . $product->slug),
-                        url('/en/' . $productPrefix . '/' . $product->slug)
+                        url('/'.$productPrefix.'/'.$product->slug),
+                        url('/en/'.$productPrefix.'/'.$product->slug)
                     ));
             }
 
             // Pages (skip homepage page + slugs shadowed by real routes)
             $excludedSlugs = $this->excludedPageSlugs();
             foreach (Page::withoutGlobalScopes()->where('is_published', true)->get(['slug', 'updated_at']) as $page) {
-                if ($page->is_homepage) continue;
-                if (in_array($page->slug, ['contact', 'home'], true)) continue;
-                if (in_array($page->slug, $excludedSlugs, true)) continue;
+                if ($page->is_homepage) {
+                    continue;
+                }
+                if (in_array($page->slug, ['contact', 'home'], true)) {
+                    continue;
+                }
+                if (in_array($page->slug, $excludedSlugs, true)) {
+                    continue;
+                }
 
-                $loc = url('/' . $page->slug);
-                if (isset($seen[$loc])) continue;
+                $loc = url('/'.$page->slug);
+                if (isset($seen[$loc])) {
+                    continue;
+                }
                 $seen[$loc] = true;
 
                 $pageLastmod = $page->updated_at?->toAtomString() ?? $blogLastmod;
@@ -359,7 +370,7 @@ class SitemapController extends Controller
      */
     public function postsSitemap(int $page = 1): Response
     {
-        $xml = Cache::remember($this->cacheKey('posts.id.' . $page), self::CACHE_TTL, function () use ($page) {
+        $xml = Cache::remember($this->cacheKey('posts.id.'.$page), self::CACHE_TTL, function () use ($page) {
             $contents = $this->applyPostBodyFilter(
                 Content::withoutGlobalScopes()
                     ->where('status', 'published')
@@ -373,12 +384,14 @@ class SitemapController extends Controller
             $dupeSlugs = $this->duplicateGeneratedSlugs();
 
             foreach ($contents as $content) {
-                if (in_array($content->slug, $dupeSlugs, true)) continue;
+                if (in_array($content->slug, $dupeSlugs, true)) {
+                    continue;
+                }
 
                 $priority = $this->postPriority($content);
-                $loc = url('/' . $blogPrefix . '/' . $content->slug);
+                $loc = url('/'.$blogPrefix.'/'.$content->slug);
                 $xml .= $this->urlEntry($loc, $this->postLastmod($content), number_format($priority, 1), $this->postChangefreq($priority),
-                    $this->hreflangLinks($loc, url('/en/' . $blogPrefix . '/' . $content->slug), $content->hasEnglishContent()));
+                    $this->hreflangLinks($loc, url('/en/'.$blogPrefix.'/'.$content->slug), $content->hasEnglishContent()));
             }
 
             $xml .= '</urlset>';
@@ -411,42 +424,50 @@ class SitemapController extends Controller
             $xml .= $this->urlEntry(url('/en/contact'), $homeLastmod, '0.7', 'monthly');
 
             // Blog Index
-            $xml .= $this->urlEntry(url('/en/' . $blogPrefix), $blogLastmod, '0.9', 'daily',
-                $this->hreflangLinks(url('/' . $blogPrefix), url('/en/' . $blogPrefix)));
+            $xml .= $this->urlEntry(url('/en/'.$blogPrefix), $blogLastmod, '0.9', 'daily',
+                $this->hreflangLinks(url('/'.$blogPrefix), url('/en/'.$blogPrefix)));
 
             // Categories
             foreach (SiloBlueprint::withoutGlobalScopes()->get(['silo_name', 'updated_at']) as $category) {
                 $catLastmod = $category->updated_at?->toAtomString() ?? $blogLastmod;
-                $xml .= $this->urlEntry(url('/en/' . $blogPrefix . '/category/' . $category->slug), $catLastmod, '0.8', 'weekly',
+                $xml .= $this->urlEntry(url('/en/'.$blogPrefix.'/category/'.$category->slug), $catLastmod, '0.8', 'weekly',
                     $this->hreflangLinks(
-                        url('/' . $blogPrefix . '/category/' . $category->slug),
-                        url('/en/' . $blogPrefix . '/category/' . $category->slug)
+                        url('/'.$blogPrefix.'/category/'.$category->slug),
+                        url('/en/'.$blogPrefix.'/category/'.$category->slug)
                     ));
             }
 
             // Product Catalog Index
-            $xml .= $this->urlEntry(url('/en/' . $productPrefix), $blogLastmod, '0.9', 'daily',
-                $this->hreflangLinks(url('/' . $productPrefix), url('/en/' . $productPrefix)));
+            $xml .= $this->urlEntry(url('/en/'.$productPrefix), $blogLastmod, '0.9', 'daily',
+                $this->hreflangLinks(url('/'.$productPrefix), url('/en/'.$productPrefix)));
 
             // Products
             foreach (Product::withoutGlobalScopes()->where('is_active', true)->get(['slug', 'updated_at']) as $product) {
                 $prodLastmod = $product->updated_at?->toAtomString() ?? $blogLastmod;
-                $xml .= $this->urlEntry(url('/en/' . $productPrefix . '/' . $product->slug), $prodLastmod, '0.9', 'weekly',
+                $xml .= $this->urlEntry(url('/en/'.$productPrefix.'/'.$product->slug), $prodLastmod, '0.9', 'weekly',
                     $this->hreflangLinks(
-                        url('/' . $productPrefix . '/' . $product->slug),
-                        url('/en/' . $productPrefix . '/' . $product->slug)
+                        url('/'.$productPrefix.'/'.$product->slug),
+                        url('/en/'.$productPrefix.'/'.$product->slug)
                     ));
             }
 
             // Pages (skip homepage page + slugs shadowed by real routes)
             $excludedSlugs = $this->excludedPageSlugs();
             foreach (Page::withoutGlobalScopes()->where('is_published', true)->get(['slug', 'updated_at']) as $page) {
-                if ($page->is_homepage) continue;
-                if (in_array($page->slug, ['contact', 'home'], true)) continue;
-                if (in_array($page->slug, $excludedSlugs, true)) continue;
+                if ($page->is_homepage) {
+                    continue;
+                }
+                if (in_array($page->slug, ['contact', 'home'], true)) {
+                    continue;
+                }
+                if (in_array($page->slug, $excludedSlugs, true)) {
+                    continue;
+                }
 
-                $loc = url('/en/' . $page->slug);
-                if (isset($seen[$loc])) continue;
+                $loc = url('/en/'.$page->slug);
+                if (isset($seen[$loc])) {
+                    continue;
+                }
                 $seen[$loc] = true;
 
                 $pageLastmod = $page->updated_at?->toAtomString() ?? $blogLastmod;
@@ -466,7 +487,7 @@ class SitemapController extends Controller
      */
     public function postsSitemapEn(int $page = 1): Response
     {
-        $xml = Cache::remember($this->cacheKey('posts.en.' . $page), self::CACHE_TTL, function () use ($page) {
+        $xml = Cache::remember($this->cacheKey('posts.en.'.$page), self::CACHE_TTL, function () use ($page) {
             $contents = $this->applyPostBodyFilter(
                 Content::withoutGlobalScopes()
                     ->where('status', 'published')
@@ -480,12 +501,14 @@ class SitemapController extends Controller
             $dupeSlugs = $this->duplicateGeneratedSlugs();
 
             foreach ($contents as $content) {
-                if (in_array($content->slug, $dupeSlugs, true)) continue;
+                if (in_array($content->slug, $dupeSlugs, true)) {
+                    continue;
+                }
 
                 $priority = $this->postPriority($content);
-                $loc = url('/en/' . $blogPrefix . '/' . $content->slug);
+                $loc = url('/en/'.$blogPrefix.'/'.$content->slug);
                 $xml .= $this->urlEntry($loc, $this->postLastmod($content), number_format($priority, 1), $this->postChangefreq($priority),
-                    $this->hreflangLinks(url('/' . $blogPrefix . '/' . $content->slug), $loc));
+                    $this->hreflangLinks(url('/'.$blogPrefix.'/'.$content->slug), $loc));
             }
 
             $xml .= '</urlset>';
@@ -505,15 +528,16 @@ class SitemapController extends Controller
 
         if ($customRobots) {
             $content = $customRobots;
-            if (!str_contains($content, 'Sitemap:')) {
-                $content = rtrim($content) . PHP_EOL . PHP_EOL . 'Sitemap: ' . url('/sitemap.xml') . PHP_EOL;
+            if (! str_contains($content, 'Sitemap:')) {
+                $content = rtrim($content).PHP_EOL.PHP_EOL.'Sitemap: '.url('/sitemap.xml').PHP_EOL;
             }
+
             return response($content, 200, ['Content-Type' => 'text/plain']);
         }
 
         // Default robots.txt — area privat & tidak berguna untuk indexasi
         // di-disallow agar crawl budget fokus ke halaman publik yang bernilai.
-        $content  = "User-agent: *\n";
+        $content = "User-agent: *\n";
         $content .= "Allow: /\n";
         $content .= "Disallow: /admin/\n";
         $content .= "Disallow: /master/adminis-trator\n";
@@ -525,7 +549,7 @@ class SitemapController extends Controller
         // /search tidak di-disallow (pakai noindex via meta/X-Robots-Tag saja,
         // sesuai best practice Google agar bot tetap bisa melihat halamannya).
         $content .= "Disallow: /g/\n\n";
-        $content .= "Sitemap: " . url('/sitemap.xml') . "\n";
+        $content .= 'Sitemap: '.url('/sitemap.xml')."\n";
 
         return response($content, 200, ['Content-Type' => 'text/plain']);
     }
@@ -533,17 +557,17 @@ class SitemapController extends Controller
     /**
      * Ghost Publish — Blueprint URL with noindex placeholder
      */
-    public function ghost(string $slug): \Illuminate\View\View|Response
+    public function ghost(string $slug): View|Response
     {
         $content = Content::withoutGlobalScopes()->whereSlug($slug)->first();
 
-        if (!$content) {
+        if (! $content) {
             abort(404);
         }
 
         // If published, redirect to actual blog
         if ($content->status === 'published') {
-            return redirect('/blog/' . $slug, 301);
+            return redirect('/blog/'.$slug, 301);
         }
 
         // Blueprint without actual content → 404 to save crawl budget

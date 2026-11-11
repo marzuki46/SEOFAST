@@ -217,13 +217,13 @@
             </form>
         </div>
 
-    <!-- TAB 3: TEMPLATE PROMPT SEO & E-E-A-T -->
+    <!-- TAB 3: TEMPLATE PROMPT SEO & E-E-A-T & TIM EDITORIAL -->
     @elseif(request('tab') === 'prompt_settings')
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
             <div class="mb-6 border-b border-slate-100 pb-4">
                 <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Pengaturan Terpusat</span>
-                <h2 class="mt-1 text-2xl font-bold text-slate-900">Template Prompt SEO & E-E-A-T</h2>
-                <p class="mt-1 text-sm text-slate-500">Formula prompt bawaan persis seperti plugin untuk memastikan artikel natural dan bebas klise robot AI.</p>
+                <h2 class="mt-1 text-2xl font-bold text-slate-900">Template Prompt SEO & Tim Editorial AI</h2>
+                <p class="mt-1 text-sm text-slate-500">Formula prompt bawaan bebas batas karakter kaku, dilengkapi fitur Tim Editorial AI otomatis yang membaca seluruh artikel, menyempurnakan tulisan kaku, dan memperbarui tanggal revisi.</p>
             </div>
 
             <form method="POST" action="{{ route('admin.content-campaigns.global_settings') }}" class="space-y-6">
@@ -231,17 +231,40 @@
                 <div>
                     <label class="block text-sm font-semibold text-slate-800 mb-1.5">Template Prompt Riset Kata Kunci Entitas (Entity SEO)</label>
                     <textarea name="keyword_prompt" rows="4" class="w-full rounded-xl border border-slate-200 p-3.5 text-sm shadow-sm outline-none focus:border-indigo-500 font-mono text-xs leading-relaxed">{{ $globalSettings['keyword_prompt'] }}</textarea>
-                    <p class="mt-1 text-xs text-slate-500">Menginstruksikan AI menemukan keyword utama, sinonim, dan intent audiens.</p>
+                    <p class="mt-1 text-xs text-slate-500">Menginstruksikan AI menemukan keyword utama, sinonim, dan intent audiens (Maksimal 50.000 karakter).</p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-slate-800 mb-1.5">Template Prompt Pengembangan Konten Utama & Gaya Alami</label>
                     <textarea name="content_prompt" rows="7" class="w-full rounded-xl border border-slate-200 p-3.5 text-sm shadow-sm outline-none focus:border-indigo-500 font-mono text-xs leading-relaxed">{{ $globalSettings['content_prompt'] }}</textarea>
-                    <p class="mt-1 text-xs text-slate-500">Melarang klise robotik ("Di era digital", "Kesimpulan"), menghapus garis (---), dan mewajibkan transisi manusiawi.</p>
+                    <p class="mt-1 text-xs text-slate-500">Melarang klise robotik ("Di era digital", "Kesimpulan"), menghapus garis (---), dan mewajibkan transisi manusiawi (Maksimal 50.000 karakter).</p>
+                </div>
+
+                <!-- Modul Tim Editorial AI -->
+                <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🧑‍💼</span>
+                            <div>
+                                <h3 class="font-bold text-emerald-950 text-base">Tim Editorial AI (Review & Poles Konten Pasca-Terbit)</h3>
+                                <p class="text-xs text-emerald-800 mt-0.5">Membaca seluruh draft artikel yang sudah dibuat, mendeteksi keyword-nya, menyunting bagian yang kaku, lalu memperbarui artikel dengan tanggal revisi terakhir.</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="editorial_enabled" value="1" @checked($globalSettings['editorial_enabled']) class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-emerald-950 mb-1.5">Instruksi Khusus untuk Tim Editorial AI</label>
+                        <textarea name="editorial_prompt" rows="4" class="w-full rounded-xl border border-emerald-200 bg-white p-3.5 text-sm shadow-sm outline-none focus:border-emerald-500 font-mono text-xs leading-relaxed" placeholder="Masukkan arahan tim editorial...">{{ $globalSettings['editorial_prompt'] }}</textarea>
+                        <p class="mt-1 text-xs text-emerald-700">Algoritma otomatis: Menjaga semua tautan markdown/HTML asli, menghaluskan flow kalimat, dan menyetel <code>revised_at</code> (+15 s/d 45 menit). Riwayat publikasi lama dihilangkan, hanya tanggal terakhir yang aktif di sitemap & Schema Google.</p>
+                    </div>
                 </div>
 
                 <div class="flex justify-end pt-3">
-                    <button class="rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">Simpan Template Prompt</button>
+                    <button class="rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800">Simpan Template Prompt & Editorial</button>
                 </div>
             </form>
         </div>

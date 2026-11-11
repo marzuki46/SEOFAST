@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\SeoMeta;
+use App\Models\Content;
+use App\Models\Product;
 use App\Models\SystemSetting;
 
 class SeoHelper
@@ -13,13 +14,13 @@ class SeoHelper
      */
     public static function resolveTemplate(string $template, array $vars = []): string
     {
-        $siteName  = SystemSetting::get('site_name', config('app.name', 'SEOFAST'));
+        $siteName = SystemSetting::get('site_name', config('app.name', 'SEOFAST'));
         $separator = SystemSetting::get('title_separator', '|');
 
         $defaults = [
-            '{site_name}'  => $siteName,
-            '{separator}'  => $separator,
-            '{year}'       => date('Y'),
+            '{site_name}' => $siteName,
+            '{separator}' => $separator,
+            '{year}' => date('Y'),
         ];
 
         $all = array_merge($defaults, $vars);
@@ -37,6 +38,7 @@ class SeoHelper
         }
 
         $template = SystemSetting::get('title_template_post', '{page_title} {separator} {site_name}');
+
         return self::resolveTemplate($template, ['{page_title}' => $postTitle]);
     }
 
@@ -46,6 +48,7 @@ class SeoHelper
     public static function categoryTitle(string $categoryName): string
     {
         $template = SystemSetting::get('title_template_category', '{category_name} Articles {separator} {site_name}');
+
         return self::resolveTemplate($template, ['{category_name}' => $categoryName]);
     }
 
@@ -59,6 +62,7 @@ class SeoHelper
         }
 
         $template = SystemSetting::get('title_template_page', '{page_title} {separator} {site_name}');
+
         return self::resolveTemplate($template, ['{page_title}' => $pageTitle]);
     }
 
@@ -68,11 +72,13 @@ class SeoHelper
     public static function homepageTitle(): string
     {
         $custom = SystemSetting::get('seo_global_meta_title');
-        if ($custom) return $custom;
+        if ($custom) {
+            return $custom;
+        }
 
         $siteName = SystemSetting::get('site_name', config('app.name', 'SEOFAST'));
-        $tagline  = SystemSetting::get('site_tagline');
-        $sep      = SystemSetting::get('title_separator', '|');
+        $tagline = SystemSetting::get('site_tagline');
+        $sep = SystemSetting::get('title_separator', '|');
 
         return $tagline ? "{$siteName} {$sep} {$tagline}" : $siteName;
     }
@@ -84,9 +90,9 @@ class SeoHelper
     {
         $html = '';
 
-        $gaId  = SystemSetting::get('seo_global_google_analytics_id');
+        $gaId = SystemSetting::get('seo_global_google_analytics_id');
         $gtmId = SystemSetting::get('seo_global_gtm_id');
-        $fbPx  = SystemSetting::get('seo_global_fb_pixel_id');
+        $fbPx = SystemSetting::get('seo_global_fb_pixel_id');
 
         if ($gaId) {
             $html .= "<script async src=\"https://www.googletagmanager.com/gtag/js?id={$gaId}\"></script>\n";
@@ -110,7 +116,9 @@ class SeoHelper
     public static function trackingBodyStart(): string
     {
         $gtmId = SystemSetting::get('seo_global_gtm_id');
-        if (!$gtmId) return '';
+        if (! $gtmId) {
+            return '';
+        }
 
         return "<noscript><iframe src=\"https://www.googletagmanager.com/ns.html?id={$gtmId}\" height=\"0\" width=\"0\" style=\"display:none;visibility:hidden\"></iframe></noscript>\n";
     }
@@ -124,21 +132,21 @@ class SeoHelper
         $seoMeta = $model->seoMeta ?? null;
 
         $ogImage = trim((string) ($seoMeta?->og_image ?? ''));
-        if (!$ogImage) {
+        if (! $ogImage) {
             $ogImage = trim((string) SystemSetting::get('seo_global_og_image'));
         }
-        if (!$ogImage) {
+        if (! $ogImage) {
             $ogImage = asset('assets/og-default.jpg');
         }
 
         return [
-            'title'       => $seoMeta?->title ?: ($model->meta_title ?? $model->title ?? null),
+            'title' => $seoMeta?->title ?: ($model->meta_title ?? $model->title ?? null),
             'description' => $seoMeta?->description ?: ($model->meta_description ?? null),
-            'canonical'   => $seoMeta?->canonical ?: request()->url(),
-            'robots'      => $seoMeta?->robots ?: SystemSetting::get('seo_indexing_robots', 'index, follow'),
-            'og_image'    => $ogImage,
-            'og_title'    => $seoMeta?->og_title ?: null,
-            'og_desc'     => $seoMeta?->og_description ?: null,
+            'canonical' => $seoMeta?->canonical ?: request()->url(),
+            'robots' => $seoMeta?->robots ?: SystemSetting::get('seo_indexing_robots', 'index, follow'),
+            'og_image' => $ogImage,
+            'og_title' => $seoMeta?->og_title ?: null,
+            'og_desc' => $seoMeta?->og_description ?: null,
         ];
     }
 
@@ -150,18 +158,18 @@ class SeoHelper
         $items = [];
         foreach ($crumbs as $i => $crumb) {
             $items[] = [
-                '@type'    => 'ListItem',
+                '@type' => 'ListItem',
                 'position' => $i + 1,
-                'name'     => $crumb['name'],
-                'item'     => $crumb['url'],
+                'name' => $crumb['name'],
+                'item' => $crumb['url'],
             ];
         }
 
-        return '<script type="application/ld+json">' . json_encode([
-            '@context'        => 'https://schema.org',
-            '@type'           => 'BreadcrumbList',
+        return '<script type="application/ld+json">'.json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
             'itemListElement' => $items,
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>';
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES).'</script>';
     }
 
     /**
@@ -171,10 +179,10 @@ class SeoHelper
     {
         // Add loading="lazy" and decoding="async" if missing
         $html = preg_replace('/<img(?![^>]*loading=)([^>]*)>/i', '<img loading="lazy" decoding="async" $1>', $html);
-        
+
         // Add alt fallback using post title / keyword if missing
         $altFallback = htmlspecialchars($fallbackAlt ?: 'Image', ENT_QUOTES, 'UTF-8');
-        $html = preg_replace('/<img(?![^>]*alt=)([^>]*)>/i', '<img alt="' . $altFallback . '" $1>', $html);
+        $html = preg_replace('/<img(?![^>]*alt=)([^>]*)>/i', '<img alt="'.$altFallback.'" $1>', $html);
 
         return $html;
     }
@@ -184,19 +192,21 @@ class SeoHelper
      */
     public static function renderSchema(mixed $model): string
     {
-        if (!$model) return '';
+        if (! $model) {
+            return '';
+        }
 
         $schemaType = 'WebPage';
         $seoMeta = $model->seoMeta ?? null;
 
         // Custom schema from settings or override
-        if ($seoMeta && !empty($seoMeta->schema['@type'])) {
+        if ($seoMeta && ! empty($seoMeta->schema['@type'])) {
             $schemaType = $seoMeta->schema['@type'];
         } else {
             // Determine default based on model type
-            if ($model instanceof \App\Models\Content) {
+            if ($model instanceof Content) {
                 $schemaType = 'Article';
-            } elseif ($model instanceof \App\Models\Product) {
+            } elseif ($model instanceof Product) {
                 $schemaType = 'Product';
             }
         }
@@ -212,18 +222,17 @@ class SeoHelper
         if ($schemaType === 'Article' || $schemaType === 'NewsArticle' || $schemaType === 'BlogPosting') {
             $schema['headline'] = $seoMeta?->title ?: ($model->title ?? '');
             $schema['description'] = $seoMeta?->description ?: ($model->meta_description ?? '');
-            
+
             if (isset($model->featured_image_url)) {
                 $schema['image'] = [$model->featured_image_url];
             } elseif ($seoMeta?->og_image) {
                 $schema['image'] = [$seoMeta->og_image];
             }
 
-            if (isset($model->published_at)) {
-                $schema['datePublished'] = $model->published_at->toIso8601String();
-            }
-            if (isset($model->updated_at)) {
-                $schema['dateModified'] = $model->updated_at->toIso8601String();
+            $displayDate = $model->revised_at ?: ($model->published_at ?: $model->created_at);
+            if ($displayDate) {
+                $schema['datePublished'] = $displayDate->toIso8601String();
+                $schema['dateModified'] = $displayDate->toIso8601String();
             }
 
             $schema['author'] = [
@@ -237,8 +246,8 @@ class SeoHelper
                 'name' => SystemSetting::get('site_name', config('app.name')),
                 'logo' => [
                     '@type' => 'ImageObject',
-                    'url' => SystemSetting::get('favicon_url', asset('favicon.ico'))
-                ]
+                    'url' => SystemSetting::get('favicon_url', asset('favicon.ico')),
+                ],
             ];
             $schema['mainEntityOfPage'] = [
                 '@type' => 'WebPage',
@@ -262,7 +271,7 @@ class SeoHelper
             $schema = array_merge($schema, $seoMeta->schema);
         }
 
-        return '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>';
+        return '<script type="application/ld+json">'.json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES).'</script>';
     }
 
     /**
@@ -273,8 +282,8 @@ class SeoHelper
     {
 
         $appUrl = rtrim(config('app.url'), '/');
-        $blogPrefix = \App\Models\SystemSetting::get('permalink_blog', 'blog');
-        
+        $blogPrefix = SystemSetting::get('permalink_blog', 'blog');
+
         // Find all <a> tags with href
         return preg_replace_callback('/<a\s+[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)<\/a>/i', function ($matches) use ($appUrl, $blogPrefix, $targetLocale) {
             $fullAnchorTag = $matches[0];
@@ -282,18 +291,18 @@ class SeoHelper
             $anchorText = $matches[2];
 
             // Only process absolute internal URLs or relative internal URLs starting with /blog/
-            $isInternal = str_starts_with($href, $appUrl) || str_starts_with($href, '/' . $blogPrefix . '/');
-            
+            $isInternal = str_starts_with($href, $appUrl) || str_starts_with($href, '/'.$blogPrefix.'/');
+
             if ($isInternal) {
                 // Extract the slug
                 $path = str_replace($appUrl, '', $href);
                 $path = ltrim($path, '/');
-                
-                if (str_starts_with($path, $blogPrefix . '/')) {
+
+                if (str_starts_with($path, $blogPrefix.'/')) {
                     $originalSlug = substr($path, strlen($blogPrefix) + 1);
-                    
-                    $post = \App\Models\Content::whereSlug($originalSlug)->first();
-                    
+
+                    $post = Content::whereSlug($originalSlug)->first();
+
                     if ($post) {
                         // If the target post is NOT published, hide the link to prevent 404s and exposing drafts
                         if ($post->status !== 'published') {
@@ -304,6 +313,7 @@ class SeoHelper
                             // Always force the link to the target locale (e.g., /en/blog/...)
                             $translatedSlug = $post->slug ?: $originalSlug;
                             $newHref = url("/{$targetLocale}/{$blogPrefix}/{$translatedSlug}");
+
                             return str_replace($href, $newHref, $fullAnchorTag);
                         }
                     }
