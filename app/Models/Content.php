@@ -136,6 +136,11 @@ class Content extends Model
         return $this->belongsTo(ContentTopic::class, 'content_topic_id');
     }
 
+    public function topic(): BelongsTo
+    {
+        return $this->contentTopic();
+    }
+
     public function campaignTarget(): BelongsTo
     {
         return $this->belongsTo(ContentCampaignTarget::class, 'campaign_target_id');
