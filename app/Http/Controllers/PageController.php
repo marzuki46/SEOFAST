@@ -33,6 +33,12 @@ class PageController extends Controller
             return redirect($target, 301);
         }
 
+        // Redirect legacy id/jasa to /jasa
+        if ($slug === 'id/jasa' || str_starts_with($slug, 'id/jasa/')) {
+            $target = preg_replace('#^id/jasa#', 'jasa', $slug);
+            return redirect('/' . $target, 301);
+        }
+
         $page = Page::where('slug', $slug)->first();
 
         if ($page) {

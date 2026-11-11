@@ -83,8 +83,19 @@ Route::get('/sitemap-posts-{page}.xml', [SitemapController::class, 'postsSitemap
 Route::get('/sitemap-en-static.xml', [SitemapController::class, 'staticSitemapEn'])->name('sitemap.en.static');
 Route::get('/sitemap-en-posts-{page}.xml', [SitemapController::class, 'postsSitemapEn'])->where('page', '[0-9]+')->name('sitemap.en.posts');
 Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
-// Ghost Publish — Blueprint URLs with noindex placeholder
-Route::get('/g/{slug}', [SitemapController::class, 'ghost'])->name('ghost.show');
+
+// RSS 2.0 & WebSub Syndication Feed
+Route::get('/feed', [App\Http\Controllers\RssController::class, 'feed'])->name('feed');
+Route::get('/rss.xml', [App\Http\Controllers\RssController::class, 'feed'])->name('rss');
+
+// IndexNow Verification Key Route
+Route::get('/{key}.txt', function (string $key) {
+    $service = app(\App\Services\IndexNowService::class);
+    if ($key === $service->getKey()) {
+        return response($key, 200, ['Content-Type' => 'text/plain']);
+    }
+    abort(404);
+})->where('key', '[a-zA-Z0-9_-]+')->name('indexnow.key');
 
 // Public Blog Routes
 $blogRoutes = function () {
@@ -310,6 +321,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{content}', [ContentController::class, 'update'])->name('update');
             Route::post('/{content}/generate', [ContentController::class, 'generateAi'])->name('generate');
             Route::post('/bulk-publish', [ContentController::class, 'bulkPublish'])->name('bulk_publish');
+            Route::post('/indexnow-ping', [ContentController::class, 'indexNowPing'])->name('indexnow_ping');
             Route::delete('/{content}', [ContentController::class, 'destroy'])->name('destroy');
         });
 

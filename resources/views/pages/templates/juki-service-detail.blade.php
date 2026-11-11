@@ -51,7 +51,7 @@
     <nav class="flex items-center text-xs sm:text-sm text-slate-500 gap-2 flex-wrap">
         <a href="{{ url('/') }}" class="hover:text-brand-indigo transition-colors">Beranda</a>
         <span>/</span>
-        <a href="{{ url('/id/jasa') }}" class="hover:text-brand-indigo transition-colors">Layanan</a>
+        <a href="{{ url('/jasa') }}" class="hover:text-brand-indigo transition-colors">Layanan</a>
         @if(!empty($p['parent_url']) && !empty($p['parent_title']))
             <span>/</span>
             <a href="{{ url($p['parent_url']) }}" class="hover:text-brand-indigo transition-colors">{{ $p['parent_title'] }}</a>

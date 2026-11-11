@@ -16,15 +16,27 @@ class ServicesPagesTest extends TestCase
         parent::setUp();
         $this->seed(JukiServicesSeeder::class);
     }
-    public function test_services_index_page_returns_ok_and_contains_single_h1(): void
+
+    public function test_legacy_id_jasa_redirects_permanently_to_jasa(): void
     {
         $response = $this->get('/id/jasa');
+        $response->assertStatus(301);
+        $response->assertRedirect('/jasa');
+
+        $responseSub = $this->get('/id/jasa/website');
+        $responseSub->assertStatus(301);
+        $responseSub->assertRedirect('/jasa/website');
+    }
+
+    public function test_services_index_page_returns_ok_and_contains_single_h1(): void
+    {
+        $response = $this->get('/jasa');
         $response->assertStatus(200);
 
         $content = $response->getContent();
         // Cek hanya boleh ada 1 tag <h1>
         $h1Count = preg_match_all('/<h1\b[^>]*>(.*?)<\/h1>/is', $content, $matches);
-        $this->assertEquals(1, $h1Count, 'Halaman /id/jasa harus tepat memiliki satu H1');
+        $this->assertEquals(1, $h1Count, 'Halaman /jasa harus tepat memiliki satu H1');
 
         // Cek teks CTA standar di footer
         $this->assertStringContainsString('Punya proyek dalam pikiran?', $content);
@@ -36,22 +48,22 @@ class ServicesPagesTest extends TestCase
     public function test_all_categorized_service_landing_pages_accessible(): void
     {
         $slugs = [
-            'id/jasa/website',
-            'id/jasa/website/company-profile',
-            'id/jasa/website/landing-page',
-            'id/jasa/website/toko-online',
-            'id/jasa/website/wordpress',
-            'id/jasa/aplikasi-web',
-            'id/jasa/maintenance-website',
-            'id/jasa/perbaikan-website',
-            'id/jasa/website/solo',
-            'id/jasa/seo',
-            'id/jasa/seo-lokal',
-            'id/jasa/google-maps-embed',
-            'id/jasa/otomasi',
-            'id/jasa/otomasi/n8n',
-            'id/jasa/ai',
-            'id/jasa/ai/content-engine',
+            'jasa/website',
+            'jasa/website/company-profile',
+            'jasa/website/landing-page',
+            'jasa/website/toko-online',
+            'jasa/website/wordpress',
+            'jasa/aplikasi-web',
+            'jasa/maintenance-website',
+            'jasa/perbaikan-website',
+            'jasa/website/solo',
+            'jasa/seo',
+            'jasa/seo-lokal',
+            'jasa/google-maps-embed',
+            'jasa/otomasi',
+            'jasa/otomasi/n8n',
+            'jasa/ai',
+            'jasa/ai/content-engine',
         ];
 
         foreach ($slugs as $slug) {

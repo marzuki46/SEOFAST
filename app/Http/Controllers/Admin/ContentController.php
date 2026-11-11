@@ -43,6 +43,29 @@ class ContentController extends Controller
     }
 
     /**
+     * Trigger manual IndexNow, Bing & Google Sitemap/RSS ping.
+     */
+    public function indexNowPing(\App\Services\IndexNowService $indexNow)
+    {
+        $urls = Content::withoutGlobalScopes()
+            ->where('status', 'published')
+            ->whereNull('deleted_at')
+            ->latest('published_at')
+            ->limit(20)
+            ->get()
+            ->map(fn ($c) => url('/blog/' . $c->slug))
+            ->toArray();
+
+        $urls[] = url('/jasa');
+        $urls[] = url('/produk');
+        $urls[] = url('/');
+
+        $result = $indexNow->submit($urls);
+
+        return back()->with('success', 'IndexNow & RSS Ping berhasil dikirim untuk ' . count($urls) . ' URL ke Bing, Yandex, Google & WebSub.');
+    }
+
+    /**
      * Display a listing of the Pra Post (Blueprint) contents ready for AI generation.
      */
     public function prapost()

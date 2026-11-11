@@ -37,7 +37,7 @@
                 "itemOffered": {
                     "@@type": "Service",
                     "name": "Pengembangan Web Profesional",
-                    "url": "{{ url('/id/jasa/website') }}"
+                    "url": "{{ url('/jasa/website') }}"
                 }
             },
             {
@@ -45,7 +45,7 @@
                 "itemOffered": {
                     "@@type": "Service",
                     "name": "SEO & SEO Lokal Google Maps",
-                    "url": "{{ url('/id/jasa/seo') }}"
+                    "url": "{{ url('/jasa/seo') }}"
                 }
             },
             {
@@ -53,7 +53,7 @@
                 "itemOffered": {
                     "@@type": "Service",
                     "name": "Otomasi Alur Kerja Bisnis & n8n",
-                    "url": "{{ url('/id/jasa/otomasi') }}"
+                    "url": "{{ url('/jasa/otomasi') }}"
                 }
             },
             {
@@ -61,7 +61,7 @@
                 "itemOffered": {
                     "@@type": "Service",
                     "name": "Solusi & Integrasi AI Bisnis",
-                    "url": "{{ url('/id/jasa/ai') }}"
+                    "url": "{{ url('/jasa/ai') }}"
                 }
             }
         ]
@@ -73,23 +73,24 @@
 @section('content')
 <!-- Hero Section (Identik Style dengan Katalog Produk) -->
 @include('partials.juki-hero', [
-    'badge' => 'Solusi Digital Menyeluruh',
+    'badge' => 'Katalog Layanan Digital Spesialis',
     'heading' => "Jasa Pembuatan Website, SEO, Otomasi & AI untuk Pertumbuhan Bisnis Anda",
-    'subheadline' => 'Mulai dari website berkecepatan tinggi, dominasi pencarian Google & Maps, otomasi alur kerja n8n, hingga integrasi kecerdasan buatan (AI) yang disesuaikan secara presisi dengan kebutuhan bisnis nyata Anda.',
+    'subheadline' => 'Pilih solusi digital terukur yang sesuai dengan fase bisnis Anda. Dibangun dengan fokus rekayasa performa tinggi, keamanan andal, dan aliran prospek nyata ke WhatsApp bisnis Anda.',
     'ctaPrimaryText' => 'Konsultasi via WhatsApp',
+    'ctaPrimaryUrl' => 'https://wa.me/' . $waNumber . '?text=' . urlencode('Halo Tri Marzuki, saya ingin konsultasi mengenai layanan digital untuk bisnis saya.'),
     'ctaSecondaryText' => 'Kirim Brief Proyek',
     'ctaSecondaryUrl' => url('/contact'),
 ])
 
-<!-- Grid Kartu Layanan (Model Card Produk) -->
+<!-- Grid Kartu Layanan (Model Katalog Produk) -->
 <section class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 pb-4 border-b border-slate-200">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-4 border-b border-slate-200">
         <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-brand-indigo bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">Katalog Layanan Digital</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-indigo bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">Solusi Berbasis Hasil</span>
             <h2 class="text-3xl font-extrabold text-slate-900 font-outfit mt-2">Daftar Layanan & Spesialisasi</h2>
         </div>
         <p class="text-sm text-slate-500 max-w-md">
-            Pilih pilar solusi yang sesuai dengan fase bisnis Anda saat ini. Seluruh layanan dibangun dengan fokus pada performa, keamanan, dan hasil yang dapat diukur.
+            Arsitektur modern, kode bersih, kecepatan tinggi Core Web Vitals, dan integrasi WhatsApp instan di setiap proyek.
         </p>
     </div>
 
@@ -103,7 +104,7 @@
                 </div>
                 <div class="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Web Development</div>
                 <h3 class="text-xl font-bold text-slate-900 font-outfit mb-3 group-hover:text-brand-indigo transition-colors">
-                    <a href="{{ url('/id/jasa/website') }}">Pengembangan Web</a>
+                    <a href="{{ url('/jasa/website') }}">Pengembangan Web</a>
                 </h3>
                 <p class="text-slate-600 text-sm leading-relaxed mb-4">
                     Website modern, responsif, dan ultra cepat dengan kode bersih — dari company profile, toko online, hingga custom web app.
@@ -119,7 +120,7 @@
                 <div class="text-xs text-slate-400 mb-3 border-t border-slate-100 pt-3">
                     Termasuk: Core Web Vitals Hijau, SEO-ready, Mobile First
                 </div>
-                <a href="{{ url('/id/jasa/website') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
+                <a href="{{ url('/jasa/website') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
                     Lihat Layanan
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </a>
@@ -134,85 +135,85 @@
                 </div>
                 <div class="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">Search Optimization</div>
                 <h3 class="text-xl font-bold text-slate-900 font-outfit mb-3 group-hover:text-emerald-600 transition-colors">
-                    <a href="{{ url('/id/jasa/seo') }}">SEO & SEO Lokal</a>
+                    <a href="{{ url('/jasa/seo') }}">SEO & SEO Lokal</a>
                 </h3>
                 <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                    Optimasi teknis dan Google Business Profile berbasis data untuk meraih peringkat atas pencarian dan mendatangkan pelanggan sekitar.
+                    Audit teknis mendalam, optimasi on-page berbasis entity semantik, dan dominasi kata kunci pencarian lokal di Google Maps.
                 </p>
                 <div class="flex flex-wrap gap-1.5 mb-6">
                     <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">Audit Teknis</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">GBP / Maps</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">Entity SEO</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">Local Citation</span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">Google Maps 3-Pack</span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">Local SEO</span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">Schema JSON-LD</span>
                 </div>
             </div>
             <div>
                 <div class="text-xs text-slate-400 mb-3 border-t border-slate-100 pt-3">
-                    Fokus: Ditemukan di Google, Dipilih di Google Maps
+                    Fokus: Trafik komersial tertarget & siap beli
                 </div>
-                <a href="{{ url('/id/jasa/seo') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
+                <a href="{{ url('/jasa/seo') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
                     Lihat Layanan
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </a>
             </div>
         </div>
 
-        <!-- Card 3: Otomasi Bisnis -->
+        <!-- Card 3: Otomasi Alur Kerja Bisnis -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1">
             <div>
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center font-bold text-xl mb-5 shadow-md shadow-orange-500/20 group-hover:scale-110 transition-transform">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center font-bold text-xl mb-5 shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform">
                     03
                 </div>
                 <div class="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Business Automation</div>
                 <h3 class="text-xl font-bold text-slate-900 font-outfit mb-3 group-hover:text-amber-600 transition-colors">
-                    <a href="{{ url('/id/jasa/otomasi') }}">Otomasi Alur Kerja</a>
+                    <a href="{{ url('/jasa/otomasi') }}">Otomasi Alur Kerja</a>
                 </h3>
                 <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                    Sederhanakan alur kerja bisnis — hubungkan tools, hilangkan copy-paste data manual, dan otomatisasi komunikasi pelanggan via n8n.
+                    Otomasi alur kerja bebas biaya langganan mahal dengan n8n self-hosted, sinkronisasi API, webhook, dan notifikasi WhatsApp otomatis.
                 </p>
                 <div class="flex flex-wrap gap-1.5 mb-6">
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-800">n8n Workflow</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-800">Integrasi API</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-800">Auto WhatsApp</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-800">Sync Data</span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700">Self-Hosted n8n</span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700">REST API</span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700">Auto WhatsApp</span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700">Webhooks</span>
                 </div>
             </div>
             <div>
                 <div class="text-xs text-slate-400 mb-3 border-t border-slate-100 pt-3">
-                    Keunggulan: Self-hosted n8n, aman, hemat biaya langganan
+                    Manfaat: Hemat puluhan jam kerja staf manual
                 </div>
-                <a href="{{ url('/id/jasa/otomasi') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
+                <a href="{{ url('/jasa/otomasi') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
                     Lihat Layanan
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </a>
             </div>
         </div>
 
-        <!-- Card 4: Solusi AI -->
+        <!-- Card 4: Solusi AI Bisnis -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1">
             <div>
                 <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-600 text-white flex items-center justify-center font-bold text-xl mb-5 shadow-md shadow-purple-500/20 group-hover:scale-110 transition-transform">
                     04
                 </div>
-                <div class="text-xs font-semibold text-purple-600 uppercase tracking-wider mb-1">AI Solutions</div>
+                <div class="text-xs font-semibold text-purple-600 uppercase tracking-wider mb-1">Applied AI Solutions</div>
                 <h3 class="text-xl font-bold text-slate-900 font-outfit mb-3 group-hover:text-purple-600 transition-colors">
-                    <a href="{{ url('/id/jasa/ai') }}">Solusi Terapan AI</a>
+                    <a href="{{ url('/jasa/ai') }}">Solusi Terapan AI</a>
                 </h3>
                 <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                    Pemanfaatan kecerdasan buatan untuk produksi konten SEO mendalam, riset entitas, sistem chatbot bisnis, dan automasi terukur.
+                    Penerapan kecerdasan buatan terapan untuk bisnis: programmatic SEO terstruktur, audit gap konten, dan chatbot asisten internal.
                 </p>
                 <div class="flex flex-wrap gap-1.5 mb-6">
                     <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">Content Engine</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">AI SEO Audit</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">Gemini & OpenAI</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">Human-in-Loop</span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">Programmatic SEO</span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">AI Chatbot</span>
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">Human Review</span>
                 </div>
             </div>
             <div>
                 <div class="text-xs text-slate-400 mb-3 border-t border-slate-100 pt-3">
                     Prinsip: Dibantu AI, bukan bergantung buta pada AI
                 </div>
-                <a href="{{ url('/id/jasa/ai') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
+                <a href="{{ url('/jasa/ai') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
                     Lihat Layanan
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </a>
@@ -222,63 +223,63 @@
 
     <!-- Spesialisasi Lengkap Berdasarkan Kategori (Quick Jump) -->
     <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-8 mb-16">
-        <h2 class="text-2xl font-bold text-slate-900 font-outfit mb-6">Daftar Lengkap Layanan Spesialisasi</h2>
+        <h2 class="text-2xl font-bold text-slate-900 font-outfit mb-6">Daftar Lengkap 17 Layanan Spesialisasi</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
                 <div class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                     Pembuatan Website
                 </div>
                 <ul class="space-y-2 text-sm text-slate-600">
-                    <li><a href="{{ url('/id/jasa/website') }}" class="hover:text-brand-indigo hover:underline">• Jasa Pembuatan Website Profesional</a></li>
-                    <li><a href="{{ url('/id/jasa/website/company-profile') }}" class="hover:text-brand-indigo hover:underline">• Website Company Profile Perusahaan</a></li>
-                    <li><a href="{{ url('/id/jasa/website/landing-page') }}" class="hover:text-brand-indigo hover:underline">• Landing Page Iklan & Konversi</a></li>
-                    <li><a href="{{ url('/id/jasa/website/toko-online') }}" class="hover:text-brand-indigo hover:underline">• Website Toko Online (E-Commerce)</a></li>
-                    <li><a href="{{ url('/id/jasa/website/wordpress') }}" class="hover:text-brand-indigo hover:underline">• Website Bisnis WordPress Ringan</a></li>
-                    <li><a href="{{ url('/id/jasa/aplikasi-web') }}" class="hover:text-brand-indigo hover:underline">• Aplikasi Web & Dashboard Kustom</a></li>
-                    <li><a href="{{ url('/id/jasa/maintenance-website') }}" class="hover:text-brand-indigo hover:underline">• Jasa Maintenance Website Berkala</a></li>
-                    <li><a href="{{ url('/id/jasa/perbaikan-website') }}" class="hover:text-brand-indigo hover:underline">• Jasa Perbaikan Website Error</a></li>
-                    <li><a href="{{ url('/id/jasa/website/solo') }}" class="hover:text-brand-indigo hover:underline">• Web Developer Solo Surakarta</a></li>
+                    <li><a href="{{ url('/jasa/website') }}" class="hover:text-brand-indigo hover:underline">• Jasa Pembuatan Website Profesional</a></li>
+                    <li><a href="{{ url('/jasa/website/company-profile') }}" class="hover:text-brand-indigo hover:underline">• Website Company Profile Perusahaan</a></li>
+                    <li><a href="{{ url('/jasa/website/landing-page') }}" class="hover:text-brand-indigo hover:underline">• Landing Page Iklan & Konversi</a></li>
+                    <li><a href="{{ url('/jasa/website/toko-online') }}" class="hover:text-brand-indigo hover:underline">• Website Toko Online (E-Commerce)</a></li>
+                    <li><a href="{{ url('/jasa/website/wordpress') }}" class="hover:text-brand-indigo hover:underline">• Website Bisnis WordPress Ringan</a></li>
+                    <li><a href="{{ url('/jasa/aplikasi-web') }}" class="hover:text-brand-indigo hover:underline">• Aplikasi Web & Dashboard Kustom</a></li>
+                    <li><a href="{{ url('/jasa/maintenance-website') }}" class="hover:text-brand-indigo hover:underline">• Jasa Maintenance Website Berkala</a></li>
+                    <li><a href="{{ url('/jasa/perbaikan-website') }}" class="hover:text-brand-indigo hover:underline">• Jasa Perbaikan Website Error</a></li>
+                    <li><a href="{{ url('/jasa/website/solo') }}" class="hover:text-brand-indigo hover:underline">• Web Developer Solo Surakarta</a></li>
                 </ul>
             </div>
 
             <div>
                 <div class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
                     SEO & Pencarian Lokal
                 </div>
                 <ul class="space-y-2 text-sm text-slate-600">
-                    <li><a href="{{ url('/id/jasa/seo') }}" class="hover:text-emerald-600 hover:underline">• Jasa SEO Teknis & Organik</a></li>
-                    <li><a href="{{ url('/id/jasa/seo-lokal') }}" class="hover:text-emerald-600 hover:underline">• Jasa SEO Lokal Google Maps & GBP</a></li>
-                    <li><a href="{{ url('/id/jasa/google-maps-embed') }}" class="hover:text-emerald-600 hover:underline">• Jasa Google Maps Embed Booster</a></li>
-                    <li><a href="{{ url('/id/jasa/seo') }}#audit" class="hover:text-emerald-600 hover:underline">• Audit On-Page & Arsitektur Silo</a></li>
-                    <li><a href="{{ url('/id/jasa/seo') }}#schema" class="hover:text-emerald-600 hover:underline">• Optimasi Schema.org & Semantic Entity</a></li>
+                    <li><a href="{{ url('/jasa/seo') }}" class="hover:text-emerald-600 hover:underline">• Jasa SEO Teknis & Organik</a></li>
+                    <li><a href="{{ url('/jasa/seo-lokal') }}" class="hover:text-emerald-600 hover:underline">• Jasa SEO Lokal Google Maps & GBP</a></li>
+                    <li><a href="{{ url('/jasa/google-maps-embed') }}" class="hover:text-emerald-600 hover:underline">• Jasa Google Maps Embed Booster</a></li>
+                    <li><a href="{{ url('/jasa/seo') }}#audit" class="hover:text-emerald-600 hover:underline">• Audit On-Page & Arsitektur Silo</a></li>
+                    <li><a href="{{ url('/jasa/seo') }}#schema" class="hover:text-emerald-600 hover:underline">• Optimasi Schema.org & Semantic Entity</a></li>
                 </ul>
             </div>
 
             <div>
                 <div class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
                     Otomasi Bisnis & API
                 </div>
                 <ul class="space-y-2 text-sm text-slate-600">
-                    <li><a href="{{ url('/id/jasa/otomasi') }}" class="hover:text-amber-600 hover:underline">• Jasa Otomasi Alur Kerja Bisnis</a></li>
-                    <li><a href="{{ url('/id/jasa/otomasi/n8n') }}" class="hover:text-amber-600 hover:underline">• Setup & Integrasi Workflow n8n</a></li>
-                    <li><a href="{{ url('/id/jasa/otomasi') }}#api" class="hover:text-amber-600 hover:underline">• Integrasi REST API & Webhook HMAC</a></li>
-                    <li><a href="{{ url('/id/jasa/otomasi') }}#whatsapp" class="hover:text-amber-600 hover:underline">• Otomasi Notifikasi WhatsApp & Email</a></li>
+                    <li><a href="{{ url('/jasa/otomasi') }}" class="hover:text-amber-600 hover:underline">• Jasa Otomasi Alur Kerja Bisnis</a></li>
+                    <li><a href="{{ url('/jasa/otomasi/n8n') }}" class="hover:text-amber-600 hover:underline">• Setup & Integrasi Workflow n8n</a></li>
+                    <li><a href="{{ url('/jasa/otomasi') }}#api" class="hover:text-amber-600 hover:underline">• Integrasi REST API & Webhook HMAC</a></li>
+                    <li><a href="{{ url('/jasa/otomasi') }}#whatsapp" class="hover:text-amber-600 hover:underline">• Otomasi Notifikasi WhatsApp & Email</a></li>
                 </ul>
             </div>
 
             <div>
                 <div class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-purple-600"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
                     Solusi Terapan AI
                 </div>
                 <ul class="space-y-2 text-sm text-slate-600">
-                    <li><a href="{{ url('/id/jasa/ai') }}" class="hover:text-purple-600 hover:underline">• Konsultasi & Integrasi AI Praktis</a></li>
-                    <li><a href="{{ url('/id/jasa/ai/content-engine') }}" class="hover:text-purple-600 hover:underline">• AI Content Engine & Programmatic SEO</a></li>
-                    <li><a href="{{ url('/id/jasa/ai') }}#audit" class="hover:text-purple-600 hover:underline">• Audit SEO & Analisis Konten AI</a></li>
-                    <li><a href="{{ url('/id/jasa/ai') }}#chatbot" class="hover:text-purple-600 hover:underline">• Chatbot & Asisten Internal Bisnis</a></li>
+                    <li><a href="{{ url('/jasa/ai') }}" class="hover:text-purple-600 hover:underline">• Konsultasi & Integrasi AI Praktis</a></li>
+                    <li><a href="{{ url('/jasa/ai/content-engine') }}" class="hover:text-purple-600 hover:underline">• AI Content Engine & Programmatic SEO</a></li>
+                    <li><a href="{{ url('/jasa/ai') }}#audit" class="hover:text-purple-600 hover:underline">• Audit SEO & Analisis Konten AI</a></li>
+                    <li><a href="{{ url('/jasa/ai') }}#chatbot" class="hover:text-purple-600 hover:underline">• Chatbot & Asisten Internal Bisnis</a></li>
                 </ul>
             </div>
         </div>
@@ -349,38 +350,52 @@
         </p>
 
         <ul class="space-y-2 mb-6 list-disc pl-6">
-            <li><strong>Integrasi Lead Instan:</strong> Setiap prospek yang mengisi formulir di website otomatis diteruskan ke database CRM dan memicu notifikasi instan ke grup WhatsApp tim penjualan dalam waktu kurang dari 3 detik.</li>
-            <li><strong>Sinkronisasi Data Multi-Platform:</strong> Memastikan inventaris stok, status pesanan, dan laporan keuangan tetap selaras antar sistem tanpa perlu input ganda.</li>
-            <li><strong>Efisiensi Anggaran:</strong> Menggunakan platform self-hosted di cloud VPS Anda sendiri membuat bisnis terbebas dari beban biaya bulanan mahal dari platform otomasi SaaS proprietary seperti Zapier atau Make.</li>
+            <li><strong>Notifikasi Instan Multi-Kanal:</strong> Setiap ada pesanan atau inquiry baru di website, pesan detail langsung terkirim ke grup WhatsApp manajemen atau bot Telegram privat dalam hitungan detik.</li>
+            <li><strong>Sinkronisasi Data Dua Arah:</strong> Integrasi mulus antara website, basis data inventaris, CRM, dan Google Sheets secara otomatis tanpa risiko salah ketik (human error).</li>
+            <li><strong>Penghematan Biaya Operasional:</strong> Menggunakan platform open-source mandiri sehingga bisnis Anda terbebas dari tagihan langganan bulanan platform SaaS luar negeri yang terus melonjak seiring kenaikan volume data.</li>
         </ul>
 
         <h3 class="text-2xl font-bold text-slate-900 font-outfit mt-10 mb-4">
-            4. Pemanfaatan AI yang Bertanggung Jawab: Dibantu AI, Bukan Bergantung pada AI
+            4. Pemanfaatan AI Bertanggung Jawab: Akselerasi Nyata Tanpa Halusinasi
         </h3>
 
         <p class="mb-4 leading-relaxed">
-            Kecerdasan buatan generatif membuka peluang efisiensi riset dan produksi konten yang belum pernah ada sebelumnya. Namun, menerbitkan artikel AI mentah tanpa filter hanya akan merusak reputasi domain, memicu penalti kualitas Google, dan membingungkan pembaca dengan fakta halusinasi.
+            Kecerdasan buatan (AI) adalah pengganda daya kerja (force multiplier) yang luar biasa jika digunakan secara bijak. Namun, mengandalkan teks buatan AI mentah tanpa kontrol mutu manusia justru dapat merusak reputasi domain Anda di mata algoritma Google (resiko de-indeks Helpful Content Update) serta mengurangi kepercayaan calon pembeli.
         </p>
 
         <p class="mb-6 leading-relaxed">
-            Pendekatan Solusi AI yang kami bangun selalu mengedepankan prinsip <em>Human-in-the-Loop</em>. Kami merancang arsitektur pembuatan konten berbasis entity, audit gap konten semantik, serta asisten internal bisnis yang diawasi oleh aturan editorial ketat. AI mempercepat fase riset ide dan draf awal, sementara keakuratan data, validasi penawaran, dan sentuhan otentik manusia tetap menjadi garda terdepan sebelum konten atau sistem berinteraksi dengan publik.
+            Layanan AI terapan kami memadukan kecerdasan komputasi LLM terkini dengan filosofi <em>Human-in-the-Loop</em>. Kami menggunakan model AI untuk riset topik komprehensif, pemetaan entity gap kompetitor, pembuatan struktur kluster kata kunci, dan pembuatan gambar WebP ringan secara otomatis, namun tetap memastikan kurasi akhir, fakta bisnis, dan sentuhan empati manusia tetap menjadi standar tertinggi sebelum konten dipublikasikan.
         </p>
 
-        <h3 class="text-2xl font-bold text-slate-900 font-outfit mt-10 mb-4">
-            5. Alur Kerja Transparan dan Kepemilikan Aset Digital Penuh di Tangan Anda
+        <!-- Pertanyaan yang Sering Diajukan (FAQ) -->
+        <h3 class="text-2xl font-bold text-slate-900 font-outfit mt-12 mb-6">
+            Pertanyaan Umum Seputar Layanan Jasa
         </h3>
 
-        <p class="mb-4 leading-relaxed">
-            Kerja sama yang baik selalu berlandaskan transparansi dan rasa saling percaya. Setiap proyek diawali dengan konsultasi kebutuhan mendalam untuk merumuskan ruang lingkup pekerjaan, jadwal pengerjaan terperinci, serta estimasi biaya investasi yang masuk akal tanpa biaya siluman di belakang hari.
-        </p>
-
-        <p class="mb-6 leading-relaxed">
-            Setelah proyek selesai diuji dan diluncurkan, <strong>seluruh hak kepemilikan akun, akses domain, panel hosting/VPS, repositori kode sumber, dan dokumentasi operasional diserahkan sepenuhnya kepada Anda</strong>. Anda tidak akan pernah terkunci oleh ketergantungan sepihak, karena kami percaya kemitraan yang berkelanjutan tumbuh dari rasa puas atas kualitas hasil kerja.
-        </p>
+        <div class="space-y-4 not-prose mb-12">
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                <div class="font-bold text-slate-900 text-base mb-2">Berapa lama estimasi pengerjaan website atau landing page?</div>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Untuk landing page konversi satu halaman, pengerjaan umumnya memakan waktu 3–5 hari kerja setelah materi siap. Untuk website Company Profile atau Toko Online berkisar antara 7–14 hari kerja tergantung kelengkapan konten dan fitur kustom yang dibutuhkan.
+                </p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                <div class="font-bold text-slate-900 text-base mb-2">Apakah saya mendapatkan akses penuh setelah website selesai?</div>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Tentu. Anda mendapatkan hak kepemilikan 100% atas domain, hosting/server, repositori kode sumber, dan panel admin konten. Kami juga menyediakan panduan penggunaan agar Anda atau tim internal dapat memperbarui teks dan foto secara mandiri.
+                </p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                <div class="font-bold text-slate-900 text-base mb-2">Apakah bisa melayani konsultasi atau pertemuan langsung di wilayah Solo?</div>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Sangat bisa. Untuk klien di area Solo Raya (Surakarta, Sukoharjo, Karanganyar, Boyolali, Klaten), kita dapat menjadwalkan diskusi tatap muka langsung. Untuk klien di luar kota atau luar pulau, konsultasi dilakukan secara intensif melalui panggilan video Google Meet dan WhatsApp.
+                </p>
+            </div>
+        </div>
 
     </div>
 </article>
 
-<!-- Call to Action Banner Terstandarisasi -->
+<!-- Penutup & Universal Call-to-Action WhatsApp -->
 @include('partials.juki-project-inquiry')
 @endsection

@@ -17,12 +17,23 @@
                 <a href="{{ route('admin.content.index', ['funnel' => 'bofu']) }}" class="px-2.5 py-1 rounded-lg text-xs font-semibold {{ request('funnel') === 'bofu' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' }}">BOFU</a>
             </div>
         </div>
-        <a href="{{ route('admin.content.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Write with AI
-        </a>
+        <div class="flex items-center gap-2">
+            <form action="{{ route('admin.content.indexnow_ping') }}" method="POST">
+                @csrf
+                <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition" title="Submit IndexNow ke Bing, Yandex, Seznam & Google Sitemap/WebSub">
+                    <svg class="h-4 w-4 text-sky-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                    </svg>
+                    Ping IndexNow & RSS
+                </button>
+            </form>
+            <a href="{{ route('admin.content.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Write with AI
+            </a>
+        </div>
     </div>
 
     <!-- Sessions Alert -->

@@ -48,6 +48,16 @@ class Content extends Model
                 }
             }
         });
+
+        static::saved(function ($content) {
+            if ($content->wasChanged('status') && $content->status === 'published') {
+                try {
+                    app(\App\Services\IndexNowService::class)->submitPost($content);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('IndexNow auto submit post failed: ' . $e->getMessage());
+                }
+            }
+        });
     }
 
     protected $fillable = [

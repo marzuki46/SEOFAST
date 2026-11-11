@@ -10,10 +10,16 @@ class JukiServicesSeeder extends Seeder
 {
     public function run(): void
     {
+        // Clean up legacy id/jasa pages
+        Page::where('slug', 'like', 'id/jasa%')->delete();
+        if (\Illuminate\Support\Facades\Schema::hasTable('menu_items')) {
+            \App\Models\MenuItem::where('url', '/id/jasa')->update(['url' => '/jasa']);
+        }
+
         $services = [
             // PILAR INDUK SERVICES
             [
-                'slug' => 'id/jasa',
+                'slug' => 'jasa',
                 'title' => 'Layanan Jasa Pembuatan Website, SEO, Otomasi & AI',
                 'meta_title' => 'Layanan Jasa Pembuatan Website, SEO, Otomasi & AI — Tri Marzuki',
                 'meta_description' => 'Solusi menyeluruh pembuatan website modern, audit & optimasi SEO teknis/lokal Google Maps, otomasi alur kerja n8n, dan integrasi AI terapan untuk pertumbuhan bisnis Anda.',
@@ -22,7 +28,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // PILAR 1: WEBSITE
             [
-                'slug' => 'id/jasa/website',
+                'slug' => 'jasa/website',
                 'title' => 'Jasa Pembuatan Website Profesional untuk Bisnis Anda',
                 'meta_title' => 'Jasa Pembuatan Website Profesional & Cepat — Tri Marzuki',
                 'meta_description' => 'Jasa pembuatan website profesional, responsif, dan ultra cepat dengan fondasi SEO on-page kuat. Dari company profile hingga aplikasi web kustom.',
@@ -31,7 +37,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN WEB: COMPANY PROFILE
             [
-                'slug' => 'id/jasa/website/company-profile',
+                'slug' => 'jasa/website/company-profile',
                 'title' => 'Jasa Pembuatan Website Company Profile Perusahaan',
                 'meta_title' => 'Jasa Pembuatan Website Company Profile Perusahaan & Korporat — Tri Marzuki',
                 'meta_description' => 'Website company profile representatif untuk kredibilitas B2B, profil korporat, katalog solusi, rekam jejak tender, dan alur penawaran resmi.',
@@ -40,7 +46,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN WEB: LANDING PAGE
             [
-                'slug' => 'id/jasa/website/landing-page',
+                'slug' => 'jasa/website/landing-page',
                 'title' => 'Jasa Pembuatan Landing Page Iklan & Konversi Tinggi',
                 'meta_title' => 'Jasa Pembuatan Landing Page Iklan Meta & Google Ads — Tri Marzuki',
                 'meta_description' => 'Landing page ultra cepat, single CTA, dan fokus konversi penjualan. Siap integrasi WhatsApp direct, Meta Pixel, Google Tag, dan payment gateway.',
@@ -49,7 +55,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN WEB: TOKO ONLINE
             [
-                'slug' => 'id/jasa/website/toko-online',
+                'slug' => 'jasa/website/toko-online',
                 'title' => 'Jasa Pembuatan Website Toko Online (E-Commerce)',
                 'meta_title' => 'Jasa Pembuatan Website Toko Online & E-Commerce Profesional — Tri Marzuki',
                 'meta_description' => 'Website toko online mandiri dengan katalog produk, keranjang belanja, integrasi order WhatsApp, dan kalkulasi ongkir otomatis tanpa biaya komisi marketplace.',
@@ -58,7 +64,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN WEB: WORDPRESS
             [
-                'slug' => 'id/jasa/website/wordpress',
+                'slug' => 'jasa/website/wordpress',
                 'title' => 'Jasa Pembuatan Website WordPress Profesional & Ringan',
                 'meta_title' => 'Jasa Pembuatan Website WordPress Cepat & Aman — Tri Marzuki',
                 'meta_description' => 'Pengembangan website WordPress modern bebas bloatware. Tema kustom ringan, sistem keamanan diperketat, dan mudah diedit sendiri oleh staf internal.',
@@ -67,7 +73,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN WEB: APLIKASI WEB KUSTOM
             [
-                'slug' => 'id/jasa/aplikasi-web',
+                'slug' => 'jasa/aplikasi-web',
                 'title' => 'Jasa Pembuatan Aplikasi Web & Dashboard Sistem Kustom',
                 'meta_title' => 'Jasa Pembuatan Aplikasi Web Laravel & CodeIgniter — Tri Marzuki',
                 'meta_description' => 'Aplikasi berbasis web untuk otomasi proses bisnis, sistem manajemen informasi (SIM), dashboard operasional, dan integrasi REST API backend terukur.',
@@ -76,7 +82,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN WEB: MAINTENANCE WEBSITE
             [
-                'slug' => 'id/jasa/maintenance-website',
+                'slug' => 'jasa/maintenance-website',
                 'title' => 'Jasa Maintenance Website Berkala & Monitoring Keamanan',
                 'meta_title' => 'Jasa Maintenance Website Rutin & Backup Terjadwal — Tri Marzuki',
                 'meta_description' => 'Layanan pemeliharaan website berkala, backup database harian, update modul keamanan, monitoring uptime 24/7, dan perbaikan performa rutin.',
@@ -85,7 +91,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN WEB: PERBAIKAN WEBSITE ERROR
             [
-                'slug' => 'id/jasa/perbaikan-website',
+                'slug' => 'jasa/perbaikan-website',
                 'title' => 'Jasa Perbaikan Website Error, Malware & Masalah Kinerja',
                 'meta_title' => 'Jasa Perbaikan Website Error 500, Kena Hack & Malware — Tri Marzuki',
                 'meta_description' => 'Penanganan darurat website error, pembersihan malware hack, perbaikan database crash, layar putih (WSOD), dan optimasi kecepatan server drop.',
@@ -94,7 +100,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN WEB: WEB DEVELOPER SOLO
             [
-                'slug' => 'id/jasa/website/solo',
+                'slug' => 'jasa/website/solo',
                 'title' => 'Web Developer Solo Surakarta — Jasa Pembuatan Website Lokal',
                 'meta_title' => 'Jasa Pembuatan Website Solo & Web Developer Surakarta — Tri Marzuki',
                 'meta_description' => 'Layanan pembuatan website profesional bagi pelaku usaha, UMKM, dan institusi di wilayah Solo Raya dengan keunggulan koordinasi tatap muka langsung.',
@@ -104,7 +110,7 @@ class JukiServicesSeeder extends Seeder
 
             // PILAR 2: SEO & SEO LOKAL
             [
-                'slug' => 'id/jasa/seo',
+                'slug' => 'jasa/seo',
                 'title' => 'Jasa SEO Teknis, Organik & Google Business Profile',
                 'meta_title' => 'Jasa SEO Teknis & Optimasi Mesin Pencari Google — Tri Marzuki',
                 'meta_description' => 'Strategi SEO holistik berbasis audit teknis, optimasi on-page mendalam, arsitektur siloing entitas, dan visibilitas pencarian Google Maps lokal.',
@@ -113,7 +119,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN SEO: SEO LOKAL
             [
-                'slug' => 'id/jasa/seo-lokal',
+                'slug' => 'jasa/seo-lokal',
                 'title' => 'Jasa SEO Lokal & Optimasi Google Business Profile (GBP)',
                 'meta_title' => 'Jasa SEO Lokal & Ranking Google Maps 3-Pack — Tri Marzuki',
                 'meta_description' => 'Dominasi pencarian lokal Google Maps di kota Anda. Optimasi kategori profil bisnis, strategi ulasan, audit sitasi NAP, dan optimasi geo-targeted.',
@@ -122,7 +128,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN SEO: GOOGLE MAPS EMBED
             [
-                'slug' => 'id/jasa/google-maps-embed',
+                'slug' => 'jasa/google-maps-embed',
                 'title' => 'Jasa Google Maps Embed Booster & Geo-Tagging Otoritatif',
                 'meta_title' => 'Jasa Google Maps Embed & Backlink Peta Bisnis — Tri Marzuki',
                 'meta_description' => 'Optimasi sinyal relevansi geografis bisnis melalui integrasi Google Maps Embed berotoritas tinggi, penataan entitas lokasi, dan geo-schema markup.',
@@ -132,7 +138,7 @@ class JukiServicesSeeder extends Seeder
 
             // PILAR 3: OTOMASI
             [
-                'slug' => 'id/jasa/otomasi',
+                'slug' => 'jasa/otomasi',
                 'title' => 'Jasa Otomasi Alur Kerja Bisnis & Integrasi Sistem',
                 'meta_title' => 'Jasa Otomasi Alur Kerja Bisnis & Integrasi API — Tri Marzuki',
                 'meta_description' => 'Hilangkan pekerjaan copy-paste manual. Hubungkan CRM, website, spreadsheet, dan pesan instan WhatsApp ke dalam satu ekosistem otomasi terpadu.',
@@ -141,7 +147,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN OTOMASI: n8n
             [
-                'slug' => 'id/jasa/otomasi/n8n',
+                'slug' => 'jasa/otomasi/n8n',
                 'title' => 'Jasa Automasi n8n Workflow & Integrasi Webhook Self-Hosted',
                 'meta_title' => 'Jasa Setup n8n Workflow Self-Hosted Indonesia — Tri Marzuki',
                 'meta_description' => 'Implementasi platform otomasi n8n di VPS mandiri. Alur kerja multi-langkah aman, integrasi REST API, dan bebas batasan biaya langganan bulanan.',
@@ -151,7 +157,7 @@ class JukiServicesSeeder extends Seeder
 
             // PILAR 4: AI SOLUTIONS
             [
-                'slug' => 'id/jasa/ai',
+                'slug' => 'jasa/ai',
                 'title' => 'Jasa Solusi & Integrasi Kecerdasan Buatan (AI) untuk Bisnis',
                 'meta_title' => 'Jasa Integrasi AI Bisnis Praktis & Bertanggung Jawab — Tri Marzuki',
                 'meta_description' => 'Integrasi AI terapan untuk akselerasi operasional bisnis, produksi konten SEO berbasis entity, audit gap semantik, dan chatbot asisten internal.',
@@ -160,7 +166,7 @@ class JukiServicesSeeder extends Seeder
             ],
             // TURUNAN AI: CONTENT ENGINE
             [
-                'slug' => 'id/jasa/ai/content-engine',
+                'slug' => 'jasa/ai/content-engine',
                 'title' => 'Jasa AI Content Engine & Programmatic SEO Otomatis',
                 'meta_title' => 'AI Content Engine & Programmatic SEO Aman Google — Tri Marzuki',
                 'meta_description' => 'Sistem produksi konten AI terstruktur dengan pendekatan Human-in-the-Loop, perlindungan entitas target, dan gambar WebP otomatis di bawah 100KB.',
