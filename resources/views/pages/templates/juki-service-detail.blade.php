@@ -130,6 +130,25 @@
     .juki-web-landing .jw-sticky-offer .jw-price { margin:18px 0; color:#e8c982; font-size:2rem; font-weight:800; letter-spacing:-.04em; }
     .juki-web-landing .jw-sticky-offer p { color:#d5dce6; font-size:.9rem; line-height:1.65; }
     .juki-web-landing .jw-sticky-offer .jw-btn { width:100%; margin-top:14px; }
+    .juki-web-landing .jw-showcase { position:relative; overflow:hidden; padding:96px 0; background:#15253f; color:#fff; }
+    .juki-web-landing .jw-showcase:before { content:""; position:absolute; inset:0; opacity:.22; background-image:linear-gradient(rgba(232,201,130,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(232,201,130,.14) 1px,transparent 1px); background-size:58px 58px; mask-image:linear-gradient(90deg,#000,transparent 80%); }
+    .juki-web-landing .jw-showcase-grid { position:relative; display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:76px; align-items:start; }
+    .juki-web-landing .jw-showcase-sticky { position:sticky; top:28px; }
+    .juki-web-landing .jw-showcase h2 { max-width:560px; margin:12px 0 18px; color:#fff; font-size:clamp(2rem,4vw,3.5rem); line-height:1.03; letter-spacing:-.05em; }
+    .juki-web-landing .jw-showcase .jw-intro { color:#cbd5e1; }
+    .juki-web-landing .jw-showcase-card { min-height:220px; display:flex; flex-direction:column; justify-content:space-between; margin-bottom:18px; padding:28px; border:1px solid rgba(232,201,130,.23); border-radius:20px; background:rgba(255,255,255,.065); backdrop-filter:blur(8px); transition:transform .35s ease,border-color .35s ease,background .35s ease; }
+    .juki-web-landing .jw-showcase-card:hover { transform:translateX(8px); border-color:#e8c982; background:rgba(255,255,255,.11); }
+    .juki-web-landing .jw-showcase-card:nth-child(2) { margin-left:42px; }
+    .juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:84px; }
+    .juki-web-landing .jw-showcase-card .jw-card-label { color:#e8c982; }
+    .juki-web-landing .jw-showcase-card h3 { margin:20px 0 8px; color:#fff; font-size:1.45rem; }
+    .juki-web-landing .jw-showcase-card p { margin:0; color:#cbd5e1; line-height:1.7; }
+    .juki-web-landing .jw-showcase-number { display:flex; align-items:center; justify-content:space-between; color:#e8c982; font-family:'Outfit',sans-serif; font-size:2.5rem; font-weight:700; }
+    .juki-web-landing .jw-bento .jw-service:first-child { grid-column:span 2; background:var(--jw-ink); color:#fff; }
+    .juki-web-landing .jw-bento .jw-service:first-child h3,.juki-web-landing .jw-bento .jw-service:first-child p { color:#fff; }
+    .juki-web-landing .jw-bento .jw-service:first-child p { color:#d7dee8; }
+    .juki-web-landing .jw-bento .jw-service:nth-child(4) { background:var(--jw-soft); transform:translateY(18px); }
+    .juki-web-landing .jw-bento .jw-service:nth-child(4):hover { transform:translateY(13px); }
     .juki-web-landing .jw-js .jw-reveal { opacity:0; transform:translateY(18px); transition:opacity .6s ease,transform .6s ease; }
     .juki-web-landing .jw-js .jw-reveal.is-visible { opacity:1; transform:none; }
     .juki-web-landing .jw-longform { max-width:820px; }
@@ -152,8 +171,8 @@
     .juki-web-landing .jw-final { padding:70px 0; background:var(--jw-ink); color:#fff; text-align:center; }
     .juki-web-landing .jw-final h2 { max-width:700px; margin:10px auto 16px; color:#fff; }
     .juki-web-landing .jw-final p { max-width:630px; margin:0 auto; color:#cbd5e1; line-height:1.7; }
-    @media (max-width:900px) { .juki-web-landing .jw-hero-inner,.juki-web-landing .jw-columns,.juki-web-landing .jw-sticky-layout { grid-template-columns:1fr; gap:32px; } .juki-web-landing .jw-sticky-offer { position:relative; top:auto; order:-1; } .juki-web-landing .jw-grid,.juki-web-landing .jw-aida { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(2,1fr); } }
-    @media (max-width:620px) { .juki-web-landing .jw-container { width:min(100% - 24px,1180px); } .juki-web-landing .jw-hero-inner { padding:58px 0 52px; } .juki-web-landing .jw-proof-grid,.juki-web-landing .jw-grid,.juki-web-landing .jw-aida,.juki-web-landing .jw-related { grid-template-columns:1fr; } .juki-web-landing .jw-section { padding:58px 0; } .juki-web-landing .jw-actions .jw-btn { width:100%; } .juki-web-landing .jw-hero-visual { min-height:280px; } .juki-web-landing .jw-visual-note { right:0; bottom:4px; } .juki-web-landing .jw-longform { padding-left:18px; } }
+    @media (max-width:900px) { .juki-web-landing .jw-hero-inner,.juki-web-landing .jw-columns,.juki-web-landing .jw-sticky-layout,.juki-web-landing .jw-showcase-grid { grid-template-columns:1fr; gap:32px; } .juki-web-landing .jw-sticky-offer,.juki-web-landing .jw-showcase-sticky { position:relative; top:auto; order:-1; } .juki-web-landing .jw-grid,.juki-web-landing .jw-aida { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-bento .jw-service:first-child { grid-column:auto; } .juki-web-landing .jw-bento .jw-service:nth-child(4) { transform:none; } .juki-web-landing .jw-showcase-card:nth-child(2),.juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:0; } }
+    @media (max-width:620px) { .juki-web-landing .jw-container { width:min(100% - 24px,1180px); } .juki-web-landing .jw-hero-inner { padding:58px 0 52px; } .juki-web-landing .jw-proof-grid,.juki-web-landing .jw-grid,.juki-web-landing .jw-aida,.juki-web-landing .jw-related { grid-template-columns:1fr; } .juki-web-landing .jw-section,.juki-web-landing .jw-showcase { padding:58px 0; } .juki-web-landing .jw-actions .jw-btn { width:100%; } .juki-web-landing .jw-hero-visual { min-height:280px; } .juki-web-landing .jw-visual-note { right:0; bottom:4px; } .juki-web-landing .jw-longform { padding-left:18px; } }
     @media (prefers-reduced-motion:reduce) { .juki-web-landing *,.juki-web-landing *:before,.juki-web-landing *:after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } .juki-web-landing .jw-js .jw-reveal { opacity:1; transform:none; } }
 </style>
 @endsection
@@ -216,6 +235,21 @@ document.addEventListener('DOMContentLoaded', function () {
     <section class="jw-proof" aria-label="Fokus layanan">
         <div class="jw-container jw-proof-grid"><div><strong>Mobile-first</strong><span>Nyaman di setiap layar</span></div><div><strong>SEO-ready</strong><span>Struktur siap ditemukan</span></div><div><strong>Conversion-led</strong><span>CTA menuju inquiry</span></div><div><strong>Ownership penuh</strong><span>Aset tetap milik bisnis</span></div></div>
     </section>
+    <section class="jw-showcase" data-reveal>
+        <div class="jw-container jw-showcase-grid">
+            <div class="jw-showcase-sticky">
+                <span class="jw-eyebrow">A different kind of website</span>
+                <h2>Rapi ketika dilihat. Terarah ketika digunakan.</h2>
+                <p class="jw-intro">Website profesional di Solo tidak harus terlihat ramai untuk terlihat bernilai. Kami menggunakan kontras, ruang, tipografi, dan urutan pesan untuk membuat keputusan terasa lebih mudah.</p>
+                <a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin melihat konsep website profesional untuk bisnis saya.') }}">Lihat konsep untuk bisnis saya →</a>
+            </div>
+            <div>
+                <article class="jw-showcase-card jw-reveal"><div class="jw-showcase-number"><span>01</span><span aria-hidden="true">↗</span></div><div><span class="jw-card-label">Attention</span><h3>Orang langsung tahu Anda menjual apa.</h3><p>Hero bukan tempat untuk jargon. Ia menyampaikan layanan utama, wilayah Solo, manfaat, dan CTA dalam satu pandangan pertama.</p></div></article>
+                <article class="jw-showcase-card jw-reveal"><div class="jw-showcase-number"><span>02</span><span aria-hidden="true">↗</span></div><div><span class="jw-card-label">Interest</span><h3>Informasi disusun seperti percakapan.</h3><p>Manfaat, paket, proses, teknologi, dan FAQ menjawab pertanyaan calon pelanggan sebelum mereka mengirim pesan.</p></div></article>
+                <article class="jw-showcase-card jw-reveal"><div class="jw-showcase-number"><span>03</span><span aria-hidden="true">↗</span></div><div><span class="jw-card-label">Desire → Action</span><h3>Kepercayaan berakhir pada langkah yang jelas.</h3><p>Harga awal dan CTA WhatsApp hadir ketika pengunjung sudah memahami nilai yang ditawarkan—bukan dipaksa sejak detik pertama.</p></div></article>
+            </div>
+        </div>
+    </section>
     <section class="jw-section" data-reveal>
         <div class="jw-container jw-sticky-layout">
             <div class="jw-scroll-column">
@@ -236,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
     </section>
     <section class="jw-section">
         <div class="jw-container"><span class="jw-kicker">Satu website. Satu tujuan: lebih banyak inquiry.</span><h2>Yang Anda dapatkan bukan halaman cantik—tetapi aset bisnis yang siap bekerja.</h2><p class="jw-intro">Kami merancang pesan, struktur, tampilan, dan CTA berdasarkan cara calon pelanggan memilih jasa. Hasilnya terlihat profesional, mudah dipahami, dan punya jalur jelas menuju WhatsApp atau inquiry.</p>
-            <div class="jw-grid">
+            <div class="jw-grid jw-bento">
                 <article class="jw-service"><div class="jw-service-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div><h3>Terlihat kredibel</h3><p>Visual premium, pesan yang tajam, dan struktur yang membuat calon pelanggan yakin untuk bertanya.</p></article>
                 <article class="jw-service"><div class="jw-service-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></div><h3>Siap ditemukan</h3><p>Fondasi SEO, heading, metadata, schema, dan internal link dibangun untuk search intent yang tepat.</p></article>
                 <article class="jw-service"><div class="jw-service-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></div><h3>Mudah dihubungi</h3><p>CTA WhatsApp, formulir, dan alur inquiry ditempatkan saat pengunjung sudah siap mengambil tindakan.</p></article>
