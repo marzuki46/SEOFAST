@@ -23,14 +23,21 @@ class ContentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $contents = Content::withoutGlobalScopes()
+        $query = Content::withoutGlobalScopes()
             ->where('status', 'published')
             ->whereNull('deleted_at')
-            ->with(['siloBlueprint'])
-            ->latest()
-            ->paginate(50);
+            ->with(['siloBlueprint', 'topic']);
+
+        if ($request->filled('funnel')) {
+            $funnel = strtolower($request->input('funnel'));
+            $query->whereHas('topic', function ($q) use ($funnel) {
+                $q->where('funnel_stage', $funnel);
+            });
+        }
+
+        $contents = $query->latest()->paginate(20)->withQueryString();
 
         return view('admin.content.index', compact('contents'));
     }

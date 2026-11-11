@@ -6,9 +6,16 @@
 @section('admin_content')
 <div class="space-y-6">
     <!-- Header Controls -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <p class="text-sm text-slate-500 mt-1">Manage, audit, and generate your blog articles with AI content validation.</p>
+            <div class="flex items-center gap-2 mt-3">
+                <span class="text-xs font-semibold text-slate-500">Filter Funnel:</span>
+                <a href="{{ route('admin.content.index') }}" class="px-2.5 py-1 rounded-lg text-xs font-semibold {{ !request('funnel') ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">Semua</a>
+                <a href="{{ route('admin.content.index', ['funnel' => 'tofu']) }}" class="px-2.5 py-1 rounded-lg text-xs font-semibold {{ request('funnel') === 'tofu' ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-700 hover:bg-sky-100' }}">TOFU</a>
+                <a href="{{ route('admin.content.index', ['funnel' => 'mofu']) }}" class="px-2.5 py-1 rounded-lg text-xs font-semibold {{ request('funnel') === 'mofu' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100' }}">MOFU</a>
+                <a href="{{ route('admin.content.index', ['funnel' => 'bofu']) }}" class="px-2.5 py-1 rounded-lg text-xs font-semibold {{ request('funnel') === 'bofu' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' }}">BOFU</a>
+            </div>
         </div>
         <a href="{{ route('admin.content.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-tr from-brand-indigo to-brand-purple px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/10 hover:opacity-90 transition">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -41,6 +48,7 @@
                 <thead>
                     <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase border-b border-slate-200">
                         <th class="px-6 py-3.5">Title / Target Keyword</th>
+                        <th class="px-6 py-3.5">Funnel</th>
                         <th class="px-6 py-3.5">Hierarchy</th>
                         <th class="px-6 py-3.5">Silo Category</th>
                         <th class="px-6 py-3.5">Status</th>
@@ -57,6 +65,20 @@
                                 </a>
                                 <span class="text-xs text-slate-400 font-mono mt-0.5">/blog/{{ $post->slug }}</span>
                             </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            @php
+                                $funnelStage = $post->topic?->funnel_stage;
+                            @endphp
+                            @if($funnelStage === 'tofu')
+                                <span class="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-xs font-bold text-sky-700 ring-1 ring-inset ring-sky-700/10 uppercase">TOFU</span>
+                            @elseif($funnelStage === 'mofu')
+                                <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700 ring-1 ring-inset ring-amber-700/10 uppercase">MOFU</span>
+                            @elseif($funnelStage === 'bofu')
+                                <span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 ring-1 ring-inset ring-emerald-700/10 uppercase">BOFU</span>
+                            @else
+                                <span class="text-xs text-slate-400 font-medium">—</span>
+                            @endif
                         </td>
                         <td class="px-6 py-4">
                             @if($post->hierarchy_level === 'pillar')
@@ -137,7 +159,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-400">
                             No posts found. Start by writing your first article using AI!
                         </td>
                     </tr>

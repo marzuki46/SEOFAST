@@ -279,6 +279,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{campaign}/settings', [ContentCampaignController::class, 'updateSettings'])->name('settings.update');
             Route::put('/{campaign}', [ContentCampaignController::class, 'update'])->name('update');
             Route::post('/{campaign}/research', [ContentCampaignController::class, 'research'])->name('research');
+            Route::post('/{campaign}/trigger', [ContentCampaignController::class, 'triggerPost'])->name('trigger');
             Route::post('/{campaign}/toggle', [ContentCampaignController::class, 'toggle'])->name('toggle');
         });
 

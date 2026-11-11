@@ -195,7 +195,7 @@ class ContentCampaignController extends Controller
             }
         }
 
-        $topics = $campaign->topics()->with('campaignTarget')->latest()->paginate(50)->withQueryString();
+        $topics = $campaign->topics()->with('campaignTarget')->latest()->paginate(20)->withQueryString();
 
         return view('admin.content-campaigns.topics', compact('campaign', 'topics'));
     }
@@ -296,6 +296,39 @@ class ContentCampaignController extends Controller
         }
 
         return back()->with('success', $campaign->status === 'active' ? 'Campaign diaktifkan.' : 'Campaign dijeda.');
+    }
+
+    public function triggerPost(ContentCampaign $campaign, ContentCampaignScheduleService $scheduler)
+    {
+        $this->assertTenantAccess($campaign);
+
+        // Cari jadwal pending terdekat atau buat jadwal instan sekarang
+        $schedule = \App\Models\ContentCampaignSchedule::where('campaign_id', $campaign->id)
+            ->where('status', 'pending')
+            ->orderBy('scheduled_at')
+            ->first();
+
+        if (! $schedule) {
+            $schedule = \App\Models\ContentCampaignSchedule::create([
+                'tenant_id' => $campaign->tenant_id,
+                'campaign_id' => $campaign->id,
+                'scheduled_at' => now(),
+                'status' => 'pending',
+                'target_funnel_stage' => $campaign->funnel_mode === 'balanced' ? 'tofu' : $campaign->funnel_mode,
+            ]);
+        } else {
+            $schedule->update(['scheduled_at' => now()]);
+        }
+
+        // Jalankan background job secara langsung
+        \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id);
+
+        // Pastikan jadwal siklus berikutnya tetap terjaga
+        if ($campaign->status === 'active') {
+            $scheduler->ensureNext($campaign->fresh());
+        }
+
+        return back()->with('success', "Trigger posting berhasil dieksekusi untuk campaign '{$campaign->name}'. Artikel sedang diproses di background.");
     }
 
     private function validated(Request $request): array
