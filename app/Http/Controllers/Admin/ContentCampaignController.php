@@ -320,15 +320,22 @@ class ContentCampaignController extends Controller
             $schedule->update(['scheduled_at' => now()]);
         }
 
-        // Jalankan background job secara langsung
-        \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id);
+        // Jalankan background job secara asinkron (jangan blocking web request)
+        if (config('queue.default') === 'sync') {
+            // Hindari eksekusi AI sinkron di HTTP request yang memicu Cloudflare Timeout 522/524
+            $phpBinary = PHP_BINARY ?: 'php';
+            \Illuminate\Support\Facades\Process::background()
+                ->run("{$phpBinary} " . base_path('artisan') . ' app:run-content-campaigns');
+        } else {
+            \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id);
+        }
 
         // Pastikan jadwal siklus berikutnya tetap terjaga
         if ($campaign->status === 'active') {
             $scheduler->ensureNext($campaign->fresh());
         }
 
-        return back()->with('success', "Trigger posting berhasil dieksekusi untuk campaign '{$campaign->name}'. Artikel sedang diproses di background.");
+        return back()->with('success', "Trigger posting berhasil dijadwalkan untuk campaign '{$campaign->name}'. Sistem AI akan memproses pembuatan konten di background.");
     }
 
     private function validated(Request $request): array
