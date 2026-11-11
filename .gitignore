@@ -43,3 +43,6 @@ storage/page_html_content.html
 
 # Local analysis artifacts
 docx/
+
+# Documentation is maintained outside this deployment repository
+*.md
