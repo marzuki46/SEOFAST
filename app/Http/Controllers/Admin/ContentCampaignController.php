@@ -38,12 +38,17 @@ class ContentCampaignController extends Controller
 
         $globalSettings = [
             'ai_provider' => SystemSetting::get('ai_provider', 'gemini'),
-            'gemini_api_key' => SystemSetting::get('gemini_api_key', ''),
+            // Never render provider credentials into the admin HTML. A blank value
+            // means "keep the existing server-side secret" when settings are saved.
+            'gemini_api_key' => '',
+            'gemini_api_key_configured' => filled(SystemSetting::get('gemini_api_key')),
             'gemini_model' => SystemSetting::get('gemini_model', 'gemini-2.0-flash'),
-            '9router_api_key' => SystemSetting::get('9router_api_key', ''),
+            '9router_api_key' => '',
+            '9router_api_key_configured' => filled(SystemSetting::get('9router_api_key')),
             '9router_api_base' => SystemSetting::get('9router_api_base', 'https://api.9router.com/v1'),
             '9router_model' => SystemSetting::get('9router_model', 'openai/gpt-4o'),
-            'openai_api_key' => SystemSetting::get('openai_api_key', ''),
+            'openai_api_key' => '',
+            'openai_api_key_configured' => filled(SystemSetting::get('openai_api_key')),
             'openai_model' => SystemSetting::get('openai_model', 'gpt-4o'),
             'custom_api_base' => SystemSetting::get('custom_api_base', 'http://localhost:20128/v1'),
             'custom_api_key' => SystemSetting::get('custom_api_key', ''),
@@ -102,13 +107,13 @@ class ContentCampaignController extends Controller
         if (isset($validated['ai_provider'])) {
             SystemSetting::set('ai_provider', $validated['ai_provider'], 'ai');
         }
-        if (isset($validated['gemini_api_key'])) {
+        if (filled($validated['gemini_api_key'] ?? null)) {
             SystemSetting::set('gemini_api_key', $validated['gemini_api_key'], 'ai');
         }
         if (isset($validated['gemini_model'])) {
             SystemSetting::set('gemini_model', $validated['gemini_model'], 'ai');
         }
-        if (isset($validated['9router_api_key'])) {
+        if (filled($validated['9router_api_key'] ?? null)) {
             SystemSetting::set('9router_api_key', $validated['9router_api_key'], 'ai');
         }
         if (isset($validated['9router_api_base'])) {
@@ -117,7 +122,7 @@ class ContentCampaignController extends Controller
         if (isset($validated['9router_model'])) {
             SystemSetting::set('9router_model', $validated['9router_model'], 'ai');
         }
-        if (isset($validated['openai_api_key'])) {
+        if (filled($validated['openai_api_key'] ?? null)) {
             SystemSetting::set('openai_api_key', $validated['openai_api_key'], 'ai');
         }
         if (isset($validated['openai_model'])) {

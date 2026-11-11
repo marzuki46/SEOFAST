@@ -694,9 +694,9 @@ class ContentController extends Controller
                 'ok'          => false,
                 'provider'    => 'unknown',
                 'model'       => 'unknown',
-                'error'       => $e->getMessage(),
+                'error'       => 'AI connection check failed. Check the server logs for details.',
                 'diagnostics' => [],
-            ]);
+            ], 502);
         }
     }
 

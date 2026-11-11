@@ -73,7 +73,7 @@
                     <div class="grid gap-4 md:grid-cols-2">
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Gemini API Key <span class="text-red-500">*</span></label>
-                            <input type="password" name="gemini_api_key" value="{{ $globalSettings['gemini_api_key'] }}" placeholder="AIzaSy..." class="w-full rounded-xl border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none focus:border-indigo-500">
+                            <input type="password" name="gemini_api_key" value="" placeholder="{{ $globalSettings['gemini_api_key_configured'] ? 'Tersimpan — isi hanya untuk mengganti' : 'AIzaSy...' }}" autocomplete="new-password" class="w-full rounded-xl border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none focus:border-indigo-500">
                             <p class="mt-1 text-xs text-slate-500">Dapatkan API Key gratis di Google AI Studio.</p>
                         </div>
                         <div>
@@ -94,7 +94,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">9Router API Key</label>
-                            <input type="password" name="9router_api_key" value="{{ $globalSettings['9router_api_key'] }}" placeholder="nr-xxxx..." class="w-full rounded-xl border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none focus:border-indigo-500">
+                            <input type="password" name="9router_api_key" value="" placeholder="{{ $globalSettings['9router_api_key_configured'] ? 'Tersimpan — isi hanya untuk mengganti' : 'nr-xxxx...' }}" autocomplete="new-password" class="w-full rounded-xl border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none focus:border-indigo-500">
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Model Writer 9Router</label>
@@ -109,7 +109,7 @@
                     <div class="grid gap-4 md:grid-cols-2">
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">OpenAI API Key</label>
-                            <input type="password" name="openai_api_key" value="{{ $globalSettings['openai_api_key'] }}" placeholder="sk-..." class="w-full rounded-xl border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none focus:border-indigo-500">
+                        <input type="password" name="openai_api_key" value="" placeholder="{{ $globalSettings['openai_api_key_configured'] ? 'Tersimpan — isi hanya untuk mengganti' : 'sk-...' }}" autocomplete="new-password" class="w-full rounded-xl border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none focus:border-indigo-500">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Model OpenAI</label>
