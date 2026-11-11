@@ -32,26 +32,30 @@ PROMPT,
         ];
     }
 
-    public function applyDefaults(ContentCampaign $campaign): ContentCampaign
+    public function syncGlobalToCampaign(ContentCampaign $campaign): ContentCampaign
     {
         $defaults = $this->defaults();
-        $updates = [];
-        foreach ($defaults as $key => $value) {
-            if (blank($campaign->getAttribute($key))) {
-                $updates[$key] = $value;
-            }
-        }
-        if (blank($campaign->word_count_min)) {
-            $updates['word_count_min'] = (int) SystemSetting::get('apc_word_count_min', 900);
-        }
-        if (blank($campaign->word_count_max)) {
-            $updates['word_count_max'] = (int) SystemSetting::get('apc_word_count_max', 1400);
-        }
-        if ($updates !== []) {
-            $campaign->update($updates);
-        }
+        $campaign->update([
+            'niche' => SystemSetting::get('apc_niche') ?: ($campaign->niche ?: $defaults['niche']),
+            'brand_voice' => SystemSetting::get('apc_brand_voice') ?: ($campaign->brand_voice ?: $defaults['brand_voice']),
+            'audience' => SystemSetting::get('apc_audience') ?: ($campaign->audience ?: $defaults['audience']),
+            'business_data' => SystemSetting::get('apc_business_data') ?: ($campaign->business_data ?: $defaults['business_data']),
+            'cta_label' => SystemSetting::get('apc_cta_label') ?: ($campaign->cta_label ?: $defaults['cta_label']),
+            'cta_url' => SystemSetting::get('apc_cta_url') ?: ($campaign->cta_url ?: $defaults['cta_url']),
+            'keyword_prompt' => SystemSetting::get('apc_keyword_prompt') ?: ($campaign->keyword_prompt ?: $defaults['keyword_prompt']),
+            'entity_prompt' => SystemSetting::get('apc_entity_prompt') ?: ($campaign->entity_prompt ?: $defaults['entity_prompt']),
+            'landing_prompt' => SystemSetting::get('apc_landing_prompt') ?: ($campaign->landing_prompt ?: $defaults['landing_prompt']),
+            'content_prompt' => SystemSetting::get('apc_content_prompt') ?: ($campaign->content_prompt ?: $defaults['content_prompt']),
+            'word_count_min' => (int) (SystemSetting::get('apc_word_count_min') ?: ($campaign->word_count_min ?: 900)),
+            'word_count_max' => (int) (SystemSetting::get('apc_word_count_max') ?: ($campaign->word_count_max ?: 1400)),
+        ]);
 
         return $campaign->fresh();
+    }
+
+    public function applyDefaults(ContentCampaign $campaign): ContentCampaign
+    {
+        return $this->syncGlobalToCampaign($campaign);
     }
 
     public function temporalContext(string $timezone = 'UTC'): string

@@ -173,12 +173,28 @@ class ContentCampaignController extends Controller
 
         SystemSetting::flushCache();
 
-        return back()->with('success', 'Pengaturan terpusat AI, Brand, dan Prompt SEO berhasil disimpan.');
+        // Sinkronkan langsung ke seluruh campaign agar perubahan di tab langsung aktif
+        ContentCampaign::query()->get()->each(function (ContentCampaign $c) {
+            app(ContentCampaignPromptService::class)->syncGlobalToCampaign($c);
+        });
+
+        return back()->with('success', 'Pengaturan terpusat AI, Brand, dan Prompt SEO berhasil disimpan dan disinkronkan ke seluruh campaign.');
     }
 
-    public function topics(ContentCampaign $campaign)
+    public function topics(ContentCampaign $campaign, ContentCampaignService $service)
     {
         $this->assertTenantAccess($campaign);
+
+        // Jika topik idea tersisa <= 1, otomatis generate ulang seluruh funnel masing-masing 5 topik (TOFU 5, MOFU 5, BOFU 5)
+        $ideaCount = $campaign->topics()->where('status', 'idea')->count();
+        if ($ideaCount <= 1) {
+            try {
+                $service->replenishTopicsAllFunnels($campaign, 5);
+            } catch (\Throwable $e) {
+                Log::warning('Auto replenish topics on view failed: '.$e->getMessage());
+            }
+        }
+
         $topics = $campaign->topics()->with('campaignTarget')->latest()->paginate(50)->withQueryString();
 
         return view('admin.content-campaigns.topics', compact('campaign', 'topics'));

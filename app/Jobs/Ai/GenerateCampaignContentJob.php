@@ -51,8 +51,8 @@ class GenerateCampaignContentJob implements ShouldQueue
 
             $topic = DB::transaction(function () use ($campaign) {
                 $topic = ContentTopic::withoutGlobalScopes()->where('campaign_id', $campaign->id)
-                    ->where('status', 'idea')->whereNotNull('campaign_target_id')
-                    ->whereHas('campaignTarget', fn ($query) => $query->where('status', 'ready'))
+                    ->where('status', 'idea')
+                    ->orderByRaw('CASE WHEN campaign_target_id IS NOT NULL THEN 0 ELSE 1 END')
                     ->orderBy('id')->lockForUpdate()->first();
                 if ($topic) {
                     $topic->update(['status' => 'processing']);
@@ -60,22 +60,33 @@ class GenerateCampaignContentJob implements ShouldQueue
 
                 return $topic;
             });
-            if (! $topic && $campaign->auto_research) {
-                $topics->generateTopics($campaign, $campaign->research_batch_size);
+
+            // Cek stok topik idea: jika kosong atau tinggal 1, otomatis generate ulang seluruh funnel masing-masing 5
+            $remainingIdeaCount = ContentTopic::withoutGlobalScopes()->where('campaign_id', $campaign->id)->where('status', 'idea')->count();
+            if ($remainingIdeaCount <= 1) {
+                try {
+                    $topics->replenishTopicsAllFunnels($campaign, 5);
+                } catch (\Throwable $e) {
+                    Log::warning('Auto replenish topics in job failed: '.$e->getMessage());
+                }
+            }
+
+            if (! $topic) {
+                // Ambil kembali setelah replenish selesai
                 $topic = DB::transaction(function () use ($campaign) {
-                    $topic = ContentTopic::withoutGlobalScopes()->where('campaign_id', $campaign->id)->where('status', 'idea')
-                        ->whereNotNull('campaign_target_id')
-                        ->whereHas('campaignTarget', fn ($query) => $query->where('status', 'ready'))
+                    $t = ContentTopic::withoutGlobalScopes()->where('campaign_id', $campaign->id)
+                        ->where('status', 'idea')
                         ->orderBy('id')->lockForUpdate()->first();
-                    if ($topic) {
-                        $topic->update(['status' => 'processing']);
+                    if ($t) {
+                        $t->update(['status' => 'processing']);
                     }
 
-                    return $topic;
+                    return $t;
                 });
             }
+
             if (! $topic) {
-                $schedule->update(['status' => 'failed', 'error_message' => 'Topic bank kosong dan riset AI tidak menghasilkan topik.']);
+                $schedule->update(['status' => 'failed', 'error_message' => 'Topic bank kosong dan riset AI belum menghasilkan topik.']);
                 $scheduler->ensureNext($campaign);
 
                 return;

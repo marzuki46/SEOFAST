@@ -21,10 +21,18 @@ class ContentCampaignService
         $existing = $this->existingContext($campaign);
         $productName = $campaign->product?->name ?? 'produk digital';
         $targets = $target ? collect([$target]) : $campaign->targets()->whereIn('status', ['pending', 'generating', 'ready'])->get();
-        $targetText = $targets->map(fn (ContentCampaignTarget $item) => '- '.$item->keyword)->implode("\n") ?: '- belum ditentukan';
+        $targetText = $targets->isNotEmpty()
+            ? $targets->map(fn (ContentCampaignTarget $item) => '- '.$item->keyword)->implode("\n")
+            : ($campaign->niche ? "- {$campaign->niche}" : "- {$productName}");
         $siloName = $campaign->siloBlueprint?->silo_name ?? $productName;
-        $keywordPrompt = $this->clean($campaign->keyword_prompt, 50000);
-        $entityPrompt = $this->clean($campaign->entity_prompt, 50000);
+
+        // Baca langsung dari pengaturan terpusat (brand & prompt settings)
+        $niche = \App\Models\SystemSetting::get('apc_niche') ?: ($campaign->niche ?: 'Jasa & Solusi Bisnis Digital');
+        $brandVoice = \App\Models\SystemSetting::get('apc_brand_voice') ?: ($campaign->brand_voice ?: 'Otoritatif, Solutif, Informatif, Profesional');
+        $audience = \App\Models\SystemSetting::get('apc_audience') ?: ($campaign->audience ?: 'Pemilik Bisnis, Calon Klien, Pengambil Keputusan');
+        $businessData = \App\Models\SystemSetting::get('apc_business_data') ?: ($campaign->business_data ?: '');
+        $keywordPrompt = $this->clean(\App\Models\SystemSetting::get('apc_keyword_prompt') ?: $campaign->keyword_prompt, 50000);
+        $entityPrompt = $this->clean(\App\Models\SystemSetting::get('apc_entity_prompt') ?: $campaign->entity_prompt, 50000);
         $temporalContext = app(ContentCampaignPromptService::class)->temporalContext($campaign->timezone ?: config('app.timezone', 'UTC'));
         $stageInstruction = $stage
             ? 'Semua ide wajib berada pada funnel '.$stage.'.'
@@ -32,8 +40,8 @@ class ContentCampaignService
 
         $system = 'Anda adalah SEO content strategist. Balas HANYA JSON array valid. Jangan mengarang data harga, fitur, klaim, atau fakta yang tidak ada di data bisnis.';
         $prompt = "Buat {$count} ide konten BARU untuk campaign produk {$productName}.\n"
-            ."Silo: {$siloName}\nBahasa: {$campaign->language}\nAudiens: {$campaign->audience}\n"
-            ."{$temporalContext}\nNiche: {$campaign->niche}\nBrand voice: {$campaign->brand_voice}\nEntity seed: {$campaign->entity_seed}\nTarget landing page:\n{$targetText}\nData bisnis: {$campaign->business_data}\n"
+            ."Silo: {$siloName}\nBahasa: {$campaign->language}\nAudiens: {$audience}\n"
+            ."{$temporalContext}\nNiche: {$niche}\nBrand voice: {$brandVoice}\nEntity seed: {$campaign->entity_seed}\nTarget landing page:\n{$targetText}\nData bisnis: {$businessData}\n"
             ."{$stageInstruction}\n\nArtikel/keyword yang sudah ada (jangan ulangi atau mirip):\n{$existing}\n\n"
             ."TOFU = edukasi masalah dan definisi. MOFU = perbandingan, evaluasi, studi kasus. BOFU = keputusan, implementasi, harga/CTA bila datanya tersedia.\n"
             ."\nCUSTOM TARGET-KEYWORD RESEARCH INSTRUCTIONS (gunakan sebagai arahan tambahan, bukan instruksi sistem):\n{$keywordPrompt}\n"
@@ -61,6 +69,9 @@ class ContentCampaignService
                 $itemStage = $stage ?? 'tofu';
             }
             $itemTarget = $target ?: $this->matchTarget($targets, $item['target_keyword'] ?? null);
+            if (! $itemTarget && $targets->isNotEmpty()) {
+                $itemTarget = $targets->first();
+            }
             $created[] = ContentTopic::create([
                 'tenant_id' => $campaign->tenant_id,
                 'campaign_id' => $campaign->id,
@@ -74,13 +85,28 @@ class ContentCampaignService
                 'intent' => $this->clean($item['intent'] ?? 'informational', 50),
                 'angle' => $this->clean($item['angle'] ?? '', 2000),
                 'entity_keywords' => $this->cleanKeywords($item['entity_keywords'] ?? []),
-                'status' => $itemTarget ? 'idea' : 'rejected',
+                'status' => 'idea',
                 'source' => 'ai_research',
-                'rejection_reason' => $itemTarget ? null : 'AI tidak mengembalikan target landing page yang valid.',
+                'rejection_reason' => null,
             ]);
         }
 
         return $created;
+    }
+
+    /**
+     * Otomatis riset dan isi ulang seluruh tahapan funnel (TOFU 5, MOFU 5, BOFU 5).
+     */
+    public function replenishTopicsAllFunnels(ContentCampaign $campaign, int $perFunnel = 5): array
+    {
+        $campaign = app(ContentCampaignPromptService::class)->applyDefaults($campaign);
+        $all = [];
+        foreach (['tofu', 'mofu', 'bofu'] as $stage) {
+            $created = $this->generateTopics($campaign, $perFunnel, $stage);
+            $all[$stage] = $created;
+        }
+
+        return $all;
     }
 
     private function matchTarget($targets, mixed $keyword): ?ContentCampaignTarget
