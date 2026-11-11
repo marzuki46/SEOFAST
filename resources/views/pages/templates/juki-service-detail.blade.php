@@ -13,7 +13,7 @@
         ? 'Jasa Pembuatan Website Profesional di Solo | Juki'
         : ($page->meta_title ?: $page->title) . ' — ' . $siteName;
     $seoDescription = $isWebsiteService
-        ? 'Jasa pembuatan website di Solo dan Surakarta untuk company profile, landing page, toko online, dan aplikasi web. Cepat, SEO-ready, dan siap menghasilkan inquiry.'
+        ? 'Jasa pembuatan website profesional di Solo untuk company profile, landing page, toko online, dan aplikasi web. SEO-ready, cepat, dan fokus inquiry.'
         : ($page->meta_description ?: ($p['lead'] ?? ''));
     $relatedLinks = $isWebsiteService ? [
         ['url' => '/jasa/seo', 'title' => 'Jasa SEO & Pencarian Lokal'],
@@ -65,6 +65,7 @@
 @section('styles')
 <style>
     .juki-web-landing { --jw-ink:#15253f; --jw-muted:#526174; --jw-gold:#ce9a45; --jw-gold-dark:#9a6b16; --jw-soft:#fbf6eb; --jw-line:#eadfca; color:var(--jw-ink); background:#f8f7f3; font-family:'Plus Jakarta Sans','Inter',ui-sans-serif,system-ui,sans-serif; }
+    .juki-web-landing h1,.juki-web-landing h2,.juki-web-landing h3 { font-family:'Outfit','Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif; font-weight:700; }
     .juki-web-landing .jw-container { width:min(1180px,calc(100% - 32px)); margin-inline:auto; }
     .juki-web-landing .jw-hero { position:relative; overflow:hidden; background:linear-gradient(135deg,#101d32 0%,#15253f 58%,#213756 100%); color:#fff; }
     .juki-web-landing .jw-hero:after { content:""; position:absolute; width:520px; height:520px; right:-180px; top:-240px; border:1px solid rgba(206,154,69,.3); border-radius:50%; box-shadow:0 0 0 50px rgba(206,154,69,.06),0 0 0 100px rgba(206,154,69,.035); }
@@ -93,7 +94,7 @@
     .juki-web-landing .jw-section[data-reveal] { content-visibility:auto; contain-intrinsic-size:720px; }
     .juki-web-landing .jw-section-alt { background:#fff; }
     .juki-web-landing .jw-kicker { color:var(--jw-gold-dark); font-size:.75rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
-    .juki-web-landing .jw-section h2 { max-width:780px; margin:10px 0 16px; font-size:clamp(1.75rem,3vw,2.55rem); line-height:1.12; letter-spacing:-.035em; }
+    .juki-web-landing .jw-section h2 { max-width:780px; margin:10px 0 16px; font-size:clamp(1.75rem,3vw,2.55rem); line-height:1.12; letter-spacing:-.035em; font-weight:700; }
     .juki-web-landing .jw-intro { max-width:720px; color:var(--jw-muted); font-size:1.06rem; line-height:1.75; }
     .juki-web-landing .jw-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:32px; }
     .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(3,1fr); }
@@ -239,6 +240,26 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="jw-container"><span class="jw-kicker">Mengapa halaman ini efektif</span><h2>Alur AIDA yang terasa natural, bukan teori di atas kertas.</h2><div class="jw-aida"><article class="jw-step"><b>01 · Attention</b><h3>Masalah langsung terasa</h3><p>Headline berbicara kepada bisnis yang ingin dipercaya dan mendapatkan inquiry.</p></article><article class="jw-step"><b>02 · Interest</b><h3>Solusinya mudah dipahami</h3><p>Kartu manfaat menjelaskan apa yang dibangun dan untuk siapa.</p></article><article class="jw-step"><b>03 · Desire</b><h3>Nilainya menjadi nyata</h3><p>Paket, harga awal, SEO, proses, dan kepemilikan mengurangi keraguan.</p></article><article class="jw-step"><b>04 · Action</b><h3>CTA ada di saat yang tepat</h3><p>Pengunjung dapat langsung menghubungi Juki tanpa mencari-cari tombol.</p></article></div></div>
     </section>
     <section class="jw-section"><div class="jw-container jw-columns"><div><span class="jw-kicker">Dibangun untuk ditemukan dan dipercaya</span><h2>Premium di mata pelanggan. Sehat di mata Google.</h2><p class="jw-intro">Keindahan visual tidak berdiri sendiri. Setiap halaman disusun agar mudah dipindai, cepat digunakan, dan memiliki konteks SEO yang jelas.</p></div><ul class="jw-list"><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Mobile-first, aksesibel, dan nyaman dibaca.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Meta title, schema, sitemap, canonical, dan internal link.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Struktur cepat, aman, dan siap dikembangkan.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Integrasi WhatsApp, formulir, API, dan kebutuhan bisnis.</span></li></ul></div></section>
+    <section class="jw-section jw-section-alt">
+        <div class="jw-container jw-longform">
+            <span class="jw-kicker">Jasa pembuatan website profesional di Solo</span>
+            <h2>Website profesional dimulai dari tujuan bisnis, bukan dari template.</h2>
+            <p class="jw-intro">Bisnis di Solo dan Surakarta membutuhkan lebih dari halaman yang sekadar terlihat modern. Website harus membantu orang menemukan layanan Anda, memahami keunggulan Anda, dan merasa aman untuk menghubungi. Itulah alasan setiap proyek dimulai dari target pelanggan, penawaran utama, area layanan, dan tindakan yang ingin dihasilkan.</p>
+            <p>Apakah Anda membutuhkan website company profile untuk memperkuat reputasi, landing page untuk promosi, toko online untuk menerima pesanan, atau aplikasi web untuk merapikan operasional, semuanya memiliki struktur yang berbeda. Kami tidak memaksa semua bisnis masuk ke layout yang sama. Pesan, section, navigasi, CTA, dan teknologi disesuaikan dengan cara pelanggan Anda mengambil keputusan.</p>
+            <h3>Untuk pemilik bisnis yang ingin terlihat lebih terpercaya</h3>
+            <p>Calon pelanggan sering mencari nama bisnis di Google sebelum meminta penawaran. Mereka ingin melihat layanan, lokasi, cara kerja, contoh hasil, dan cara menghubungi Anda. Website yang rapi membuat bisnis kecil terlihat serius, membantu perusahaan B2B membangun kredibilitas, dan memberi penyedia jasa profesional tempat resmi untuk menjelaskan nilai yang ditawarkan.</p>
+            <h3>Untuk bisnis yang ingin mendapatkan inquiry dari Google</h3>
+            <p>Halaman ini menargetkan pencarian <strong>jasa pembuatan website profesional di Solo</strong> dengan struktur yang menjelaskan layanan, wilayah, manfaat, harga awal, dan CTA. Entity yang dibahas mencakup web developer Solo, web design, website company profile, landing page, toko online, WordPress, Laravel, CodeIgniter, responsive design, Core Web Vitals, local SEO, schema markup, dan integrasi WhatsApp.</p>
+            <h3>Untuk bisnis yang ingin menjual tanpa membingungkan pengunjung</h3>
+            <p>Landing page yang kuat tidak memaksa pengunjung membaca semua hal. Ia mengatur informasi sesuai urutan kebutuhan: perhatian pada masalah, ketertarikan pada solusi, keinginan setelah melihat manfaat dan bukti, lalu tindakan yang mudah. Karena itu, tombol konsultasi muncul pada momen yang tepat dan bukan hanya sekali di bagian paling bawah.</p>
+            <h3>Yang termasuk dalam proyek website</h3>
+            <p>Anda mendapatkan perencanaan struktur halaman, arahan pesan, desain responsive, implementasi halaman, konfigurasi domain dan hosting sesuai scope, formulir inquiry, tombol WhatsApp, metadata SEO, sitemap, schema markup, optimasi gambar, dan pemeriksaan tampilan mobile. Untuk kebutuhan yang lebih kompleks, scope dapat mencakup dashboard, database, API, autentikasi, CRM, inventory, atau alur kerja internal.</p>
+            <p>Setelah website selesai, Anda tidak ditinggalkan dengan halaman yang sulit dikelola. Kami menjelaskan cara penggunaan dan menjaga komunikasi melalui WhatsApp. Jika bisnis berkembang, fondasi website dapat dilanjutkan dengan <a href="{{ url('/jasa/seo') }}">SEO lokal dan optimasi Google</a>, <a href="{{ url('/jasa/otomasi') }}">otomasi alur bisnis</a>, atau <a href="{{ url('/jasa/ai') }}">solusi AI</a>.</p>
+            <h3>Kenapa memilih Juki di Solo?</h3>
+            <p>Juki menggabungkan kemampuan web development, UI/UX, SEO, copywriting, dan otomasi dalam satu alur kerja. Anda dapat berdiskusi langsung tanpa perantara panjang. Kebutuhan bisnis diterjemahkan menjadi halaman yang memiliki tujuan, bukan sekadar kumpulan section. Untuk website standar, pengerjaan maksimal dua minggu; sistem modular mulai satu bulan; dan proyek custom dibahas berdasarkan kompleksitas.</p>
+            <p>Mulai dari kebutuhan sederhana atau konsultasikan proyek yang lebih besar. Sampaikan jenis bisnis, layanan utama, target pelanggan, referensi visual, serta target peluncuran. Kami akan membantu Anda menentukan apakah solusi yang tepat adalah website company profile, landing page, toko online, sistem informasi, atau kombinasi website dengan SEO dan otomasi.</p>
+        </div>
+    </section>
     <section class="jw-section jw-section-alt">
         <div class="jw-container"><span class="jw-kicker">Yang kami kerjakan untuk Anda</span><h2>Semua bagian penting dirancang untuk mengurangi keraguan pembeli.</h2><p class="jw-intro">Website yang menghasilkan inquiry tidak bergantung pada satu headline. Kepercayaan dibangun dari detail kecil yang konsisten—dari struktur menu sampai cara tombol kontak menjawab kebutuhan pengunjung.</p><div class="jw-grid jw-grid-3">
             <article class="jw-service"><h3>Strategi pesan</h3><p>Kami menyaring keunggulan bisnis menjadi pesan yang mudah dipahami calon pelanggan. Tidak ada jargon teknis yang membuat pengunjung bingung dengan apa yang Anda jual.</p></article>
