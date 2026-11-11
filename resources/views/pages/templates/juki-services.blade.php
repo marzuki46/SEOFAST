@@ -3,14 +3,12 @@
 @php
     use App\Models\SystemSetting;
     $siteName = SystemSetting::get('site_name', config('app.name', 'Juki'));
-    $logoUrl = SystemSetting::get('logo_url', 'https://juki.eu.org/storage/content-images/xjuki-website-developer-solo-landscape-1785293658.webp.pagespeed.ic.ehTKUU0dbo.webp');
-    $logoAlt = SystemSetting::get('logo_alt', 'Juki Website Developer Solo');
     $waNumber = SystemSetting::get('contact_inquiry_whatsapp', '6282213028718');
     $canonicalUrl = url('/' . ltrim($page->slug, '/'));
 @endphp
 
-@section('title', ($page->meta_title ?: $page->title) . ' — ' . $siteName)
-@section('meta_description', $page->meta_description ?: 'Layanan jasa pembuatan website profesional, audit SEO teknis & lokal Google Maps, otomatisasi alur kerja n8n, dan integrasi solusi AI bisnis oleh Tri Marzuki.')
+@section('title', 'Layanan Digital: Web Development, SEO, Otomasi & AI — ' . $siteName)
+@section('meta_description', 'Solusi rekayasa digital untuk pertumbuhan bisnis: jasa pembuatan website profesional, optimasi SEO Google Maps, otomatisasi alur kerja n8n, dan integrasi AI terapan.')
 @section('canonical_url', $canonicalUrl)
 
 @section('head_extra')
@@ -18,19 +16,19 @@
 {
     "@@context": "https://schema.org",
     "@@type": "Service",
-    "name": "{{ $page->title }}",
+    "name": "Layanan Digital Tri Marzuki",
     "serviceType": "Digital Development & Marketing Services",
     "provider": {
         "@type": "Person",
         "name": "Tri Marzuki",
         "url": "{{ url('/') }}",
-        "telephone": "+6282213028718"
+        "telephone": "+{{ $waNumber }}"
     },
     "areaServed": "Indonesia",
-    "description": "{{ $page->meta_description }}",
+    "description": "Layanan spesialis pengembangan website modern, optimasi SEO teknis & lokal Google Maps, otomatisasi alur kerja n8n, serta integrasi solusi AI bisnis.",
     "hasOfferCatalog": {
         "@@type": "OfferCatalog",
-        "name": "Katalog Layanan Digital",
+        "name": "Katalog Layanan Digital Utama",
         "itemListElement": [
             {
                 "@@type": "Offer",
@@ -44,7 +42,7 @@
                 "@@type": "Offer",
                 "itemOffered": {
                     "@@type": "Service",
-                    "name": "SEO & SEO Lokal Google Maps",
+                    "name": "SEO Teknis & Pencarian Lokal",
                     "url": "{{ url('/jasa/seo') }}"
                 }
             },
@@ -60,7 +58,7 @@
                 "@@type": "Offer",
                 "itemOffered": {
                     "@@type": "Service",
-                    "name": "Solusi & Integrasi AI Bisnis",
+                    "name": "Solusi Terapan AI Bisnis",
                     "url": "{{ url('/jasa/ai') }}"
                 }
             }
@@ -71,331 +69,357 @@
 @endsection
 
 @section('content')
-<!-- Hero Section (Identik Style dengan Katalog Produk) -->
+<!-- Hero Section (Identik Style Hero Juki) -->
 @include('partials.juki-hero', [
-    'badge' => 'Katalog Layanan Digital Spesialis',
-    'heading' => "Jasa Pembuatan Website, SEO, Otomasi & AI untuk Pertumbuhan Bisnis Anda",
-    'subheadline' => 'Pilih solusi digital terukur yang sesuai dengan fase bisnis Anda. Dibangun dengan fokus rekayasa performa tinggi, keamanan andal, dan aliran prospek nyata ke WhatsApp bisnis Anda.',
+    'badge' => 'Layanan Spesialis Digital',
+    'heading' => "Solusi Rekayasa Digital: Web Development, SEO, Otomasi & AI",
+    'subheadline' => 'Empat pilar layanan komprehensif untuk membantu bisnis Anda membangun kehadiran online yang kredibel, menjaring prospek tertarget dari pencarian Google, dan mengotomasi alur operasional.',
     'ctaPrimaryText' => 'Konsultasi via WhatsApp',
     'ctaPrimaryUrl' => 'https://wa.me/' . $waNumber . '?text=' . urlencode('Halo Tri Marzuki, saya ingin konsultasi mengenai layanan digital untuk bisnis saya.'),
     'ctaSecondaryText' => 'Kirim Brief Proyek',
     'ctaSecondaryUrl' => url('/contact'),
 ])
 
-<!-- Grid Kartu Layanan (Model Katalog Produk) -->
-<section class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-4 border-b border-slate-200">
-        <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-brand-indigo bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">Solusi Berbasis Hasil</span>
-            <h2 class="text-3xl font-extrabold text-slate-900 font-outfit mt-2">Daftar Layanan & Spesialisasi</h2>
-        </div>
-        <p class="text-sm text-slate-500 max-w-md">
-            Arsitektur modern, kode bersih, kecepatan tinggi Core Web Vitals, dan integrasi WhatsApp instan di setiap proyek.
+<!-- 4 Pilar Layanan Utama (Grid Model Landing Page) -->
+<section class="max-w-7xl mx-auto py-16 sm:py-20 px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white border border-[#E2E8F0] shadow-sm text-xs font-bold uppercase tracking-wider text-brand-navy mb-3">
+            Pilar Layanan Utama
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-[#0F172A] font-outfit tracking-tight">
+            Fokus Keahlian untuk Pertumbuhan Bisnis Anda
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-slate-600 font-sans leading-relaxed">
+            Setiap pilar dirancang secara modular dan dapat diintegrasikan sesuai dengan tahap perkembangan dan kebutuhan operasional bisnis Anda.
         </p>
     </div>
 
-    <!-- 4 Pilar Layanan Utama (Grid Model Produk) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-        <!-- Card 1: Web Development -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+        <!-- Pilar 1: Web Development -->
+        <div class="bg-white border border-[#E2E8F0] rounded-3xl p-8 sm:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-bl-full pointer-events-none"></div>
             <div>
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xl mb-5 shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform">
-                    01
+                <div class="flex items-center justify-between mb-6">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xl shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform font-outfit">
+                        01
+                    </div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                        Web Engineering
+                    </span>
                 </div>
-                <div class="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Web Development</div>
-                <h3 class="text-xl font-bold text-slate-900 font-outfit mb-3 group-hover:text-brand-indigo transition-colors">
+
+                <h3 class="text-2xl font-bold text-[#0F172A] font-outfit mb-3 group-hover:text-blue-600 transition-colors">
                     <a href="{{ url('/jasa/website') }}">Pengembangan Web</a>
                 </h3>
-                <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                    Website modern, responsif, dan ultra cepat dengan kode bersih — dari company profile, toko online, hingga custom web app.
+
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-sans">
+                    Pembuatan website profesional yang dirancang khusus untuk kenyamanan pengunjung ponsel cerdas, berkecepatan tinggi, dan teroptimasi sejak awal untuk mesin pencari.
                 </p>
-                <div class="flex flex-wrap gap-1.5 mb-6">
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">Company Profile</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">Toko Online</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">Landing Page</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">Laravel / CI4</span>
+
+                <div class="space-y-2.5 mb-8 border-t border-slate-100 pt-5">
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Company Profile B2B & Katalog Korporat</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Landing Page Iklan Berkonversi Tinggi</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Toko Online Mandiri Terintegrasi WhatsApp</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Aplikasi Web Kustom & Dashboard Sistem</span>
+                    </div>
                 </div>
             </div>
-            <div>
-                <div class="text-xs text-slate-400 mb-3 border-t border-slate-100 pt-3">
-                    Termasuk: Core Web Vitals Hijau, SEO-ready, Mobile First
-                </div>
-                <a href="{{ url('/jasa/website') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
-                    Lihat Layanan
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                </a>
-            </div>
+
+            <a href="{{ url('/jasa/website') }}" class="w-full inline-flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-bold text-brand-navy bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 transition-all font-outfit">
+                <span>Pelajari Detail Layanan Web</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
         </div>
 
-        <!-- Card 2: SEO & SEO Lokal -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1">
+        <!-- Pilar 2: SEO & SEO Lokal -->
+        <div class="bg-white border border-[#E2E8F0] rounded-3xl p-8 sm:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-full pointer-events-none"></div>
             <div>
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center font-bold text-xl mb-5 shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
-                    02
+                <div class="flex items-center justify-between mb-6">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center font-bold text-xl shadow-lg shadow-emerald-500/25 group-hover:scale-105 transition-transform font-outfit">
+                        02
+                    </div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                        Search Authority
+                    </span>
                 </div>
-                <div class="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">Search Optimization</div>
-                <h3 class="text-xl font-bold text-slate-900 font-outfit mb-3 group-hover:text-emerald-600 transition-colors">
-                    <a href="{{ url('/jasa/seo') }}">SEO & SEO Lokal</a>
+
+                <h3 class="text-2xl font-bold text-[#0F172A] font-outfit mb-3 group-hover:text-emerald-600 transition-colors">
+                    <a href="{{ url('/jasa/seo') }}">SEO & Pencarian Lokal</a>
                 </h3>
-                <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                    Audit teknis mendalam, optimasi on-page berbasis entity semantik, dan dominasi kata kunci pencarian lokal di Google Maps.
+
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-sans">
+                    Strategi penataan struktur website dan optimasi Google Business Profile agar profil bisnis Anda mudah ditemukan pelanggan potensial yang siap membeli.
                 </p>
-                <div class="flex flex-wrap gap-1.5 mb-6">
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">Audit Teknis</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">Google Maps 3-Pack</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">Local SEO</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700">Schema JSON-LD</span>
+
+                <div class="space-y-2.5 mb-8 border-t border-slate-100 pt-5">
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Audit Teknis & Pembersihan Error Crawling Googlebot</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Optimasi Google Maps & Peringkat 3-Pack Lokal</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Penerapan Schema JSON-LD (Service, LocalBusiness, FAQ)</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Arsitektur Konten Siloing Berbasis Search Intent</span>
+                    </div>
                 </div>
             </div>
-            <div>
-                <div class="text-xs text-slate-400 mb-3 border-t border-slate-100 pt-3">
-                    Fokus: Trafik komersial tertarget & siap beli
-                </div>
-                <a href="{{ url('/jasa/seo') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
-                    Lihat Layanan
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                </a>
-            </div>
+
+            <a href="{{ url('/jasa/seo') }}" class="w-full inline-flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-bold text-brand-navy bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 transition-all font-outfit">
+                <span>Pelajari Detail Layanan SEO</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
         </div>
 
-        <!-- Card 3: Otomasi Alur Kerja Bisnis -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1">
+        <!-- Pilar 3: Otomasi Alur Kerja & API -->
+        <div class="bg-white border border-[#E2E8F0] rounded-3xl p-8 sm:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-bl-full pointer-events-none"></div>
             <div>
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center font-bold text-xl mb-5 shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform">
-                    03
+                <div class="flex items-center justify-between mb-6">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center font-bold text-xl shadow-lg shadow-amber-500/25 group-hover:scale-105 transition-transform font-outfit">
+                        03
+                    </div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
+                        Workflow Automation
+                    </span>
                 </div>
-                <div class="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Business Automation</div>
-                <h3 class="text-xl font-bold text-slate-900 font-outfit mb-3 group-hover:text-amber-600 transition-colors">
-                    <a href="{{ url('/jasa/otomasi') }}">Otomasi Alur Kerja</a>
+
+                <h3 class="text-2xl font-bold text-[#0F172A] font-outfit mb-3 group-hover:text-amber-600 transition-colors">
+                    <a href="{{ url('/jasa/otomasi') }}">Otomasi Bisnis & API</a>
                 </h3>
-                <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                    Otomasi alur kerja bebas biaya langganan mahal dengan n8n self-hosted, sinkronisasi API, webhook, dan notifikasi WhatsApp otomatis.
+
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-sans">
+                    Penghapusan pekerjaan manual yang menyita waktu melalui perancangan skenario alur kerja otomatis mandiri bebas biaya langganan bulanan mahal.
                 </p>
-                <div class="flex flex-wrap gap-1.5 mb-6">
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700">Self-Hosted n8n</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700">REST API</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700">Auto WhatsApp</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700">Webhooks</span>
+
+                <div class="space-y-2.5 mb-8 border-t border-slate-100 pt-5">
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Setup Platform Otomasi n8n Self-Hosted di VPS Mandiri</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Integrasi REST API Antar-Aplikasi & Webhook HMAC</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Notifikasi Instan WhatsApp Prospek Baru ke Admin</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Sinkronisasi Data Dua Arah Website ke Spreadsheet/CRM</span>
+                    </div>
                 </div>
             </div>
-            <div>
-                <div class="text-xs text-slate-400 mb-3 border-t border-slate-100 pt-3">
-                    Manfaat: Hemat puluhan jam kerja staf manual
-                </div>
-                <a href="{{ url('/jasa/otomasi') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
-                    Lihat Layanan
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                </a>
-            </div>
+
+            <a href="{{ url('/jasa/otomasi') }}" class="w-full inline-flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-bold text-brand-navy bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-200 transition-all font-outfit">
+                <span>Pelajari Detail Layanan Otomasi</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
         </div>
 
-        <!-- Card 4: Solusi AI Bisnis -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1">
+        <!-- Pilar 4: Solusi Terapan AI -->
+        <div class="bg-white border border-[#E2E8F0] rounded-3xl p-8 sm:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-bl-full pointer-events-none"></div>
             <div>
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-600 text-white flex items-center justify-center font-bold text-xl mb-5 shadow-md shadow-purple-500/20 group-hover:scale-110 transition-transform">
-                    04
+                <div class="flex items-center justify-between mb-6">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 text-white flex items-center justify-center font-bold text-xl shadow-lg shadow-purple-500/25 group-hover:scale-105 transition-transform font-outfit">
+                        04
+                    </div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">
+                        Applied AI
+                    </span>
                 </div>
-                <div class="text-xs font-semibold text-purple-600 uppercase tracking-wider mb-1">Applied AI Solutions</div>
-                <h3 class="text-xl font-bold text-slate-900 font-outfit mb-3 group-hover:text-purple-600 transition-colors">
+
+                <h3 class="text-2xl font-bold text-[#0F172A] font-outfit mb-3 group-hover:text-purple-600 transition-colors">
                     <a href="{{ url('/jasa/ai') }}">Solusi Terapan AI</a>
                 </h3>
-                <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                    Penerapan kecerdasan buatan terapan untuk bisnis: programmatic SEO terstruktur, audit gap konten, dan chatbot asisten internal.
+
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6 font-sans">
+                    Integrasi kecerdasan buatan untuk mempercepat proses riset, produksi konten SEO terstruktur, dan asisten interaktif dengan kendali mutu manusia.
                 </p>
-                <div class="flex flex-wrap gap-1.5 mb-6">
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">Content Engine</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">Programmatic SEO</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">AI Chatbot</span>
-                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700">Human Review</span>
+
+                <div class="space-y-2.5 mb-8 border-t border-slate-100 pt-5">
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>AI Content Engine Berbasis Entity & Keyword Research</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Sistem Konten Programmatic SEO Aman Google Update</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Chatbot Customer Support Khusus Dokumen Pengetahuan Bisnis</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 text-xs sm:text-sm text-slate-700 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <span>Filosofi Human-in-the-Loop untuk Verifikasi Akurasi Fakta</span>
+                    </div>
                 </div>
             </div>
-            <div>
-                <div class="text-xs text-slate-400 mb-3 border-t border-slate-100 pt-3">
-                    Prinsip: Dibantu AI, bukan bergantung buta pada AI
-                </div>
-                <a href="{{ url('/jasa/ai') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-navy hover:bg-slate-800 transition-all shadow-sm">
-                    Lihat Layanan
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                </a>
-            </div>
+
+            <a href="{{ url('/jasa/ai') }}" class="w-full inline-flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-bold text-brand-navy bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 transition-all font-outfit">
+                <span>Pelajari Detail Layanan AI</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
         </div>
     </div>
+</section>
 
-    <!-- Spesialisasi Lengkap Berdasarkan Kategori (Quick Jump) -->
-    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-8 mb-16">
-        <h2 class="text-2xl font-bold text-slate-900 font-outfit mb-6">Daftar Lengkap 17 Layanan Spesialisasi</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-                <div class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                    Pembuatan Website
+<!-- Section Pendekatan & Keunggulan Rekayasa -->
+<section class="bg-white border-y border-[#E2E8F0] py-16 sm:py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider mb-3">
+                Standar Mutu
+            </span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-[#0F172A] font-outfit tracking-tight">
+                Kenapa Bekerja Sama dengan Saya?
+            </h2>
+            <p class="mt-4 text-base sm:text-lg text-slate-600 font-sans leading-relaxed">
+                Kombinasi kemampuan rekayasa perangkat lunak, optimasi mesin pencari teknis, dan pemahaman operasional bisnis komersial.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-8">
+                <div class="w-12 h-12 rounded-xl bg-brand-navy text-white flex items-center justify-center mb-6 font-bold font-outfit">
+                    A
                 </div>
-                <ul class="space-y-2 text-sm text-slate-600">
-                    <li><a href="{{ url('/jasa/website') }}" class="hover:text-brand-indigo hover:underline">• Jasa Pembuatan Website Profesional</a></li>
-                    <li><a href="{{ url('/jasa/website/company-profile') }}" class="hover:text-brand-indigo hover:underline">• Website Company Profile Perusahaan</a></li>
-                    <li><a href="{{ url('/jasa/website/landing-page') }}" class="hover:text-brand-indigo hover:underline">• Landing Page Iklan & Konversi</a></li>
-                    <li><a href="{{ url('/jasa/website/toko-online') }}" class="hover:text-brand-indigo hover:underline">• Website Toko Online (E-Commerce)</a></li>
-                    <li><a href="{{ url('/jasa/website/wordpress') }}" class="hover:text-brand-indigo hover:underline">• Website Bisnis WordPress Ringan</a></li>
-                    <li><a href="{{ url('/jasa/aplikasi-web') }}" class="hover:text-brand-indigo hover:underline">• Aplikasi Web & Dashboard Kustom</a></li>
-                    <li><a href="{{ url('/jasa/maintenance-website') }}" class="hover:text-brand-indigo hover:underline">• Jasa Maintenance Website Berkala</a></li>
-                    <li><a href="{{ url('/jasa/perbaikan-website') }}" class="hover:text-brand-indigo hover:underline">• Jasa Perbaikan Website Error</a></li>
-                    <li><a href="{{ url('/jasa/website/solo') }}" class="hover:text-brand-indigo hover:underline">• Web Developer Solo Surakarta</a></li>
-                </ul>
+                <h3 class="text-xl font-bold text-[#0F172A] font-outfit mb-3">Rekayasa Tanpa Bloatware</h3>
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed font-sans">
+                    Fokus pada kode bersih berbasis framework modern (Laravel, CI4, native PHP 8.4). Menghindari tumpukan plugin pihak ketiga yang memperlambat server dan rawan celah keamanan.
+                </p>
             </div>
 
-            <div>
-                <div class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-                    SEO & Pencarian Lokal
+            <div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-8">
+                <div class="w-12 h-12 rounded-xl bg-brand-navy text-white flex items-center justify-center mb-6 font-bold font-outfit">
+                    B
                 </div>
-                <ul class="space-y-2 text-sm text-slate-600">
-                    <li><a href="{{ url('/jasa/seo') }}" class="hover:text-emerald-600 hover:underline">• Jasa SEO Teknis & Organik</a></li>
-                    <li><a href="{{ url('/jasa/seo-lokal') }}" class="hover:text-emerald-600 hover:underline">• Jasa SEO Lokal Google Maps & GBP</a></li>
-                    <li><a href="{{ url('/jasa/google-maps-embed') }}" class="hover:text-emerald-600 hover:underline">• Jasa Google Maps Embed Booster</a></li>
-                    <li><a href="{{ url('/jasa/seo') }}#audit" class="hover:text-emerald-600 hover:underline">• Audit On-Page & Arsitektur Silo</a></li>
-                    <li><a href="{{ url('/jasa/seo') }}#schema" class="hover:text-emerald-600 hover:underline">• Optimasi Schema.org & Semantic Entity</a></li>
-                </ul>
+                <h3 class="text-xl font-bold text-[#0F172A] font-outfit mb-3">Orientasi Hasil Komersial</h3>
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed font-sans">
+                    Setiap halaman, kata kunci yang dibidik, dan alur otomatisasi dirancang untuk mengarahkan audiens pada keputusan transaksi nyata, bukan sekadar metrik kunjungan acak.
+                </p>
             </div>
 
-            <div>
-                <div class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
-                    Otomasi Bisnis & API
+            <div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-8">
+                <div class="w-12 h-12 rounded-xl bg-brand-navy text-white flex items-center justify-center mb-6 font-bold font-outfit">
+                    C
                 </div>
-                <ul class="space-y-2 text-sm text-slate-600">
-                    <li><a href="{{ url('/jasa/otomasi') }}" class="hover:text-amber-600 hover:underline">• Jasa Otomasi Alur Kerja Bisnis</a></li>
-                    <li><a href="{{ url('/jasa/otomasi/n8n') }}" class="hover:text-amber-600 hover:underline">• Setup & Integrasi Workflow n8n</a></li>
-                    <li><a href="{{ url('/jasa/otomasi') }}#api" class="hover:text-amber-600 hover:underline">• Integrasi REST API & Webhook HMAC</a></li>
-                    <li><a href="{{ url('/jasa/otomasi') }}#whatsapp" class="hover:text-amber-600 hover:underline">• Otomasi Notifikasi WhatsApp & Email</a></li>
-                </ul>
-            </div>
-
-            <div>
-                <div class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
-                    Solusi Terapan AI
-                </div>
-                <ul class="space-y-2 text-sm text-slate-600">
-                    <li><a href="{{ url('/jasa/ai') }}" class="hover:text-purple-600 hover:underline">• Konsultasi & Integrasi AI Praktis</a></li>
-                    <li><a href="{{ url('/jasa/ai/content-engine') }}" class="hover:text-purple-600 hover:underline">• AI Content Engine & Programmatic SEO</a></li>
-                    <li><a href="{{ url('/jasa/ai') }}#audit" class="hover:text-purple-600 hover:underline">• Audit SEO & Analisis Konten AI</a></li>
-                    <li><a href="{{ url('/jasa/ai') }}#chatbot" class="hover:text-purple-600 hover:underline">• Chatbot & Asisten Internal Bisnis</a></li>
-                </ul>
+                <h3 class="text-xl font-bold text-[#0F172A] font-outfit mb-3">Kepemilikan Penuh & Mandiri</h3>
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed font-sans">
+                    Anda memegang kontrol penuh atas server, source code, lisensi data, dan panel admin tanpa biaya royalti tersembunyi atau ketergantungan sepihak.
+                </p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Content Komprehensif Mendalam tentang Jasa (1.000+ Kata, Struktur Heading SEO Terstandarisasi) -->
-<article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-16 text-slate-700 leading-relaxed font-sans border-t border-slate-200">
-    <div class="prose prose-slate prose-lg max-w-none">
-        
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 font-outfit mb-6 tracking-tight">
-            Pendekatan Holistik: Solusi Rekayasa Digital yang Bekerja Nyata untuk Bisnis Anda
+<!-- Section Alur Kerja Kolaborasi -->
+<section class="max-w-7xl mx-auto py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white border border-[#E2E8F0] shadow-sm text-xs font-bold uppercase tracking-wider text-brand-navy mb-3">
+            Alur Pengerjaan
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-[#0F172A] font-outfit tracking-tight">
+            Bagaimana Proyek Anda Dikerjakan
         </h2>
+    </div>
 
-        <p class="text-lg leading-relaxed mb-6">
-            Di era digital yang bergerak sangat cepat, memiliki aset online bukan lagi sekadar formalitas agar bisnis terlihat modern di mata rekanan. Sebagian besar kegagalan digital marketing dan investasi website berawal dari asumsi bahwa tampilan yang memikat sudah cukup untuk mendatangkan pelanggan. Kenyataannya, website yang indah tetapi lambat diakses di jaringan smartphone hanya akan membuang anggaran iklan. Sebaliknya, website yang cepat tetapi tidak teroptimasi untuk algoritma pencarian Google hanya akan menjadi rahasia paling sunyi di internet.
-        </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
+            <span class="text-xs font-bold text-slate-400 font-mono">FASE 01</span>
+            <h3 class="text-lg font-bold text-[#0F172A] font-outfit mt-2 mb-2">Audit & Konsultasi</h3>
+            <p class="text-sm text-slate-600 leading-relaxed font-sans">
+                Analisis mendalam kondisi aset digital saat ini, pemetaan masalah, serta penentuan target dan ruang lingkup kerja.
+            </p>
+        </div>
 
-        <p class="mb-8 leading-relaxed">
-            Sebagai spesialis web developer, praktisi SEO teknis, dan konsultan otomasi alur kerja berbasis di Solo, Jawa Tengah, saya menawarkan pendekatan rekayasa yang berfokus pada hasil terukur (outcome-driven development). Setiap baris kode yang ditulis, arsitektur database yang dirancang, riset kata kunci yang dianalisis, hingga skenario otomasi n8n yang dibangun memiliki satu tujuan utama: <strong>membuat bisnis Anda dipahami dengan cepat oleh audiens, mendominasi saluran pencarian organik, menghemat ratusan jam kerja repetitif, dan menghasilkan aliran konversi nyata ke kontak WhatsApp bisnis Anda</strong>.
-        </p>
+        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
+            <span class="text-xs font-bold text-slate-400 font-mono">FASE 02</span>
+            <h3 class="text-lg font-bold text-[#0F172A] font-outfit mt-2 mb-2">Desain & Pengembangan</h3>
+            <p class="text-sm text-slate-600 leading-relaxed font-sans">
+                Penulisan kode, penataan antarmuka responsif, perancangan skenario otomasi, dan integrasi API yang dibutuhkan.
+            </p>
+        </div>
 
-        <h3 class="text-2xl font-bold text-slate-900 font-outfit mt-10 mb-4">
-            1. Mengapa Website Berkinerja Tinggi Menjadi Fondasi Utama Keberhasilan Digital
-        </h3>
+        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
+            <span class="text-xs font-bold text-slate-400 font-mono">FASE 03</span>
+            <h3 class="text-lg font-bold text-[#0F172A] font-outfit mt-2 mb-2">Validasi & Keamanan</h3>
+            <p class="text-sm text-slate-600 leading-relaxed font-sans">
+                Pengujian performa Core Web Vitals, verifikasi skema data terstruktur Google, serta audit celah keamanan formulir.
+            </p>
+        </div>
 
-        <p class="mb-4 leading-relaxed">
-            Website adalah satu-satunya aset digital di mana Anda memiliki kendali penuh atas data, citra jenama, dan alur pengalaman pengguna tanpa bergantung pada kebijakan algoritma media sosial yang berubah-ubah sewaktu-waktu. Namun, membangun website yang efektif membutuhkan keseimbangan antara estetika visual, kenyamanan pengalaman pengguna (UX), dan ketahanan arsitektur teknis.
-        </p>
+        <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
+            <span class="text-xs font-bold text-slate-400 font-mono">FASE 04</span>
+            <h3 class="text-lg font-bold text-[#0F172A] font-outfit mt-2 mb-2">Serah Terima & Edukasi</h3>
+            <p class="text-sm text-slate-600 leading-relaxed font-sans">
+                Peluncuran live ke domain utama, penyerahan akses administratif penuh, dan pendampingan operasional berkala.
+            </p>
+        </div>
+    </div>
+</section>
 
-        <p class="mb-4 leading-relaxed">
-            Dalam seluruh proyek pengembangan website yang saya tangani—baik itu <em>Company Profile</em> B2B, landing page kampanye iklan berkonversi tinggi, toko online katalog produk, hingga aplikasi web internal—saya menerapkan standar mutu rekayasa modern tanpa kompromi:
-        </p>
+<!-- Section Tanya Jawab Ringkas -->
+<section class="bg-[#F8FAFC] border-t border-[#E2E8F0] py-16 sm:py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#0F172A] font-outfit tracking-tight">
+                Pertanyaan yang Sering Diajukan
+            </h2>
+        </div>
 
-        <ul class="space-y-2 mb-6 list-disc pl-6">
-            <li><strong>Skor Core Web Vitals Hijau:</strong> Kami memastikan metrik LCP (Largest Contentful Paint), INP (Interaction to Next Paint), dan CLS (Cumulative Layout Shift) berada pada rentang ideal Google, sehingga halaman langsung terbuka dalam hitungan milidetik.</li>
-            <li><strong>Struktur Semantik Bersih & Kode Ringan:</strong> Meminimalisasi ketergantungan pada plugin pihak ketiga yang sering menyebabkan kerentanan keamanan dan memperlambat waktu respon server.</li>
-            <li><strong>Tata Letak Responsif Mobile-First:</strong> Mengingat lebih dari 80% calon konsumen di Indonesia mengakses internet melalui perangkat ponsel cerdas, navigasi dan tombol konversi selalu diposisikan agar ergonomis dioperasikan dengan satu tangan.</li>
-            <li><strong>Kesiapan Fondasi On-Page SEO:</strong> Setiap struktur heading (H1 hingga H4), tautan kanonikal, meta title dinamis, dan sitemap XML telah dipersiapkan sejak hari pertama peluncuran.</li>
-        </ul>
-
-        <h3 class="text-2xl font-bold text-slate-900 font-outfit mt-10 mb-4">
-            2. Strategi SEO Berbasis Data: Ditemukan di Google, Dipilih di Google Maps
-        </h3>
-
-        <p class="mb-4 leading-relaxed">
-            Mendapatkan ribuan kunjungan acak bukanlah tujuan utama dari optimasi mesin pencari profesional. Yang Anda butuhkan adalah trafik berkualitas tinggi yang memiliki niat beli (commercial and transactional search intent). Layanan SEO yang saya terapkan menggabungkan penguasaan teknis internal website dan optimasi pencarian lokal:
-        </p>
-
-        <p class="mb-4 leading-relaxed">
-            <strong>Optimasi SEO Teknis & On-Page:</strong> Menyelidiki hambatan teknis yang menghalangi perayapan Googlebot (crawling & indexing), memperbaiki duplikasi konten, menerapkan arsitektur siloing berbasis entity, serta menyuntikkan Schema Markup JSON-LD terstruktur (LocalBusiness, Organization, Service, FAQPage) agar mesin pencari maupun kecerdasan buatan (seperti Google AI Overviews dan ChatGPT Search) mengenali entitas bisnis Anda dengan otoritas tinggi.
-        </p>
-
-        <p class="mb-6 leading-relaxed">
-            <strong>Dominasi SEO Lokal & Google Business Profile (GBP):</strong> Bagi penyedia jasa, klinik, restoran, dan bisnis lokal, sebagian besar keputusan pembelian terjadi saat orang mencari kata kunci "terdekat" atau "di [nama kota]". Melalui optimasi profil Google Bisnisku yang menyeluruh—meliputi pemilihan kategori primer yang presisi, pengisian atribut layanan, pembaruan konten visual geotagged, konsistensi data NAP (Name, Address, Phone) di berbagai direktori sitasi lokal, serta integrasi Google Maps Embed otoritatif—bisnis Anda akan muncul di jajaran 3-Pack Google Maps saat calon pelanggan di sekitar Anda siap bertransaksi.
-        </p>
-
-        <h3 class="text-2xl font-bold text-slate-900 font-outfit mt-10 mb-4">
-            3. Otomasi Alur Kerja Bisnis: Menghapus Pekerjaan Manual yang Menyita Waktu
-        </h3>
-
-        <p class="mb-4 leading-relaxed">
-            Banyak pemilik usaha dan tim operasional mengeluh bahwa waktu kerja mereka habis hanya untuk menyalin data prospek dari formulir website ke Google Sheets, meneruskan pesan secara manual ke nomor customer service, atau mengirim konfirmasi invoice pembayaran satu per satu. Pertumbuhan bisnis yang sehat tidak boleh terhambat oleh pekerjaan repetitif yang melelahkan.
-        </p>
-
-        <p class="mb-4 leading-relaxed">
-            Melalui implementasi platform otomasi mandiri (seperti <em>self-hosted n8n</em>), integrasi REST API, dan konfigurasi webhook yang aman, saya membantu merancang sistem otomatisasi terintegrasi:
-        </p>
-
-        <ul class="space-y-2 mb-6 list-disc pl-6">
-            <li><strong>Notifikasi Instan Multi-Kanal:</strong> Setiap ada pesanan atau inquiry baru di website, pesan detail langsung terkirim ke grup WhatsApp manajemen atau bot Telegram privat dalam hitungan detik.</li>
-            <li><strong>Sinkronisasi Data Dua Arah:</strong> Integrasi mulus antara website, basis data inventaris, CRM, dan Google Sheets secara otomatis tanpa risiko salah ketik (human error).</li>
-            <li><strong>Penghematan Biaya Operasional:</strong> Menggunakan platform open-source mandiri sehingga bisnis Anda terbebas dari tagihan langganan bulanan platform SaaS luar negeri yang terus melonjak seiring kenaikan volume data.</li>
-        </ul>
-
-        <h3 class="text-2xl font-bold text-slate-900 font-outfit mt-10 mb-4">
-            4. Pemanfaatan AI Bertanggung Jawab: Akselerasi Nyata Tanpa Halusinasi
-        </h3>
-
-        <p class="mb-4 leading-relaxed">
-            Kecerdasan buatan (AI) adalah pengganda daya kerja (force multiplier) yang luar biasa jika digunakan secara bijak. Namun, mengandalkan teks buatan AI mentah tanpa kontrol mutu manusia justru dapat merusak reputasi domain Anda di mata algoritma Google (resiko de-indeks Helpful Content Update) serta mengurangi kepercayaan calon pembeli.
-        </p>
-
-        <p class="mb-6 leading-relaxed">
-            Layanan AI terapan kami memadukan kecerdasan komputasi LLM terkini dengan filosofi <em>Human-in-the-Loop</em>. Kami menggunakan model AI untuk riset topik komprehensif, pemetaan entity gap kompetitor, pembuatan struktur kluster kata kunci, dan pembuatan gambar WebP ringan secara otomatis, namun tetap memastikan kurasi akhir, fakta bisnis, dan sentuhan empati manusia tetap menjadi standar tertinggi sebelum konten dipublikasikan.
-        </p>
-
-        <!-- Pertanyaan yang Sering Diajukan (FAQ) -->
-        <h3 class="text-2xl font-bold text-slate-900 font-outfit mt-12 mb-6">
-            Pertanyaan Umum Seputar Layanan Jasa
-        </h3>
-
-        <div class="space-y-4 not-prose mb-12">
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                <div class="font-bold text-slate-900 text-base mb-2">Berapa lama estimasi pengerjaan website atau landing page?</div>
-                <p class="text-slate-600 text-sm leading-relaxed">
-                    Untuk landing page konversi satu halaman, pengerjaan umumnya memakan waktu 3–5 hari kerja setelah materi siap. Untuk website Company Profile atau Toko Online berkisar antara 7–14 hari kerja tergantung kelengkapan konten dan fitur kustom yang dibutuhkan.
+        <div class="space-y-4">
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
+                <h3 class="text-base font-bold text-[#0F172A] font-outfit mb-2">
+                    Layanan mana yang paling tepat untuk bisnis saya saat ini?
+                </h3>
+                <p class="text-sm text-slate-600 leading-relaxed font-sans">
+                    Jika belum memiliki aset online resmi, mulailah dari <strong>Pengembangan Web</strong>. Jika website sudah ada namun sepi pengunjung, pilih <strong>SEO & Pencarian Lokal</strong>. Jika tim Anda kewalahan dengan tugas copy-paste data manual, pilihlah <strong>Otomasi Bisnis</strong>.
                 </p>
             </div>
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                <div class="font-bold text-slate-900 text-base mb-2">Apakah saya mendapatkan akses penuh setelah website selesai?</div>
-                <p class="text-slate-600 text-sm leading-relaxed">
-                    Tentu. Anda mendapatkan hak kepemilikan 100% atas domain, hosting/server, repositori kode sumber, dan panel admin konten. Kami juga menyediakan panduan penggunaan agar Anda atau tim internal dapat memperbarui teks dan foto secara mandiri.
+
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
+                <h3 class="text-base font-bold text-[#0F172A] font-outfit mb-2">
+                    Berapa lama estimasi pengerjaan proyek?
+                </h3>
+                <p class="text-sm text-slate-600 leading-relaxed font-sans">
+                    Landing page iklan selesai dalam 3–5 hari kerja. Website Company Profile atau Toko Online berkisar 7–14 hari kerja. Setup alur otomasi n8n rata-rata memakan waktu 2–4 hari kerja.
                 </p>
             </div>
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                <div class="font-bold text-slate-900 text-base mb-2">Apakah bisa melayani konsultasi atau pertemuan langsung di wilayah Solo?</div>
-                <p class="text-slate-600 text-sm leading-relaxed">
-                    Sangat bisa. Untuk klien di area Solo Raya (Surakarta, Sukoharjo, Karanganyar, Boyolali, Klaten), kita dapat menjadwalkan diskusi tatap muka langsung. Untuk klien di luar kota atau luar pulau, konsultasi dilakukan secara intensif melalui panggilan video Google Meet dan WhatsApp.
+
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
+                <h3 class="text-base font-bold text-[#0F172A] font-outfit mb-2">
+                    Apakah melayani pertemuan langsung untuk wilayah Solo?
+                </h3>
+                <p class="text-sm text-slate-600 leading-relaxed font-sans">
+                    Ya, untuk klien di wilayah Solo Raya (Surakarta, Karanganyar, Sukoharjo, Klaten, Boyolali) dapat dijadwalkan sesi koordinasi tatap muka. Untuk wilayah luar kota, komunikasi dilakukan intensif melalui WhatsApp dan Google Meet.
                 </p>
             </div>
         </div>
-
     </div>
-</article>
+</section>
 
-<!-- Penutup & Universal Call-to-Action WhatsApp -->
+<!-- Universal Call-to-Action WhatsApp -->
 @include('partials.juki-project-inquiry')
 @endsection

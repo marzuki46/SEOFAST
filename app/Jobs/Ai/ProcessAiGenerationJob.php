@@ -385,7 +385,13 @@ class ProcessAiGenerationJob implements ShouldQueue
         $tone = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
         $styleReq = $this->styleInstructions($lang, $tone);
 
-        $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n{$styleReq}";
+        $antiSlopDirectives = "\n\nCRITICAL ANTI-SLOP & WRITING DIRECTIVES:
+- BAN ALL AI CLICHES: Never use phrases like 'Di era digital yang serba cepat ini', 'Di tengah pesatnya perkembangan', 'Mari kita telusuri lebih dalam', 'Kesimpulannya', 'Tidak dapat dipungkiri bahwa', 'Menyelami', 'Menavigasi'.
+- ZERO FLUFF: Write directly to the point. Provide concrete actionable steps, real numbers, factual examples, local context, and technical precision.
+- STRUCTURE: Always generate and follow a logical Content Outline before drafting. Use descriptive H2 and H3 headings matching real user search intent, not generic titles.
+- INCLUDE: Add comparison tables (Markdown format) or structured step-by-step lists where appropriate to maximize reader utility.";
+
+        $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n{$styleReq}{$antiSlopDirectives}";
         $campaign = $content->campaign;
         if ($campaign) {
             $campaign = app(ContentCampaignPromptService::class)->applyDefaults($campaign);
@@ -612,7 +618,7 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         $sysP6 = SystemSetting::get(
             'ai_prompt_phase6_sys',
-            'You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, <table>, <thead>, <tbody>, <th>, <td>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body.'
+            'You are a Chief Content Editor writing in {lang}. Do a final polish of the article. Preserve all existing Markdown links exactly as they are. Strictly eliminate all AI slop, robotic transitions, and filler phrases. Ensure headings are natural and engaging. Output the final result as clean HTML (using <h2>, <h3>, <p>, <strong>, <a>, <table>, <thead>, <tbody>, <th>, <td>, etc.), NOT Markdown. Do not include ```html or <html> tags, just the inner HTML body.'
         );
         $sysP6 = strtr($sysP6, [
             '{lang}' => $lang,

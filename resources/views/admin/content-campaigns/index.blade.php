@@ -308,7 +308,18 @@
                             </span>
                         </td>
                         <td class="px-5 py-4 text-xs font-semibold text-slate-700">
-                            {{ $campaign->topics_count }} Topik Bank / {{ $campaign->contents_count }} Terbit
+                            <span class="font-medium text-slate-700">{{ $campaign->topics_count }} Topik Bank</span>
+                            <span class="text-slate-300">•</span>
+                            <span class="font-semibold text-emerald-700">{{ $campaign->published_contents_count }} Terbit</span>
+                            @if(($campaign->draft_contents_count ?? 0) > 0 || ($campaign->processing_contents_count ?? 0) > 0)
+                                <span class="text-slate-300">•</span>
+                                <span class="text-xs text-amber-700 font-medium">
+                                    {{ $campaign->draft_contents_count }} Draft
+                                    @if(($campaign->processing_contents_count ?? 0) > 0)
+                                        ({{ $campaign->processing_contents_count }} proses AI)
+                                    @endif
+                                </span>
+                            @endif
                         </td>
                         <td class="px-5 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">

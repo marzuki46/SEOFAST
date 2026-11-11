@@ -24,7 +24,13 @@ class ContentCampaignController extends Controller
     {
         $campaigns = ContentCampaign::withoutGlobalScopes()
             ->with(['product', 'siloBlueprint', 'targets'])
-            ->withCount(['topics', 'contents'])
+            ->withCount([
+                'topics',
+                'contents',
+                'contents as published_contents_count' => fn ($q) => $q->where('status', 'published'),
+                'contents as draft_contents_count' => fn ($q) => $q->where('status', 'draft'),
+                'contents as processing_contents_count' => fn ($q) => $q->where('status', 'ai_processing'),
+            ])
             ->latest()->paginate(20);
         $campaignOptions = ContentCampaign::withoutGlobalScopes()->latest()->get(['id', 'name']);
         $products = Product::withoutGlobalScopes()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
