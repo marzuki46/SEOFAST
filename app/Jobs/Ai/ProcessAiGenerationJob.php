@@ -88,7 +88,7 @@ class ProcessAiGenerationJob implements ShouldQueue
                 'phase_7' => $this->runPhase7($content, $job),
                 default => Log::warning("ProcessAiGenerationJob: unknown status '{$currentStatus}' for job {$this->jobId}"),
             };
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->handleError($job, $content, $e, $currentStatus);
         }
     }
@@ -604,7 +604,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         $combined = $aiService->generate($sysP5, $userP5);
 
         $draftLen = mb_strlen(trim($draft));
-        $combinedLen = mb_strlen(trim($combined));
+        $combinedLen = mb_strlen(trim((string) $combined));
 
         if (! $combined || $combinedLen < $draftLen * 0.75) {
             Log::warning("Phase 5 Combine fell back to concatenation (combined={$combinedLen}, draft={$draftLen})");
@@ -981,7 +981,7 @@ class ProcessAiGenerationJob implements ShouldQueue
     // ERROR HANDLING
     // -------------------------------------------------------------------------
 
-    private function handleError(AiGenerationJob $job, Content $content, \Exception $e, string $currentPhase): void
+    private function handleError(AiGenerationJob $job, Content $content, \Throwable $e, string $currentPhase): void
     {
         Log::error("ProcessAiGenerationJob ERROR | job={$job->id} | phase={$currentPhase} | msg={$e->getMessage()}");
 

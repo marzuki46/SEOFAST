@@ -252,7 +252,7 @@ class AIService
 
                 return $content ?: null;
 
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $elapsed  = round((microtime(true) - $attemptStart) * 1000);
                 $lastError = $e->getMessage();
 
@@ -339,7 +339,7 @@ class AIService
                 'error'       => $diagErrors ?: 'AI merespons null — tidak ada konten dikembalikan.',
                 'diagnostics' => $diagnostics,
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return [
                 'ok'          => false,
                 'provider'    => $provider,
@@ -426,7 +426,7 @@ class AIService
 
             $body = $response->json();
             return $body['data'][0]['embedding'] ?? null;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Embeddings exception: " . $e->getMessage());
             return null;
         }
