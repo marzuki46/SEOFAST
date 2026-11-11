@@ -321,13 +321,21 @@ class ContentCampaignController extends Controller
         }
 
         // Jalankan background job secara asinkron (jangan blocking web request)
+        $phpBinary = PHP_BINARY ?: '/opt/cpanel/ea-php84/root/usr/bin/php';
+        if (! file_exists($phpBinary)) {
+            $phpBinary = 'php';
+        }
+        $artisanPath = base_path('artisan');
+
         if (config('queue.default') === 'sync') {
             // Hindari eksekusi AI sinkron di HTTP request yang memicu Cloudflare Timeout 522/524
-            $phpBinary = PHP_BINARY ?: 'php';
             \Illuminate\Support\Facades\Process::background()
-                ->run("{$phpBinary} " . base_path('artisan') . ' app:run-content-campaigns');
+                ->run("{$phpBinary} {$artisanPath} seofast:run-content-campaigns");
         } else {
             \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id);
+            // Jalankan queue worker di background agar antrean 'ai' langsung diproses tanpa menunggu daemon supervisor
+            \Illuminate\Support\Facades\Process::background()
+                ->run("{$phpBinary} {$artisanPath} queue:work --queue=ai,default --stop-when-empty --tries=1 --timeout=360");
         }
 
         // Pastikan jadwal siklus berikutnya tetap terjaga
@@ -335,7 +343,7 @@ class ContentCampaignController extends Controller
             $scheduler->ensureNext($campaign->fresh());
         }
 
-        return back()->with('success', "Trigger posting berhasil dijadwalkan untuk campaign '{$campaign->name}'. Sistem AI akan memproses pembuatan konten di background.");
+        return back()->with('success', "Trigger posting berhasil dijadwalkan untuk campaign '{$campaign->name}'. Sistem AI sedang memproses pembuatan konten di background.");
     }
 
     private function validated(Request $request): array
