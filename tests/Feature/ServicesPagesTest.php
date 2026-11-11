@@ -80,4 +80,31 @@ class ServicesPagesTest extends TestCase
             $this->assertStringContainsString('WhatsApp Saya', $content);
         }
     }
+
+    public function test_primary_service_pages_are_local_landing_pages_with_seo_depth(): void
+    {
+        $expectations = [
+            'jasa/seo' => 'Jasa SEO Solo',
+            'jasa/otomasi' => 'Jasa Otomasi Bisnis di Solo',
+            'jasa/ai' => 'Jasa Integrasi AI untuk Bisnis di Solo',
+        ];
+
+        foreach ($expectations as $slug => $titleFragment) {
+            $response = $this->get('/' . $slug);
+            $response->assertOk();
+
+            $content = $response->getContent();
+            $visible = preg_replace('/<style\b[^>]*>.*?<\/style>|<script\b[^>]*>.*?<\/script>/is', ' ', $content);
+            $visible = html_entity_decode(strip_tags($visible));
+            preg_match_all('/\b[\p{L}\p{N}][\p{L}\p{N}-]*\b/u', $visible, $words);
+
+            $this->assertGreaterThanOrEqual(1500, count($words[0]), "Landing page {$slug} harus memiliki minimal 1.500 kata terlihat");
+            $this->assertStringContainsString($titleFragment, $content);
+            $this->assertStringContainsString('"@type":"Service"', $content);
+            $this->assertStringContainsString('"@type":"BreadcrumbList"', $content);
+            $this->assertStringContainsString('"@type":"FAQPage"', $content);
+            $this->assertStringContainsString('/jasa/website', $content);
+            $this->assertStringContainsString('/contact', $content);
+        }
+    }
 }
