@@ -21,6 +21,7 @@
         ['url' => '/jasa/ai', 'title' => 'Solusi AI untuk Bisnis'],
         ['url' => '/contact', 'title' => 'Konsultasi Proyek Website'],
     ] : ($p['related_links'] ?? []);
+    $heroImage = asset('storage/content-images/xjuki-website-developer-solo-landscape-1785293658.webp.pagespeed.ic.ehTKUU0dbo.webp');
 @endphp
 
 @section('title', $seoTitle)
@@ -84,6 +85,15 @@
     .juki-web-landing .jw-hero-card { padding:26px; border:1px solid rgba(232,201,130,.25); border-radius:20px; background:rgba(15,23,42,.45); box-shadow:0 24px 70px rgba(2,8,23,.28); backdrop-filter:blur(12px); }
     .juki-web-landing .jw-card-label { color:#e8c982; font-size:.72rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
     .juki-web-landing .jw-hero-card h2 { margin:10px 0 22px; color:#fff; font-size:1.45rem; line-height:1.25; }
+    .juki-web-landing .jw-hero-visual { position:relative; min-height:390px; display:flex; align-items:center; justify-content:center; }
+    .juki-web-landing .jw-browser { position:relative; width:min(100%,520px); overflow:hidden; border:1px solid rgba(232,201,130,.32); border-radius:18px; background:#fff; box-shadow:0 30px 70px rgba(0,0,0,.35); transform:rotate(1.5deg); }
+    .juki-web-landing .jw-browser-bar { display:flex; align-items:center; gap:6px; height:34px; padding:0 13px; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
+    .juki-web-landing .jw-browser-bar i { width:7px; height:7px; border-radius:50%; background:#cbd5e1; }
+    .juki-web-landing .jw-browser-bar span { width:105px; height:7px; margin-left:12px; border-radius:99px; background:#e2e8f0; }
+    .juki-web-landing .jw-browser img { display:block; width:100%; aspect-ratio:16/10; object-fit:cover; }
+    .juki-web-landing .jw-visual-note { position:absolute; right:-18px; bottom:20px; max-width:220px; padding:15px 17px; border:1px solid rgba(232,201,130,.45); border-radius:13px; background:#fff; color:var(--jw-ink); box-shadow:0 15px 35px rgba(0,0,0,.2); }
+    .juki-web-landing .jw-visual-note strong { display:block; font-family:'Outfit',sans-serif; font-size:1.05rem; }
+    .juki-web-landing .jw-visual-note small { display:block; margin-top:4px; color:var(--jw-muted); line-height:1.45; }
     .juki-web-landing .jw-check { display:flex; gap:10px; align-items:flex-start; margin:14px 0; color:#e4e9f0; line-height:1.5; }
     .juki-web-landing .jw-check svg { flex:0 0 20px; margin-top:2px; color:#e8c982; }
     .juki-web-landing .jw-proof { background:#fff; border-bottom:1px solid var(--jw-line); }
@@ -98,7 +108,7 @@
     .juki-web-landing .jw-intro { max-width:720px; color:var(--jw-muted); font-size:1.06rem; line-height:1.75; }
     .juki-web-landing .jw-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:32px; }
     .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(3,1fr); }
-    .juki-web-landing .jw-service { display:flex; flex-direction:column; padding:22px; border:1px solid #e2e8f0; border-radius:16px; background:#fff; box-shadow:0 8px 24px rgba(15,23,42,.05); transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease; }
+    .juki-web-landing .jw-service { display:flex; flex-direction:column; padding:25px; border:1px solid #e2e8f0; border-radius:16px; background:#fff; box-shadow:0 8px 24px rgba(15,23,42,.05); transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease; }
     .juki-web-landing .jw-service:hover { transform:translateY(-5px); border-color:#d4ad64; box-shadow:0 18px 36px rgba(154,107,22,.12); }
     .juki-web-landing .jw-service-icon { width:42px; height:42px; display:grid; place-items:center; margin-bottom:18px; border-radius:12px; background:var(--jw-soft); color:var(--jw-gold-dark); }
     .juki-web-landing .jw-service h3 { margin:0 0 8px; font-size:1.05rem; }
@@ -128,6 +138,7 @@
     .juki-web-landing .jw-longform h3 { margin:28px 0 10px; font-size:1.3rem; line-height:1.25; letter-spacing:-.02em; }
     .juki-web-landing .jw-longform p { max-width:780px; margin:0 0 16px; color:var(--jw-muted); font-size:1.02rem; line-height:1.85; }
     .juki-web-landing .jw-longform a { color:#0369a1; font-weight:700; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:3px; }
+    .juki-web-landing .jw-longform { padding-left:clamp(0px,4vw,64px); border-left:3px solid var(--jw-gold); }
     .juki-web-landing .jw-list { display:grid; gap:13px; margin:24px 0 0; padding:0; list-style:none; }
     .juki-web-landing .jw-list li { display:flex; gap:11px; color:var(--jw-muted); line-height:1.55; }
     .juki-web-landing .jw-list svg { flex:0 0 20px; color:var(--jw-gold-dark); margin-top:2px; }
@@ -142,7 +153,7 @@
     .juki-web-landing .jw-final h2 { max-width:700px; margin:10px auto 16px; color:#fff; }
     .juki-web-landing .jw-final p { max-width:630px; margin:0 auto; color:#cbd5e1; line-height:1.7; }
     @media (max-width:900px) { .juki-web-landing .jw-hero-inner,.juki-web-landing .jw-columns,.juki-web-landing .jw-sticky-layout { grid-template-columns:1fr; gap:32px; } .juki-web-landing .jw-sticky-offer { position:relative; top:auto; order:-1; } .juki-web-landing .jw-grid,.juki-web-landing .jw-aida { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(2,1fr); } }
-    @media (max-width:620px) { .juki-web-landing .jw-container { width:min(100% - 24px,1180px); } .juki-web-landing .jw-hero-inner { padding:58px 0 52px; } .juki-web-landing .jw-proof-grid,.juki-web-landing .jw-grid,.juki-web-landing .jw-aida,.juki-web-landing .jw-related { grid-template-columns:1fr; } .juki-web-landing .jw-section { padding:58px 0; } .juki-web-landing .jw-actions .jw-btn { width:100%; } }
+    @media (max-width:620px) { .juki-web-landing .jw-container { width:min(100% - 24px,1180px); } .juki-web-landing .jw-hero-inner { padding:58px 0 52px; } .juki-web-landing .jw-proof-grid,.juki-web-landing .jw-grid,.juki-web-landing .jw-aida,.juki-web-landing .jw-related { grid-template-columns:1fr; } .juki-web-landing .jw-section { padding:58px 0; } .juki-web-landing .jw-actions .jw-btn { width:100%; } .juki-web-landing .jw-hero-visual { min-height:280px; } .juki-web-landing .jw-visual-note { right:0; bottom:4px; } .juki-web-landing .jw-longform { padding-left:18px; } }
     @media (prefers-reduced-motion:reduce) { .juki-web-landing *,.juki-web-landing *:before,.juki-web-landing *:after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } .juki-web-landing .jw-js .jw-reveal { opacity:1; transform:none; } }
 </style>
 @endsection
@@ -193,13 +204,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     <a class="jw-btn jw-btn-ghost" href="{{ url('/contact') }}">Kirim brief proyek</a>
                 </div>
             </div>
-            <aside class="jw-hero-card" aria-label="Keunggulan layanan website">
-                <span class="jw-card-label">Fondasi yang dibangun sejak awal</span>
-                <h2>Bukan sekadar website. Ini aset penjualan digital Anda.</h2>
-                <div class="jw-check"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Struktur SEO on-page dan konten yang mudah dipahami Google.</span></div>
-                <div class="jw-check"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Pengalaman mobile-first dengan CTA yang jelas.</span></div>
-                <div class="jw-check"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Kode bersih, aman, cepat, dan siap dikembangkan.</span></div>
-            </aside>
+            <div class="jw-hero-visual" aria-label="Preview website profesional">
+                <div class="jw-browser">
+                    <div class="jw-browser-bar"><i></i><i></i><i></i><span></span></div>
+                    <img src="{{ $heroImage }}" width="1200" height="750" loading="eager" fetchpriority="high" decoding="async" alt="Contoh desain website profesional Juki di Solo">
+                </div>
+                <div class="jw-visual-note"><strong>Designed to convert</strong><small>Struktur halaman, CTA, dan SEO dirancang untuk membantu bisnis mendapatkan inquiry.</small></div>
+            </div>
         </div>
     </section>
     <section class="jw-proof" aria-label="Fokus layanan">
