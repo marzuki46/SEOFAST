@@ -392,7 +392,7 @@
     .juki-modern .jm-promise { margin-bottom:22px; color:#e8c982; font-size:1.25rem; font-weight:700; line-height:1.3; }
     .juki-modern .jm-check { display:flex; gap:10px; margin:14px 0; color:#dce4ee; line-height:1.5; }
     .juki-modern .jm-check:before { content:'✓'; flex:0 0 20px; color:#e8c982; font-weight:800; }
-    .juki-modern .jm-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; padding:25px 0; background:#fff; border-bottom:1px solid var(--jm-line); }
+    .juki-modern .jm-strip { display:block; padding:25px 0; background:#fff; border-bottom:1px solid var(--jm-line); }
     .juki-modern .jm-strip .jm-wrap { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
     .juki-modern .jm-strip strong { display:block; font-family:'Outfit',sans-serif; font-size:1rem; }
     .juki-modern .jm-strip span { display:block; margin-top:4px; color:var(--jm-muted); font-size:.8rem; }
