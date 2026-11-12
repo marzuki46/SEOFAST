@@ -4,7 +4,7 @@
 @section('page_title', 'Content Campaigns (Auto Post Content)')
 
 @section('admin_content')
-<div class="space-y-6" x-data="{ showCreate: false, activeTab: '{{ request('tab', 'campaigns') }}' }">
+<div class="space-y-6" x-data="{ ...campaignTrigger(), showCreate: false, activeTab: '{{ request('tab', 'campaigns') }}' }">
     @if(session('success'))
         <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">{{ session('success') }}</div>
     @endif

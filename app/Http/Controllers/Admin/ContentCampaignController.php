@@ -378,62 +378,83 @@ class ContentCampaignController extends Controller
     {
         $this->assertTenantAccess($campaign);
 
-        Log::info("=== TRIGGER POST INITIATED FOR CAMPAIGN: {$campaign->id} ({$campaign->name}) ===");
+        Log::info("=== TRIGGER POST SYNC / PROGRESSBAR INITIATED FOR CAMPAIGN: {$campaign->id} ({$campaign->name}) ===");
 
         try {
-            // Pastikan Topic Bank memiliki minimal 1 topik idea. Jika kosong, buat riset instan sekarang!
+            // 1. Pastikan Topic Bank memiliki minimal 1 topik idea. Jika kosong, buat riset instan sekarang!
             $ideaCount = $campaign->topics()->where('status', 'idea')->count();
             if ($ideaCount === 0) {
                 Log::info("Topic bank kosong untuk campaign {$campaign->id}. Menjalankan riset instan...");
-                $topicService = app(\App\Services\ContentCampaignService::class);
+                $topicService = app(ContentCampaignService::class);
                 $topicService->generateTopics($campaign, max(3, $campaign->research_batch_size));
             }
 
-            // Cari jadwal pending terdekat atau buat jadwal instan sekarang
-            $schedule = \App\Models\ContentCampaignSchedule::where('campaign_id', $campaign->id)
-                ->where('status', 'pending')
-                ->orderBy('scheduled_at')
-                ->first();
+            // 2. Ambil 1 topik idea pertama
+            $topic = $campaign->topics()->where('status', 'idea')->orderBy('id')->first();
+            if (! $topic) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => 'Topic bank kosong dan riset AI gagal menghasilkan topik. Periksa API Key / kuota AI Anda.'
+                ], 422);
+            }
 
-            if (! $schedule) {
-                $schedule = \App\Models\ContentCampaignSchedule::create([
-                    'tenant_id' => $campaign->tenant_id,
-                    'campaign_id' => $campaign->id,
-                    'scheduled_at' => now(),
-                    'status' => 'pending',
-                    'target_funnel_stage' => $campaign->funnel_mode === 'balanced' ? 'tofu' : $campaign->funnel_mode,
+            $topic->update(['status' => 'processing']);
+
+            $slug = Str::slug($topic->primary_keyword) ?: 'artikel';
+            $base = $slug;
+            $counter = 1;
+            while (\App\Models\Content::withoutGlobalScopes()->whereSlug($slug)->exists()) {
+                $slug = $base.'-'.$counter++;
+            }
+
+            // 3. Buat record Content & Job secara sinkron
+            [$content, $job] = DB::transaction(function () use ($campaign, $topic, $slug, $scheduler) {
+                $content = \App\Models\Content::create([
+                    'tenant_id'          => $campaign->tenant_id,
+                    'product_id'         => $campaign->product_id,
+                    'campaign_id'        => $campaign->id,
+                    'campaign_target_id' => $topic->campaign_target_id,
+                    'content_topic_id'   => $topic->id,
+                    'silo_blueprint_id'  => $campaign->silo_blueprint_id,
+                    'target_keyword'     => $topic->primary_keyword,
+                    'slug'               => $slug,
+                    'meta_title'         => $topic->title,
+                    'meta_description'   => Str::limit($topic->angle ?: $topic->title, 155),
+                    'hierarchy_level'    => $topic->funnel_stage === 'tofu' ? 'pillar' : 'cluster',
+                    'status'             => 'ai_processing',
                 ]);
-            } else {
-                $schedule->update(['scheduled_at' => now()]);
-            }
 
-            Log::info("Campaign schedule resolved ID: {$schedule->id}. Dispatching GenerateCampaignContentJob...");
+                $job = \App\Models\AiGenerationJob::create([
+                    'tenant_id'  => $campaign->tenant_id,
+                    'content_id' => $content->id,
+                    'job_type'   => 'initial_generation',
+                    'status'     => 'pending',
+                ]);
 
-            // Jalankan background job secara langsung dengan dispatch
-            \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id, true)->onQueue('ai');
+                $topic->update(['status' => 'used', 'content_id' => $content->id]);
+                $campaign->update(['last_run_at' => now(), 'next_run_at' => $scheduler->nextRunAt($campaign)]);
+                $scheduler->ensureNext($campaign->fresh());
 
-            // 🚀 JALANKAN WORKER SECARA OTOMATIS (SUPAYA TIDAK PERLU MENUNGGU CRON/WORKER EXTERNAL)
-            $php = PHP_BINARY;
-            $artisan = base_path('artisan');
+                return [$content, $job];
+            });
 
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                if (function_exists('popen') && function_exists('pclose')) {
-                    pclose(popen("start /B {$php} {$artisan} queue:work database --queue=ai,default --stop-when-empty > NUL", "r"));
-                }
-            } else {
-                if (function_exists('exec')) {
-                    exec("{$php} {$artisan} queue:work database --queue=ai,default --stop-when-empty > /dev/null 2>&1 &");
-                }
-            }
+            Log::info("Campaign content prepared sync: content_id={$content->id}, job_id={$job->id}. Returning for progressbar execution...");
 
-            Log::info("=== TRIGGER POST SUCCESS & WORKER DISPATCHED FOR CAMPAIGN: {$campaign->id} ===");
-
-            return back()->with('success', "🚀 Posting manual campaign '{$campaign->name}' berhasil dipicu! Konten sedang digenerate oleh AI di background (cek log jika ada kendala).");
+            return response()->json([
+                'success'    => true,
+                'content_id' => $content->id,
+                'job_id'     => $job->id,
+                'title'      => $content->meta_title,
+                'keyword'    => $content->target_keyword,
+            ]);
         } catch (\Throwable $e) {
-            Log::error("=== TRIGGER POST FAILED FOR CAMPAIGN {$campaign->id}: " . $e->getMessage() . " ===");
+            Log::error("=== TRIGGER POST SYNC FAILED FOR CAMPAIGN {$campaign->id}: " . $e->getMessage() . " ===");
             Log::error($e->getTraceAsString());
 
-            return back()->with('error', 'Gagal memicu posting: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error'   => $e->getMessage(),
+            ], 500);
         }
     }
 
