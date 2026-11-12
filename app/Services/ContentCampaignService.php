@@ -64,9 +64,12 @@ class ContentCampaignService
                 continue;
             }
 
-            $itemStage = strtolower($this->clean($item['funnel_stage'] ?? $stage ?? 'tofu', 10));
+            // When a stage is requested by the caller, it is authoritative.
+            // The model may still echo a different funnel stage despite the prompt;
+            // trusting that value is what previously caused TOFU topics to disappear.
+            $itemStage = $stage ?: strtolower($this->clean($item['funnel_stage'] ?? 'tofu', 10));
             if (! in_array($itemStage, ['tofu', 'mofu', 'bofu'], true)) {
-                $itemStage = $stage ?? 'tofu';
+                $itemStage = 'tofu';
             }
             $itemTarget = $target ?: $this->matchTarget($targets, $item['target_keyword'] ?? null);
             if (! $itemTarget && $targets->isNotEmpty()) {

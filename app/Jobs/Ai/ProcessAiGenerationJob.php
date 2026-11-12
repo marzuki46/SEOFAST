@@ -293,7 +293,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         $strategy = SystemSetting::get('internal_link_strategy', 'deterministic');
         $linkInstructions = '';
 
-        if (in_array($strategy, ['deterministic', 'both'])) {
+        if (in_array($strategy, ['deterministic', 'both']) && ! $content->campaign_id) {
             $deterministicLinks = DeterministicLink::where('source_content_id', $content->id)
                 ->with('targetContent')->get();
 
@@ -306,15 +306,11 @@ class ProcessAiGenerationJob implements ShouldQueue
             }
         }
 
-        $campaignTarget = $content->campaignTarget()->with('page')->first();
-        $campaignUrl = $campaignTarget?->landing_url ?: $content->campaign?->destination_url;
-        if ($campaignUrl) {
-            $anchor = e($campaignTarget?->anchor_variations[0] ?? $campaignTarget?->keyword ?? $content->target_keyword);
-            $landingUrl = e($campaignUrl);
-            $linkInstructions .= "\n\nCAMPAIGN LANDING PAGE (WAJIB ditautkan secara natural satu kali):\n- [{$anchor}]({$landingUrl})\n";
+        if ($content->campaign_id) {
+            $linkInstructions .= $this->campaignFunnelLinkInstructions($content);
         }
 
-        if ($content->hierarchy_level === 'pillar') {
+        if ($content->hierarchy_level === 'pillar' && ! $content->campaign_id) {
             $clusters = Content::withoutGlobalScopes()
                 ->where('parent_id', $content->id)
                 ->where('hierarchy_level', 'cluster')
@@ -727,6 +723,115 @@ class ProcessAiGenerationJob implements ShouldQueue
         self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
     }
 
+    private function campaignFunnelLinkInstructions(Content $content): string
+    {
+        $stage = strtolower((string) ($content->contentTopic?->funnel_stage ?? 'tofu'));
+        $allowedStages = match ($stage) {
+            'mofu' => ['mofu', 'bofu'],
+            'bofu' => ['bofu'],
+            default => ['tofu', 'mofu'],
+        };
+        $rules = match ($stage) {
+            'mofu' => 'MOFU boleh menautkan artikel MOFU dan BOFU serta landing page resmi. Jangan menautkan TOFU.',
+            'bofu' => 'BOFU hanya boleh menautkan artikel BOFU dan landing page resmi. Jangan menautkan TOFU atau MOFU.',
+            default => 'TOFU hanya boleh menautkan artikel TOFU dan MOFU. Jangan menautkan BOFU atau halaman jualan.',
+        };
+        $brandName = SystemSetting::get('site_name', config('app.name', 'Juki'));
+        $links = "\n\nCAMPAIGN FUNNEL LINK POLICY (WAJIB DIPATUHI):\n"
+            ."- {$rules}\n"
+            ."- Semua artikel wajib menyisipkan link ke halaman utama {$brandName} dengan anchor text tepat nama brand di paragraf pembuka.\n"
+            ."- Jangan membuat URL atau anchor yang tidak ada pada daftar link resmi di bawah.\n"
+            .'- Funnel artikel saat ini: '.strtoupper($stage)."\n"
+            .'- Link halaman utama: ['.$brandName.']('.url('/').")\n";
+
+        $related = Content::withoutGlobalScopes()
+            ->where('campaign_id', $content->campaign_id)
+            ->where('id', '<>', $content->id)
+            ->whereNotIn('status', ['idea', 'ai_processing'])
+            ->whereHas('contentTopic', fn ($query) => $query->whereIn('funnel_stage', $allowedStages))
+            ->latest('id')->limit(12)->get(['id', 'slug', 'title', 'target_keyword', 'content_topic_id']);
+
+        if ($related->isNotEmpty()) {
+            $links .= "- Artikel campaign yang boleh ditautkan:\n";
+            foreach ($related as $item) {
+                $itemStage = strtoupper((string) $item->contentTopic?->funnel_stage);
+                $articleUrl = url('/blog/'.$item->slug);
+                $links .= "  - {$itemStage}: [{$item->target_keyword}]({$articleUrl}) or [/blog/{$item->slug}](/blog/{$item->slug})\n";
+            }
+        }
+
+        if (in_array($stage, ['mofu', 'bofu'], true)) {
+            $campaignTarget = $content->campaignTarget()->first();
+            $campaignUrl = $campaignTarget?->landing_url ?: $content->campaign?->destination_url;
+            if ($campaignUrl) {
+                $anchor = $campaignTarget?->anchor_variations[0] ?? $campaignTarget?->keyword ?? $content->target_keyword;
+                $links .= "- Landing page resmi: [".e($anchor).']('.e($campaignUrl).")\n";
+            }
+        }
+
+        return $links;
+    }
+
+    private function enforceCampaignFunnelLinks(Content $content, string $html): string
+    {
+        $stage = strtolower((string) ($content->contentTopic?->funnel_stage ?? 'tofu'));
+        $allowedStages = match ($stage) {
+            'mofu' => ['mofu', 'bofu'],
+            'bofu' => ['bofu'],
+            default => ['tofu', 'mofu'],
+        };
+        $allowedUrls = [url('/')];
+        $related = Content::withoutGlobalScopes()
+            ->where('campaign_id', $content->campaign_id)
+            ->where('id', '<>', $content->id)
+            ->whereNotIn('status', ['idea', 'ai_processing'])
+            ->whereHas('contentTopic', fn ($query) => $query->whereIn('funnel_stage', $allowedStages))
+            ->get(['slug']);
+        foreach ($related as $item) {
+            $allowedUrls[] = url('/blog/'.$item->slug);
+            $allowedUrls[] = '/blog/'.ltrim($item->slug, '/');
+        }
+        if (in_array($stage, ['mofu', 'bofu'], true)) {
+            $campaignTarget = $content->campaignTarget()->first();
+            $campaignUrl = $campaignTarget?->landing_url ?: $content->campaign?->destination_url;
+            if ($campaignUrl) {
+                $allowedUrls[] = rtrim($campaignUrl, '/');
+            }
+        }
+
+        // Remove only known campaign links that violate the funnel policy.
+        $html = preg_replace_callback('/<a\b([^>]*\bhref=["\']([^"\']+)["\'][^>]*)>(.*?)<\/a>/is', function (array $match) use ($allowedUrls): string {
+            $href = rtrim(html_entity_decode($match[2]), '/');
+            foreach ($allowedUrls as $allowedUrl) {
+                if ($href === rtrim($allowedUrl, '/')) {
+                    return $match[0];
+                }
+            }
+            if (str_contains($href, '/blog/') || str_contains($href, 'wa.me')) {
+                return strip_tags($match[3]);
+            }
+
+            return $match[0];
+        }, $html) ?? $html;
+
+        $brandName = (string) SystemSetting::get('site_name', config('app.name', 'Juki'));
+        $homeUrl = url('/');
+        $brandLinkExists = preg_match(
+            '/<a\b[^>]*href=["\']'.preg_quote($homeUrl, '/').'\/?["\'][^>]*>[^<]*'.preg_quote($brandName, '/').'[^<]*<\/a>/iu',
+            $html
+        ) === 1;
+        if (! $brandLinkExists) {
+            $brandLink = '<a href="'.e($homeUrl).'">'.e($brandName).'</a>';
+            $injected = 'Temukan layanan dan informasi lain dari '.$brandLink.'. ';
+            $html = preg_replace('/(<p\b[^>]*>)/i', '$1'.$injected, $html, 1, $count) ?? $html;
+            if ($count === 0) {
+                $html = '<p>'.$injected.'</p>'.$html;
+            }
+        }
+
+        return $html;
+    }
+
     // -------------------------------------------------------------------------
     // PHASE 6 — SEO Meta + Save + Embeddings
     // -------------------------------------------------------------------------
@@ -776,14 +881,8 @@ class ProcessAiGenerationJob implements ShouldQueue
             return $matches[1].$capitalized.$matches[3];
         }, $finalBody);
 
-        // Guarantee one safe, server-owned link to the campaign landing page if
-        // the model omitted the required link from its HTML output.
-        $campaignTarget = $content->campaignTarget()->with('page')->first();
-        $campaignUrl = $campaignTarget?->landing_url ?: $content->campaign?->destination_url;
-        if ($campaignUrl && ! str_contains($finalBody, $campaignUrl)) {
-            $anchor = e($campaignTarget?->anchor_variations[0] ?? $campaignTarget?->keyword ?? $content->target_keyword);
-            $landingUrl = e($campaignUrl);
-            $finalBody .= '<p class="campaign-landing-cta"><a href="'.$landingUrl.'">Pelajari '.$anchor.'</a></p>';
+        if ($content->campaign_id) {
+            $finalBody = $this->enforceCampaignFunnelLinks($content, $finalBody);
         }
 
         $contentHash = hash('sha256', $finalBody);

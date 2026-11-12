@@ -25,6 +25,9 @@ class ContentCampaignController extends Controller
             ->with(['product', 'siloBlueprint', 'targets'])
             ->withCount([
                 'topics',
+                'topics as tofu_topics_count' => fn ($q) => $q->where('funnel_stage', 'tofu'),
+                'topics as mofu_topics_count' => fn ($q) => $q->where('funnel_stage', 'mofu'),
+                'topics as bofu_topics_count' => fn ($q) => $q->where('funnel_stage', 'bofu'),
                 'contents',
                 'contents as published_contents_count' => fn ($q) => $q->where('status', 'published'),
                 'contents as draft_contents_count' => fn ($q) => $q->where('status', 'draft'),
@@ -197,7 +200,8 @@ class ContentCampaignController extends Controller
 
         // Jika topik idea tersisa <= 1, otomatis generate ulang seluruh funnel masing-masing 5 topik (TOFU 5, MOFU 5, BOFU 5)
         $ideaCount = $campaign->topics()->where('status', 'idea')->count();
-        if ($ideaCount <= 1) {
+        $hasTofuIdeas = $campaign->topics()->where('funnel_stage', 'tofu')->whereIn('status', ['idea', 'processing'])->exists();
+        if ($ideaCount <= 1 || ! $hasTofuIdeas) {
             try {
                 $service->replenishTopicsAllFunnels($campaign, 5);
             } catch (\Throwable $e) {
