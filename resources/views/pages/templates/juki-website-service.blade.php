@@ -16,7 +16,7 @@
     $p = $serviceParams ?? [];
     $isWebsiteService = trim($page->slug, '/') === 'jasa/website';
     $seoTitle = $isWebsiteService
-        ? 'Juki Web Developer Solo - Vendor / Jasa Pembuatan Website Profesional untuk UMKM dan Perusahaan'
+        ? 'Jasa Pembuatan Website Profesional di Solo | Juki Web Developer'
         : ($page->meta_title ?: $page->title) . ' — ' . $siteName;
     $seoDescription = $isWebsiteService
         ? 'Jasa pembuatan website di Solo dan Surakarta untuk membangun kepercayaan, mendapatkan inquiry, dan mengubah pencarian Google menjadi peluang bisnis.'
