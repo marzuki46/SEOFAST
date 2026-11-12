@@ -2,7 +2,6 @@
 namespace App\Services;
 
 use RuntimeException;
-use App\Models\SystemSetting;
 use App\Models\Tenant;
 
 class ReliableContentGenerator
@@ -13,18 +12,38 @@ class ReliableContentGenerator
         $title = $content->meta_title ?: $content->target_keyword;
         $brief = $content->meta_description ?: $content->target_keyword;
         
-        $whatsapp = '6282213028718';
         $campaign = $content->campaign;
-        if ($campaign && !empty($campaign->whatsapp)) {
-            $whatsapp = $campaign->whatsapp;
+        if ($campaign) {
+            $campaign = app(ContentCampaignPromptService::class)->applyDefaults($campaign);
         }
+
+        $whatsapp = $campaign?->whatsapp ?: '6282213028718';
+        $ctaLabel = $campaign?->cta_label ?: 'Konsultasi Sekarang via WhatsApp';
+        $ctaUrl = $campaign?->cta_url ?: "https://wa.me/{$whatsapp}";
+
+        $niche = $campaign?->niche ?: 'Jasa & Solusi Bisnis Digital';
+        $brandVoice = $campaign?->brand_voice ?: 'Otoritatif, Solutif, Informatif, Profesional';
+        $audience = $campaign?->audience ?: 'Pemilik Bisnis, Calon Klien, Pengambil Keputusan';
+        $businessData = $campaign?->business_data ?: '';
+        $customContentPrompt = $campaign?->content_prompt ?: '';
+        $minWords = $campaign?->word_count_min ?: 1000;
+        $maxWords = $campaign?->word_count_max ?: 1500;
 
         $tenant = $content->tenant ?? Tenant::first();
         $aiService = new AIService($tenant, 'content');
 
-        $system = "Anda adalah Tri Marzuki, senior full-stack developer dan pakar SEO Indonesia. Tulis artikel SEO berkualitas tinggi, sangat mendalam (minimal 1200 kata), natural, menggunakan format HTML lengkap dengan tag <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>. Gunakan sudut pandang orang pertama ('saya', 'pengalaman saya di lapangan'). Bahas topik secara komprehensif, teknis, dan berikan contoh studi kasus nyata. Di akhir artikel, berikan Call to Action (CTA) profesional ke WhatsApp {$whatsapp}.";
+        $temporalContext = app(ContentCampaignPromptService::class)->temporalContext($campaign?->timezone ?: 'Asia/Jakarta');
 
-        $user = "Buat artikel SEO komprehensif dan mendalam berdasarkan:\nTarget Keyword: {$keyword}\nJudul: {$title}\nBrief/Panduan: {$brief}\n\nBerikan respons DALAM FORMAT JSON VALID BERIKUT (tanpa markdown backtick):\n{\n  \"meta_title\": \"Judul SEO max 70 karakter yang menarik\",\n  \"meta_description\": \"Deskripsi SEO max 160 karakter yang informatif\",\n  \"content\": \"<h2>Pengantar</h2><p>Isi artikel lengkap dan mendalam (minimal 1200 kata) format HTML...</p>\"\n}";
+        $system = "Anda adalah penulis profesional, editor, dan pakar SEO Indonesia yang menulis dengan gaya penulisan: {$brandVoice}. Niche: {$niche}. Target Audiens: {$audience}. Tulis artikel SEO berkualitas tinggi, sangat mendalam (antara {$minWords} sampai {$maxWords} kata), natural, menggunakan format HTML lengkap dengan tag <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>, serta tabel perbandingan (Markdown/HTML) jika relevan. 
+Hindari klise AI ('Di era digital', 'Mari kita telusuri', dll). Gunakan sudut pandang orang pertama ('saya', 'pengalaman saya'). 
+Data & Informasi Bisnis Pendukung:\n{$businessData}
+";
+
+        if ($customContentPrompt) {
+            $system .= "\n\nATURAN KHUSUS CAMPAIGN CONTENT PROMPT:\n" . strip_tags($customContentPrompt);
+        }
+
+        $user = "{$temporalContext}\n\nBuat artikel SEO komprehensif dan mendalam berdasarkan:\nTarget Keyword: {$keyword}\nJudul: {$title}\nBrief/Panduan: {$brief}\n\nDi akhir artikel, sertakan Call to Action (CTA) profesional berikan link tombol/teks ke URL: {$ctaUrl} dengan label: {$ctaLabel}.\n\nBerikan respons DALAM FORMAT JSON VALID BERIKUT (tanpa markdown backtick):\n{\n  \"meta_title\": \"Judul SEO max 70 karakter yang menarik\",\n  \"meta_description\": \"Deskripsi SEO max 160 karakter yang informatif\",\n  \"content\": \"<h2>Pengantar</h2><p>Isi artikel lengkap dan mendalam (minimal {$minWords} kata) format HTML...</p>\"\n}";
 
         $text = $aiService->generateJson($system, $user);
 
