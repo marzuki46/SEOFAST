@@ -52,7 +52,7 @@
     "url": "{{ $canonicalUrl }}"
 }
 </script>
-@if($isWebsiteService)
+@php if ($isWebsiteService): @endphp
 @php
     $faqSchema = [
         '@context' => 'https://schema.org',
@@ -65,7 +65,7 @@
     ];
 @endphp
 <script type="application/ld+json">{!! json_encode($faqSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
-@endif
+@php endif; @endphp
 @endsection
 
 @section('styles')
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
 @endsection
 
 @section('content')
-@if($isWebsiteService)
+@php if ($isWebsiteService): @endphp
 <main class="juki-web-landing">
     <section class="jw-hero">
         <div class="jw-container jw-hero-inner">
@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
     </section>
 </main>
-@else
+@php else: @endphp
 @include('partials.juki-hero', [
     'badge' => $p['badge'] ?? 'Layanan Spesialisasi Digital',
     'heading' => $isWebsiteService ? 'Jasa Pembuatan Website Profesional untuk Bisnis Anda' : ($p['heading'] ?? $page->title),
@@ -566,5 +566,5 @@ document.addEventListener('DOMContentLoaded', function () {
         {!! $page->body_raw !!}
     </div>
 </article>
-@endif
+@php endif; @endphp
 @endsection
