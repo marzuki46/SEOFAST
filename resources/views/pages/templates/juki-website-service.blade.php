@@ -75,10 +75,10 @@
     .juki-web-landing .jw-container { width:min(1180px,calc(100% - 32px)); margin-inline:auto; }
     .juki-web-landing .jw-hero { position:relative; overflow:hidden; background:linear-gradient(135deg,#101d32 0%,#15253f 58%,#213756 100%); color:#fff; }
     .juki-web-landing .jw-hero:after { content:""; position:absolute; width:520px; height:520px; right:-180px; top:-240px; border:1px solid rgba(206,154,69,.3); border-radius:50%; box-shadow:0 0 0 50px rgba(206,154,69,.06),0 0 0 100px rgba(206,154,69,.035); }
-    .juki-web-landing .jw-hero-inner { position:relative; z-index:1; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr); gap:56px; align-items:center; padding:80px 0 72px; }
+    .juki-web-landing .jw-hero-inner { position:relative; z-index:1; display:grid; grid-template-columns:minmax(0,1.16fr) minmax(300px,.84fr); gap:38px; align-items:center; padding:76px 0 68px; }
     .juki-web-landing .jw-eyebrow { display:inline-flex; align-items:center; gap:9px; color:#e8c982; font-size:.78rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
     .juki-web-landing .jw-eyebrow:before { content:""; width:28px; height:2px; background:var(--jw-gold); }
-    .juki-web-landing .jw-hero h1 { max-width:720px; margin:18px 0 20px; color:#fff; font-size:clamp(2.2rem,4.8vw,4.2rem); line-height:1.06; letter-spacing:-.045em; font-weight:800; }
+    .juki-web-landing .jw-hero h1 { max-width:790px; margin:18px 0 20px; color:#fff; font-size:clamp(2rem,3.65vw,3.55rem); line-height:1.08; letter-spacing:-.045em; font-weight:800; text-wrap:balance; }
     .juki-web-landing .jw-hero h1 em { color:#e8c982; font-style:normal; }
     .juki-web-landing .jw-lead { max-width:650px; color:#e4e9f0; font-size:clamp(1rem,1.7vw,1.18rem); line-height:1.75; }
     .juki-web-landing .jw-service-area { margin-top:20px; padding:14px 18px; border:1px solid rgba(232,201,130,.25); border-radius:12px; background:rgba(255,255,255,.05); font-size:.9rem; color:#f1f5f9; line-height:1.6; }
@@ -88,8 +88,8 @@
     .juki-web-landing .jw-btn:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(206,154,69,.25); }
     .juki-web-landing .jw-btn-primary { background:var(--jw-gold); color:#15253f; }
     .juki-web-landing .jw-btn-ghost { border:1px solid rgba(232,201,130,.5); color:#fff; }
-    .juki-web-landing .jw-hero-visual { position:relative; min-height:390px; display:flex; align-items:center; justify-content:center; }
-    .juki-web-landing .jw-browser { position:relative; width:min(100%,520px); overflow:hidden; border:1px solid rgba(232,201,130,.32); border-radius:18px; background:#fff; box-shadow:0 30px 70px rgba(0,0,0,.35); transform:rotate(1.5deg); }
+    .juki-web-landing .jw-hero-visual { position:relative; min-height:350px; display:flex; align-items:center; justify-content:center; }
+    .juki-web-landing .jw-browser { position:relative; width:min(100%,490px); overflow:hidden; border:1px solid rgba(232,201,130,.32); border-radius:18px; background:#fff; box-shadow:0 30px 70px rgba(0,0,0,.35); transform:rotate(1.5deg); }
     .juki-web-landing .jw-browser-bar { display:flex; align-items:center; gap:6px; height:34px; padding:0 13px; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
     .juki-web-landing .jw-browser-bar i { width:7px; height:7px; border-radius:50%; background:#cbd5e1; }
     .juki-web-landing .jw-browser-bar span { width:105px; height:7px; margin-left:12px; border-radius:99px; background:#e2e8f0; }
@@ -136,6 +136,8 @@
     .juki-web-landing .jw-sticky-offer h3 { margin:12px 0 8px; color:#fff; font-size:1.5rem; }
     .juki-web-landing .jw-sticky-offer .jw-price { margin:18px 0; color:#e8c982; font-size:2rem; font-weight:800; letter-spacing:-.04em; }
     .juki-web-landing .jw-sticky-offer p { color:#d5dce6; font-size:.9rem; line-height:1.65; }
+    .juki-web-landing .jw-check { display:flex; gap:10px; align-items:flex-start; margin:14px 0; color:#e4e9f0; line-height:1.5; }
+    .juki-web-landing .jw-check svg { flex:0 0 20px; width:20px; height:20px; margin-top:2px; color:#e8c982; }
     .juki-web-landing .jw-sticky-offer .jw-btn { width:100%; margin-top:14px; }
     .juki-web-landing .jw-showcase { position:relative; overflow:hidden; padding:96px 0; background:#15253f; color:#fff; }
     .juki-web-landing .jw-showcase:before { content:""; position:absolute; inset:0; opacity:.22; background-image:linear-gradient(rgba(232,201,130,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(232,201,130,.14) 1px,transparent 1px); background-size:58px 58px; mask-image:linear-gradient(90deg,#000,transparent 80%); }
