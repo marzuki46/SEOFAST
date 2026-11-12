@@ -5,7 +5,13 @@
     $siteName = SystemSetting::get('site_name', config('app.name', 'Juki'));
     $logoUrl = SystemSetting::get('logo_url', 'https://juki.eu.org/storage/content-images/xjuki-website-developer-solo-landscape-1785293658.webp.pagespeed.ic.ehTKUU0dbo.webp');
     $logoAlt = SystemSetting::get('logo_alt', 'Juki Website Developer Solo');
-    $waNumber = SystemSetting::get('contact_inquiry_whatsapp', '6282213028718');
+    $waNumber = '6282213028718';
+    try {
+        if (class_exists(SystemSetting::class)) {
+            $settingWa = SystemSetting::get('contact_inquiry_whatsapp', '');
+            if (!empty($settingWa)) $waNumber = $settingWa;
+        }
+    } catch (\Throwable $e) {}
     $canonicalUrl = url('/' . ltrim($page->slug, '/'));
     $p = $serviceParams ?? [];
     $isWebsiteService = trim($page->slug, '/') === 'jasa/website';
