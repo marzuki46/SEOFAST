@@ -150,11 +150,14 @@
     .juki-web-landing .jw-showcase.is-scrolling .jw-showcase-sticky .jw-eyebrow,.juki-web-landing .jw-showcase.is-scrolling .jw-showcase-sticky .jw-intro { margin-inline:0; }
     .juki-web-landing .jw-showcase h2 { max-width:560px; margin:12px 0 18px; color:#fff; font-size:clamp(2rem,4vw,3.5rem); line-height:1.03; letter-spacing:-.05em; }
     .juki-web-landing .jw-showcase .jw-intro { color:#cbd5e1; }
+    .juki-web-landing .jw-showcase-meta { display:flex; align-items:center; justify-content:space-between; max-width:560px; margin:26px 0 4px; padding-top:14px; border-top:1px solid rgba(232,201,130,.28); color:#aebaca; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; }
+    .juki-web-landing .jw-showcase-meta strong { color:#e8c982; font-family:'Outfit',sans-serif; font-size:.85rem; letter-spacing:.04em; }
+    .juki-web-landing .jw-showcase-cards { display:grid; gap:18px; }
     .juki-web-landing .jw-showcase-card { min-height:220px; display:flex; flex-direction:column; justify-content:space-between; margin-bottom:18px; padding:28px; border:1px solid rgba(232,201,130,.23); border-radius:20px; background:rgba(255,255,255,.065); backdrop-filter:blur(8px); opacity:.52; transform:scale(.9); transform-origin:center; transition:transform .18s ease-out,opacity .18s ease-out,border-color .35s ease,background .35s ease,box-shadow .35s ease; }
     .juki-web-landing .jw-showcase-card.is-focus { opacity:1; border-color:#e8c982; background:rgba(255,255,255,.13); box-shadow:0 24px 60px rgba(0,0,0,.22); }
     .juki-web-landing .jw-showcase-card:hover { transform:translateX(8px); border-color:#e8c982; background:rgba(255,255,255,.11); }
-    .juki-web-landing .jw-showcase-card:nth-child(2) { margin-left:42px; }
-    .juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:84px; }
+    .juki-web-landing .jw-showcase-card:nth-child(2) { margin-left:36px; }
+    .juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:72px; }
     .juki-web-landing .jw-showcase-card .jw-card-label { color:#e8c982; }
     .juki-web-landing .jw-showcase-card h3 { margin:20px 0 8px; color:#fff; font-size:1.45rem; }
     .juki-web-landing .jw-showcase-card p { margin:0; color:#cbd5e1; line-height:1.7; }
@@ -360,14 +363,15 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="jw-showcase-sticky">
                 <span class="jw-eyebrow">A different kind of website</span>
                 <h2>Rapi ketika dilihat. Terarah ketika digunakan.</h2>
-                <p class="jw-intro">Website profesional di Solo tidak harus terlihat ramai untuk terlihat bernilai. Kami menggunakan kontras, ruang, tipografi, dan urutan pesan untuk membuat keputusan terasa lebih mudah.</p>
+                <p class="jw-intro">Bukan sekadar halaman yang terlihat bagus. Setiap bagian punya tugas: membuat orang berhenti, memahami, percaya, lalu mengambil langkah.</p>
+                <div class="jw-showcase-meta"><span>Juki approach</span><strong>01 — 03</strong></div>
                 <a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin melihat konsep website profesional untuk bisnis saya.') }}">Lihat konsep untuk bisnis saya →</a>
                 <div class="jw-showcase-progress" aria-hidden="true"><span></span></div>
             </div>
-            <div>
-                <article class="jw-showcase-card jw-reveal"><div class="jw-showcase-number"><span>01</span><span aria-hidden="true">↗</span></div><div><span class="jw-card-label">Attention</span><h3>Orang langsung tahu Anda menjual apa.</h3><p>Hero bukan tempat untuk jargon. Ia menyampaikan layanan utama, wilayah Solo, manfaat, dan CTA dalam satu pandangan pertama.</p></div></article>
-                <article class="jw-showcase-card jw-reveal"><div class="jw-showcase-number"><span>02</span><span aria-hidden="true">↗</span></div><div><span class="jw-card-label">Interest</span><h3>Informasi disusun seperti percakapan.</h3><p>Manfaat, paket, proses, teknologi, dan FAQ menjawab pertanyaan calon pelanggan sebelum mereka mengirim pesan.</p></div></article>
-                <article class="jw-showcase-card jw-reveal"><div class="jw-showcase-number"><span>03</span><span aria-hidden="true">↗</span></div><div><span class="jw-card-label">Desire → Action</span><h3>Kepercayaan berakhir pada langkah yang jelas.</h3><p>Harga awal dan CTA WhatsApp hadir ketika pengunjung sudah memahami nilai yang ditawarkan—bukan dipaksa sejak detik pertama.</p></div></article>
+            <div class="jw-showcase-cards">
+                <article class="jw-showcase-card jw-reveal"><div class="jw-showcase-number"><span>01</span><span aria-hidden="true">↗</span></div><div><span class="jw-card-label">Attention · Berhenti</span><h3>Dalam satu pandangan, orang tahu Anda menjual apa.</h3><p>Headline, wilayah layanan, manfaat, dan CTA disusun tanpa jargon. Pengunjung tidak perlu menebak-nebak apakah website ini relevan untuk mereka.</p></div></article>
+                <article class="jw-showcase-card jw-reveal"><div class="jw-showcase-number"><span>02</span><span aria-hidden="true">↗</span></div><div><span class="jw-card-label">Interest · Memahami</span><h3>Informasi terasa seperti percakapan, bukan brosur.</h3><p>Solusi, paket, proses, teknologi, dan FAQ muncul saat dibutuhkan—membantu calon pelanggan memahami nilai sebelum bertanya.</p></div></article>
+                <article class="jw-showcase-card jw-reveal"><div class="jw-showcase-number"><span>03</span><span aria-hidden="true">↗</span></div><div><span class="jw-card-label">Desire → Action · Bergerak</span><h3>Kepercayaan berakhir pada langkah yang jelas.</h3><p>Harga awal, bukti, dan CTA WhatsApp hadir pada momen yang tepat. Tidak memaksa, tetapi juga tidak menyembunyikan cara untuk mulai.</p></div></article>
             </div>
         </div>
     </section>
