@@ -116,6 +116,8 @@
     .juki-web-landing .jw-service-icon { width:42px; height:42px; display:grid; place-items:center; margin-bottom:18px; border-radius:12px; background:var(--jw-soft); color:var(--jw-gold-dark); }
     .juki-web-landing .jw-service h3 { margin:0 0 8px; font-size:1.15rem; }
     .juki-web-landing .jw-service p { margin:0 0 16px; color:var(--jw-muted); font-size:.92rem; line-height:1.65; flex-grow:1; }
+    .juki-web-landing .jw-grid-services .jw-service { min-height:100%; }
+    .juki-web-landing .jw-grid-services .jw-btn { width:100%; margin-top:auto; padding-inline:12px; font-size:.82rem; }
     .juki-web-landing .jw-price-tag { margin:10px 0 14px; font-family:'Outfit',sans-serif; font-size:1.6rem; font-weight:800; color:var(--jw-ink); }
     .juki-web-landing .jw-pricing-list { list-style:none; padding:0; margin:0 0 20px; text-align:left; width:100%; border-top:1px solid #e2e8f0; padding-top:14px; }
     .juki-web-landing .jw-pricing-list li { font-size:.88rem; color:var(--jw-muted); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
@@ -332,6 +334,24 @@ document.addEventListener('DOMContentLoaded', function () {
             <div><strong>SEO-ready</strong><span>Struktur siap ditemukan</span></div>
             <div><strong>Conversion-led</strong><span>CTA menuju inquiry</span></div>
             <div><strong>Ownership penuh</strong><span>Aset tetap milik bisnis</span></div>
+        </div>
+    </section>
+
+    <section class="jw-section jw-section-services jw-section-alt" aria-labelledby="service-options-title">
+        <div class="jw-container jw-section-center">
+            <span class="jw-kicker">Layanan website</span>
+            <h2 id="service-options-title">Pilih layanan yang paling sesuai dengan kebutuhan Anda.</h2>
+            <p class="jw-intro">Mulai dari website profesional hingga aplikasi web kustom. Ceritakan kebutuhan Anda, lalu kami bantu menentukan pendekatan dan ruang lingkup yang paling masuk akal.</p>
+            <div class="jw-grid jw-grid-services" style="text-align:left;">
+                <article class="jw-service"><span class="jw-card-label">Fondasi bisnis</span><h3>Jasa pembuatan website profesional</h3><p>Website yang rapi, cepat, responsif, SEO-ready, dan dirancang untuk membangun kepercayaan serta mendapatkan inquiry.</p><a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo, saya ingin konsultasi jasa pembuatan website profesional.') }}">Konsultasi via WA →</a></article>
+                <article class="jw-service"><span class="jw-card-label">Perawatan rutin</span><h3>Jasa maintenance website berkala</h3><p>Pembaruan, backup, keamanan, perbaikan error, monitoring performa, dan bantuan teknis agar website tetap sehat.</p><a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo, saya ingin konsultasi maintenance website berkala.') }}">Tanya layanan →</a></article>
+                <article class="jw-service"><span class="jw-card-label">Untuk perusahaan</span><h3>Website company profile</h3><p>Susun layanan, kapabilitas, portofolio, dan bukti kerja menjadi profil perusahaan yang siap dipercaya calon klien.</p><a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo, saya ingin membuat website company profile.') }}">Konsultasi via WA →</a></article>
+                <article class="jw-service"><span class="jw-card-label">Untuk penjualan</span><h3>Website toko online</h3><p>Katalog, detail produk, keranjang, checkout, pembayaran, dan alur order yang disesuaikan dengan operasional bisnis.</p><a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo, saya ingin membuat website toko online.') }}">Tanya layanan →</a></article>
+                <article class="jw-service"><span class="jw-card-label">Satu tujuan</span><h3>Landing page untuk kampanye</h3><p>Halaman fokus untuk iklan, promosi, lead generation, atau campaign dengan pesan, bukti, dan CTA yang terarah.</p><a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo, saya ingin membuat landing page untuk kampanye.') }}">Konsultasi via WA →</a></article>
+                <article class="jw-service"><span class="jw-card-label">Mudah dikelola</span><h3>Website WordPress</h3><p>WordPress yang ringan, aman, mudah dikelola, dan tidak dipenuhi plugin yang membuat website lambat atau sulit dirawat.</p><a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo, saya ingin konsultasi website WordPress.') }}">Tanya layanan →</a></article>
+                <article class="jw-service"><span class="jw-card-label">Lokal & dekat</span><h3>Website bisnis Solo</h3><p>Website untuk UMKM, jasa profesional, toko, kontraktor, distributor, dan perusahaan yang melayani Solo Raya.</p><a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo, saya ingin membuat website bisnis untuk pasar Solo.') }}">Konsultasi via WA →</a></article>
+                <article class="jw-service"><span class="jw-card-label">Kebutuhan khusus</span><h3>Aplikasi web kustom</h3><p>Dashboard, CRM, POS, inventory, sistem informasi, API, dan workflow digital yang mengikuti proses kerja bisnis Anda.</p><a class="jw-btn jw-btn-primary" href="{{ url('/contact') }}">Kirim brief proyek →</a></article>
+            </div>
         </div>
     </section>
 
