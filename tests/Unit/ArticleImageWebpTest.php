@@ -26,7 +26,7 @@ class ArticleImageWebpTest extends TestCase
         $destWebp = sys_get_temp_dir().DIRECTORY_SEPARATOR.'test_out_'.uniqid().'.webp';
 
         try {
-            $result = $service->optimizeUnderLimit($tmpSource, $destWebp, 'image/png', 100000);
+            $result = $service->optimizeUnderLimit($tmpSource, $destWebp, 'image/png', 100000, 16 / 9);
 
             $this->assertFileExists($destWebp);
             $this->assertLessThanOrEqual(100000, $result['file_size']);
@@ -34,6 +34,7 @@ class ArticleImageWebpTest extends TestCase
 
             $info = @getimagesize($destWebp);
             $this->assertSame('image/webp', $info['mime']);
+            $this->assertEqualsWithDelta(16 / 9, $info[0] / $info[1], 0.01);
         } finally {
             @unlink($tmpSource);
             @unlink($destWebp);

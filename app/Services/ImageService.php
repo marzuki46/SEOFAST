@@ -314,12 +314,13 @@ class ImageService
      * 1. Ilustrasi AI / Curated Stock Photo relevan
      * 2. Resize & kompres berulang di bawah 100 KB
      * 3. Konversi format ke WebP
-     * 4. Simpan ke uploads/ai/YYYY/MM/[slug]-[hash].webp
+     * 4. Simpan ke uploads/ai/content/[article-slug]/hero.webp
      */
     public function createArticleFeaturedImage(string $title, string $keyword = '', string $slug = ''): ?string
     {
-        $directory = date('Y').'/'.date('m');
-        $uploadDir = public_path('uploads/ai/'.$directory);
+        $directory = 'content';
+        $cleanSlug = Str::slug($slug ?: $title) ?: 'article-image';
+        $uploadDir = public_path('uploads/ai/'.$directory.'/'.$cleanSlug);
 
         if (! is_dir($uploadDir) && ! @mkdir($uploadDir, 0755, true) && ! is_dir($uploadDir)) {
             Log::warning("Could not create directory {$uploadDir}");
@@ -359,26 +360,25 @@ class ImageService
             $imageInfo = @getimagesize($sourcePath);
             $mime = strtolower((string) ($imageInfo['mime'] ?? 'image/jpeg'));
 
-            $cleanSlug = Str::slug($slug ?: $title) ?: 'article-image';
-            $filename = $cleanSlug.'-'.substr(bin2hex(random_bytes(4)), 0, 8).'.webp';
+            $filename = 'hero.webp';
             $destination = $uploadDir.DIRECTORY_SEPARATOR.$filename;
 
             // Kompresi ketat WebP di bawah 100 KB
-            $this->optimizeUnderLimit($sourcePath, $destination, $mime, 100000);
+            $this->optimizeUnderLimit($sourcePath, $destination, $mime, 100000, 16 / 9);
 
             if (! is_file($destination)) {
                 return null;
             }
 
             // Replikasi ke public disk storage Laravel agar URL storage & uploads keduanya valid
-            $storageRelative = 'uploads/ai/'.$directory.'/'.$filename;
+            $storageRelative = 'uploads/ai/'.$directory.'/'.$cleanSlug.'/'.$filename;
             try {
                 Storage::disk('public')->put($storageRelative, file_get_contents($destination));
             } catch (\Throwable) {
                 // public_path sudah terisi
             }
 
-            return '/uploads/ai/'.$directory.'/'.$filename;
+            return '/uploads/ai/'.$directory.'/'.$cleanSlug.'/'.$filename;
         } catch (\Throwable $e) {
             Log::error('createArticleFeaturedImage error: '.$e->getMessage());
 
@@ -391,18 +391,18 @@ class ImageService
     /**
      * Kompresi cerdas ke WebP dengan batasan maksimal bytes (default 100 KB).
      */
-    public function optimizeUnderLimit(string $sourcePath, string $destinationPath, string $sourceMime, int $limit = 100000): array
+    public function optimizeUnderLimit(string $sourcePath, string $destinationPath, string $sourceMime, int $limit = 100000, ?float $targetAspectRatio = null): array
     {
-        $result = $this->optimizeImageToWebp($sourcePath, $destinationPath, $sourceMime, 82, 1600);
+        $result = $this->optimizeImageToWebp($sourcePath, $destinationPath, $sourceMime, 82, 1600, $targetAspectRatio);
         foreach ([72, 62, 52, 42, 34, 28] as $quality) {
             if (($result['file_size'] ?? PHP_INT_MAX) <= $limit) {
                 break;
             }
-            $result = $this->optimizeImageToWebp($sourcePath, $destinationPath, $sourceMime, $quality, 1600);
+            $result = $this->optimizeImageToWebp($sourcePath, $destinationPath, $sourceMime, $quality, 1600, $targetAspectRatio);
         }
         if (($result['file_size'] ?? PHP_INT_MAX) > $limit) {
             foreach ([1280, 1024, 800] as $edge) {
-                $result = $this->optimizeImageToWebp($sourcePath, $destinationPath, $sourceMime, 30, $edge);
+                $result = $this->optimizeImageToWebp($sourcePath, $destinationPath, $sourceMime, 30, $edge, $targetAspectRatio);
                 if ($result['file_size'] <= $limit) {
                     break;
                 }
@@ -412,7 +412,7 @@ class ImageService
         return $result;
     }
 
-    public function optimizeImageToWebp(string $sourcePath, string $destinationPath, string $sourceMime, int $quality = 82, int $maxEdge = 1600): array
+    public function optimizeImageToWebp(string $sourcePath, string $destinationPath, string $sourceMime, int $quality = 82, int $maxEdge = 1600, ?float $targetAspectRatio = null): array
     {
         if (! extension_loaded('gd') || ! function_exists('imagewebp')) {
             throw new \RuntimeException('WebP processing is not available. Enable PHP GD with WebP support.');
@@ -457,6 +457,10 @@ class ImageService
             $source = $this->applyExifOrientation($source, $sourcePath);
         }
 
+        if ($targetAspectRatio !== null && $targetAspectRatio > 0) {
+            $source = $this->cropToAspectRatio($source, $targetAspectRatio);
+        }
+
         $orientedWidth = imagesx($source);
         $orientedHeight = imagesy($source);
         $scale = min(1, $maxEdge / max($orientedWidth, $orientedHeight));
@@ -484,6 +488,38 @@ class ImageService
             'file_size' => (int) filesize($destinationPath),
             'mime_type' => 'image/webp',
         ];
+    }
+
+    private function cropToAspectRatio($image, float $targetAspectRatio)
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $currentRatio = $width / max(1, $height);
+
+        if (abs($currentRatio - $targetAspectRatio) < 0.01 || ! function_exists('imagecrop')) {
+            return $image;
+        }
+
+        if ($currentRatio > $targetAspectRatio) {
+            $cropHeight = $height;
+            $cropWidth = (int) round($height * $targetAspectRatio);
+            $x = (int) floor(($width - $cropWidth) / 2);
+            $y = 0;
+        } else {
+            $cropWidth = $width;
+            $cropHeight = (int) round($width / $targetAspectRatio);
+            $x = 0;
+            $y = (int) floor(($height - $cropHeight) / 2);
+        }
+
+        $cropped = imagecrop($image, ['x' => $x, 'y' => $y, 'width' => $cropWidth, 'height' => $cropHeight]);
+        if ($cropped) {
+            imagedestroy($image);
+
+            return $cropped;
+        }
+
+        return $image;
     }
 
     private function applyExifOrientation($image, string $sourcePath)
@@ -537,7 +573,41 @@ class ImageService
             return false;
         }
 
-        $prompt = 'Editorial blog illustration, digital art, clean vector or modern 3d minimal style, no text, no typography, no letters, no logos. Topic: '.trim($title.' '.$keyword).'. Context: Technology, modern web infrastructure, data visualization, elegant professional concept art.';
+        $topic = trim($title.' '.$keyword);
+        $visualConcept = 'A clear editorial visual metaphor for '.($keyword ?: $title).', showing one central subject with a structured supporting system around it.';
+        $mainSubject = 'the central business or technology concept from the topic, presented as a polished simplified diagram or editorial object';
+        $masterPrompt = SystemSetting::get('9router_image_master_prompt') ?: <<<'PROMPT'
+Create a professional editorial technical illustration for a web development and SEO blog.
+
+Topic: {topic}
+
+Visual concept:
+{visual_concept}
+
+Main subject:
+{main_subject}
+
+Style:
+clean editorial technology illustration, structured composition, premium SaaS visual language,
+subtle depth, realistic but simplified, professional and trustworthy.
+
+Brand direction:
+dark navy background #15253F, warm orange accent #FF6B35, gold highlights #CE9A45,
+cream secondary tones, high contrast, restrained color palette, consistent Juki web identity.
+
+Composition:
+16:9 landscape, clear focal subject centered or positioned right, generous negative space,
+suitable for a blog hero image, no clutter, consistent framing across the article library.
+
+Do not include:
+unreadable text, random letters, fake logos, watermarks, excessive neon,
+generic stock-photo style, distorted UI elements, long text inside the image.
+PROMPT;
+        $prompt = str_replace(
+            ['{topic}', '{visual_concept}', '{main_subject}'],
+            [$topic, $visualConcept, $mainSubject],
+            $masterPrompt
+        );
 
         $endpoint = rtrim($apiBase, '/').(str_ends_with($apiBase, '/v1') ? '/images/generations' : '/v1/images/generations');
 
@@ -552,7 +622,7 @@ class ImageService
             'model' => $model,
             'prompt' => $prompt,
             'n' => 1,
-            'size' => '1024x1024',
+            'size' => SystemSetting::get('9router_image_size', '1792x1024'),
             'response_format' => 'b64_json',
         ]);
 
@@ -653,19 +723,29 @@ class ImageService
         $h = 630;
         $img = imagecreatetruecolor($w, $h);
 
-        $c1 = imagecolorallocate($img, 26, 26, 46);
-        $c2 = imagecolorallocate($img, 15, 23, 42);
+        $c1 = imagecolorallocate($img, 21, 37, 63);
+        $c2 = imagecolorallocate($img, 15, 29, 50);
         $this->drawGradient($img, $w, $h, $c1, $c2);
 
-        $accent = imagecolorallocate($img, 255, 107, 53);
-        imagefilledrectangle($img, 60, 60, 72, 120, $accent);
+        // Keep the emergency fallback aligned with the master style and never render text.
+        $orange = imagecolorallocate($img, 255, 107, 53);
+        $gold = imagecolorallocate($img, 206, 154, 69);
+        $line = imagecolorallocatealpha($img, 255, 255, 255, 82);
+        $centerX = 820;
+        $centerY = 315;
 
-        $white = imagecolorallocate($img, 255, 255, 255);
-        $lines = $this->wordWrapText($title, 26);
-        $y = 180;
-        foreach (array_slice($lines, 0, 3) as $line) {
-            $this->drawCenteredText($img, 36, 0, $y, $white, $line);
-            $y += 55;
+        for ($i = 0; $i < 5; $i++) {
+            $x = 230 + ($i * 145);
+            $y = 130 + (($i % 2) * 260);
+            imageline($img, $x, $y, $centerX, $centerY, $line);
+            imageellipse($img, $x, $y, 74, 74, $gold);
+            imagefilledellipse($img, $x, $y, 20, 20, $orange);
+        }
+
+        imagefilledellipse($img, $centerX, $centerY, 170, 170, $orange);
+        imageellipse($img, $centerX, $centerY, 215, 215, $gold);
+        for ($i = 0; $i < 4; $i++) {
+            imagearc($img, 970, 120 + ($i * 115), 130, 130, 20, 310, $gold);
         }
 
         imagepng($img, $destination);
