@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function () {
     <section class="jw-hero">
         <div class="jw-container jw-hero-inner">
             <div>
-                <span class="jw-eyebrow">Web engineering · SEO · conversion</span>
+                <span class="jw-eyebrow">Juki Web Developer Solo</span>
                 <h1>Juki Web Developer Solo — Vendor / Jasa Pembuatan Website Profesional untuk UMKM dan Perusahaan</h1>
                 <p class="jw-lead">Jasa pembuatan website di Solo dan Surakarta untuk membangun kepercayaan, mendapatkan inquiry, dan mengubah pencarian Google menjadi peluang bisnis.</p>
                 <div class="jw-service-area">
