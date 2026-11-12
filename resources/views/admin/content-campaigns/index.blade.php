@@ -322,12 +322,14 @@
                             @endif
                         </td>
                         <td class="px-5 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <form method="POST" action="{{ route('admin.content-campaigns.trigger', $campaign) }}" onsubmit="return confirm('Jalankan trigger posting artikel sekarang?')">@csrf <button class="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 flex items-center gap-1">⚡ Posting Sekarang</button></form>
+                             <div class="flex items-center justify-end gap-2">
+                                 <a href="{{ route('admin.content-campaigns.edit', $campaign) }}" class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100">Edit</a>
+                                 <form method="POST" action="{{ route('admin.content-campaigns.trigger', $campaign) }}" onsubmit="return confirm('Jalankan trigger posting artikel sekarang?')">@csrf <button class="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 flex items-center gap-1">⚡ Posting Sekarang</button></form>
                                 <form method="POST" action="{{ route('admin.content-campaigns.research', $campaign) }}">@csrf <input type="hidden" name="count" value="{{ $campaign->research_batch_size }}"><button class="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Riset Topik</button></form>
                                 <a href="{{ route('admin.content-campaigns.topics', $campaign) }}" class="rounded-xl border border-indigo-200 bg-indigo-50/50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">Topic Bank ({{ $campaign->topics_count }})</a>
-                                <form method="POST" action="{{ route('admin.content-campaigns.toggle', $campaign) }}">@csrf <button class="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">{{ $campaign->status === 'active' ? 'Jeda' : 'Aktifkan' }}</button></form>
-                            </div>
+                                 <form method="POST" action="{{ route('admin.content-campaigns.toggle', $campaign) }}">@csrf <button class="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">{{ $campaign->status === 'active' ? 'Jeda' : 'Aktifkan' }}</button></form>
+                                 <form method="POST" action="{{ route('admin.content-campaigns.destroy', $campaign) }}" onsubmit="return confirm('Hapus campaign ini? Artikel yang sudah terbit tetap dipertahankan, tetapi campaign, target, topik, dan jadwalnya akan dihapus permanen.')">@csrf @method('DELETE') <button class="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">Hapus</button></form>
+                             </div>
                         </td>
                     </tr>
                 @empty

@@ -285,10 +285,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [ContentCampaignController::class, 'index'])->name('index');
             Route::post('/', [ContentCampaignController::class, 'store'])->name('store');
             Route::post('/global-settings', [ContentCampaignController::class, 'updateGlobalSettings'])->name('global_settings');
+            Route::get('/{campaign}/edit', [ContentCampaignController::class, 'edit'])->name('edit');
             Route::get('/{campaign}/topics', [ContentCampaignController::class, 'topics'])->name('topics');
             Route::get('/{campaign}/settings', [ContentCampaignController::class, 'settings'])->name('settings');
             Route::put('/{campaign}/settings', [ContentCampaignController::class, 'updateSettings'])->name('settings.update');
             Route::put('/{campaign}', [ContentCampaignController::class, 'update'])->name('update');
+            Route::delete('/{campaign}', [ContentCampaignController::class, 'destroy'])->name('destroy');
             Route::post('/{campaign}/research', [ContentCampaignController::class, 'research'])->name('research');
             Route::post('/{campaign}/trigger', [ContentCampaignController::class, 'triggerPost'])->name('trigger');
             Route::post('/{campaign}/toggle', [ContentCampaignController::class, 'toggle'])->name('toggle');

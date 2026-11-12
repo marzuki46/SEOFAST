@@ -262,6 +262,16 @@ class ContentCampaignController extends Controller
         return back()->with('success', 'Campaign konten berhasil dibuat.');
     }
 
+    public function edit(ContentCampaign $campaign)
+    {
+        $this->assertTenantAccess($campaign);
+        $products = Product::withoutGlobalScopes()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $silos = SiloBlueprint::withoutGlobalScopes()->with('product')->orderBy('silo_name')->get(['id', 'silo_name', 'product_id']);
+        $campaign->load('targets');
+
+        return view('admin.content-campaigns.edit', compact('campaign', 'products', 'silos'));
+    }
+
     public function settings(ContentCampaign $campaign, ContentCampaignPromptService $prompts)
     {
         $this->assertTenantAccess($campaign);
@@ -300,14 +310,43 @@ class ContentCampaignController extends Controller
     {
         $this->assertTenantAccess($campaign);
         $data = $this->validated($request);
+        $keywords = $this->parseKeywords($data['target_keywords'] ?? '');
+        unset($data['target_keywords']);
         $this->assertSiloMatchesProduct($data['silo_blueprint_id'] ?? null, $data['product_id']);
-        $campaign->update($data);
-        $this->syncDestinationUrl($campaign->fresh());
-        if ($campaign->status === 'active') {
-            $scheduler->ensureNext($campaign->fresh());
+
+        DB::transaction(function () use ($campaign, $data, $keywords): void {
+            $campaign->update($data);
+            $campaign->targets()->delete();
+
+            foreach ($keywords as $index => $keyword) {
+                ContentCampaignTarget::create([
+                    'tenant_id' => $campaign->tenant_id,
+                    'campaign_id' => $campaign->id,
+                    'product_id' => $campaign->product_id,
+                    'keyword' => $keyword,
+                    'normalized_keyword' => app(ContentCampaignService::class)->normalize($keyword),
+                    'sort_order' => $index,
+                ]);
+            }
+        });
+
+        $freshCampaign = $campaign->fresh();
+        $this->syncDestinationUrl($freshCampaign);
+        if ($freshCampaign->status === 'active') {
+            $scheduler->ensureNext($freshCampaign);
         }
 
         return back()->with('success', 'Campaign konten diperbarui.');
+    }
+
+    public function destroy(ContentCampaign $campaign)
+    {
+        $this->assertTenantAccess($campaign);
+        $campaignName = $campaign->name;
+        $campaign->forceDelete();
+
+        return redirect()->route('admin.content-campaigns.index')
+            ->with('success', "Campaign '{$campaignName}' dihapus. Artikel yang sudah terbit tetap dipertahankan.");
     }
 
     public function research(Request $request, ContentCampaign $campaign, ContentCampaignService $service)
