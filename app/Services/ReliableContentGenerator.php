@@ -10,7 +10,11 @@ class ReliableContentGenerator
     {
         $keyword = $content->target_keyword;
         $title = $content->meta_title ?: $content->target_keyword;
-        $brief = $content->meta_description ?: $content->target_keyword;
+        
+        $topic = $content->topic;
+        $brief = $topic?->brief ?: ($topic?->angle ?: ($content->meta_description ?: $content->target_keyword));
+        $funnelStage = $topic?->funnel_stage ?: $content->hierarchy_level;
+        $angle = $topic?->angle ?: '';
         
         $campaign = $content->campaign;
         if ($campaign) {
@@ -43,7 +47,7 @@ Data & Informasi Bisnis Pendukung:\n{$businessData}
             $system .= "\n\nATURAN KHUSUS CAMPAIGN CONTENT PROMPT:\n" . strip_tags($customContentPrompt);
         }
 
-        $user = "{$temporalContext}\n\nBuat artikel SEO komprehensif dan mendalam berdasarkan:\nTarget Keyword: {$keyword}\nJudul: {$title}\nBrief/Panduan: {$brief}\n\nDi akhir artikel, sertakan Call to Action (CTA) profesional berikan link tombol/teks ke URL: {$ctaUrl} dengan label: {$ctaLabel}.\n\nBerikan respons DALAM FORMAT JSON VALID BERIKUT (tanpa markdown backtick):\n{\n  \"meta_title\": \"Judul SEO max 70 karakter yang menarik\",\n  \"meta_description\": \"Deskripsi SEO max 160 karakter yang informatif\",\n  \"content\": \"<h2>Pengantar</h2><p>Isi artikel lengkap dan mendalam (minimal {$minWords} kata) format HTML...</p>\"\n}";
+        $user = "{$temporalContext}\n\nBuat artikel SEO komprehensif dan mendalam berdasarkan brief spesifik topik berikut:\nTarget Keyword: {$keyword}\nJudul Utama: {$title}\nTahap Funnel: {$funnelStage}\nSudut Pandang / Angle: {$angle}\nBrief Konten / Panduan Khusus:\n{$brief}\n\nDi akhir artikel, sertakan Call to Action (CTA) profesional berikan link tombol/teks ke URL: {$ctaUrl} dengan label: {$ctaLabel}.\n\nBerikan respons DALAM FORMAT JSON VALID BERIKUT (tanpa markdown backtick):\n{\n  \"meta_title\": \"Judul SEO max 70 karakter yang menarik\",\n  \"meta_description\": \"Deskripsi SEO max 160 karakter yang informatif\",\n  \"content\": \"<h2>Pengantar</h2><p>Isi artikel lengkap dan mendalam (minimal {$minWords} kata) format HTML...</p>\"\n}";
 
         $text = $aiService->generateJson($system, $user);
 
