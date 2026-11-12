@@ -37,12 +37,12 @@
 @section('head_extra')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "Service",
+    "@@context": "https://schema.org",
+    "@@type": "Service",
     "name": "{{ $page->title }}",
     "serviceType": "{{ $p['category'] ?? 'Digital Development & Marketing Services' }}",
     "provider": {
-        "@type": "Person",
+        "@@type": "Person",
         "name": "Tri Marzuki",
         "url": "{{ url('/') }}",
         "telephone": "+{{ $waNumber }}"
