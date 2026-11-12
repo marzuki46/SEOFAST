@@ -629,18 +629,17 @@ class ContentController extends Controller
                 }
 
                 // ── Step 2: Run current phase INLINE (not via queue) ──
-                $processJob = new \App\Jobs\Ai\ProcessAiGenerationJob(
-                    $content->id, $job->id, $targetStatus
-                );
-                $processJob->handle();
+                $generator = new \App\Services\ReliableContentGenerator();
+                $generator->generateAndSave($content, $job, $targetStatus);
 
                 $job->refresh();
-                $logs[] = ['level' => 'success', 'message' => "✅ Fase selesai. Status: {$job->status}"];
+                $logs[] = ['level' => 'success', 'message' => "✅ Artikel berhasil digenerate dan dipublikasikan secara sukses!"];
 
                 return [
                     'success' => true,
-                    'status'  => 'continue',
+                    'status'  => 'completed',
                     'keyword' => $keyword,
+                    'title'   => $content->title,
                     'logs'    => $logs,
                 ];
             } finally {
