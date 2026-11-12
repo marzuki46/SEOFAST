@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ai_logs', function (Blueprint $table) {
+            if (Schema::hasTable('ai_logs')) return;
             $table->id();
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
             $table->string('provider'); // openai, gemini, claude, deepseek, etc.
