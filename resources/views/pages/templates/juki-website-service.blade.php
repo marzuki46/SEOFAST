@@ -27,7 +27,7 @@
         ['url' => '/jasa/ai', 'title' => 'Solusi AI untuk Bisnis'],
         ['url' => '/contact', 'title' => 'Konsultasi Proyek Website'],
     ] : ($p['related_links'] ?? []);
-    $heroImage = asset('storage/content-images/xjuki-website-developer-solo-landscape-1785293658.webp.pagespeed.ic.ehTKUU0dbo.webp');
+    $heroImage = 'https://trimarzuki.my.id/uploads/ai/2026/11/perbandingan-engine-agentic-automation-enterprise-2026-langgraph-vs-camunda-8-vs-temporal-1bb95c3c.webp';
 @endphp
 
 @section('title', $seoTitle)
@@ -142,10 +142,14 @@
     .juki-web-landing .jw-showcase { position:relative; overflow:hidden; padding:96px 0; background:#15253f; color:#fff; }
     .juki-web-landing .jw-showcase:before { content:""; position:absolute; inset:0; opacity:.22; background-image:linear-gradient(rgba(232,201,130,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(232,201,130,.14) 1px,transparent 1px); background-size:58px 58px; mask-image:linear-gradient(90deg,#000,transparent 80%); }
     .juki-web-landing .jw-showcase-grid { position:relative; display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:76px; align-items:start; }
-    .juki-web-landing .jw-showcase-sticky { position:sticky; top:28px; }
+    .juki-web-landing .jw-showcase-sticky { position:sticky; top:28px; text-align:center; transform:translateX(calc(var(--showcase-shift, 0px) * -1)); transition:transform .12s linear,text-align .3s ease; }
+    .juki-web-landing .jw-showcase-sticky .jw-eyebrow,.juki-web-landing .jw-showcase-sticky .jw-intro { margin-inline:auto; }
+    .juki-web-landing .jw-showcase.is-scrolling .jw-showcase-sticky { text-align:left; }
+    .juki-web-landing .jw-showcase.is-scrolling .jw-showcase-sticky .jw-eyebrow,.juki-web-landing .jw-showcase.is-scrolling .jw-showcase-sticky .jw-intro { margin-inline:0; }
     .juki-web-landing .jw-showcase h2 { max-width:560px; margin:12px 0 18px; color:#fff; font-size:clamp(2rem,4vw,3.5rem); line-height:1.03; letter-spacing:-.05em; }
     .juki-web-landing .jw-showcase .jw-intro { color:#cbd5e1; }
-    .juki-web-landing .jw-showcase-card { min-height:220px; display:flex; flex-direction:column; justify-content:space-between; margin-bottom:18px; padding:28px; border:1px solid rgba(232,201,130,.23); border-radius:20px; background:rgba(255,255,255,.065); backdrop-filter:blur(8px); transition:transform .35s ease,border-color .35s ease,background .35s ease; }
+    .juki-web-landing .jw-showcase-card { min-height:220px; display:flex; flex-direction:column; justify-content:space-between; margin-bottom:18px; padding:28px; border:1px solid rgba(232,201,130,.23); border-radius:20px; background:rgba(255,255,255,.065); backdrop-filter:blur(8px); opacity:.52; transform:scale(.9); transform-origin:center; transition:transform .18s ease-out,opacity .18s ease-out,border-color .35s ease,background .35s ease,box-shadow .35s ease; }
+    .juki-web-landing .jw-showcase-card.is-focus { opacity:1; border-color:#e8c982; background:rgba(255,255,255,.13); box-shadow:0 24px 60px rgba(0,0,0,.22); }
     .juki-web-landing .jw-showcase-card:hover { transform:translateX(8px); border-color:#e8c982; background:rgba(255,255,255,.11); }
     .juki-web-landing .jw-showcase-card:nth-child(2) { margin-left:42px; }
     .juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:84px; }
@@ -203,7 +207,7 @@
     .juki-web-landing .jw-final { padding:70px 0; background:var(--jw-ink); color:#fff; text-align:center; }
     .juki-web-landing .jw-final h2 { max-width:700px; margin:10px auto 16px; color:#fff; }
     .juki-web-landing .jw-final p { max-width:630px; margin:0 auto; color:#cbd5e1; line-height:1.7; }
-    @media (max-width:900px) { .juki-web-landing .jw-hero-inner,.juki-web-landing .jw-columns,.juki-web-landing .jw-sticky-layout,.juki-web-landing .jw-showcase-grid,.juki-web-landing .jw-sticky-aida-wrapper { grid-template-columns:1fr; gap:32px; } .juki-web-landing .jw-sticky-offer,.juki-web-landing .jw-showcase-sticky,.juki-web-landing .jw-sticky-aida-nav { position:relative; top:auto; order:-1; } .juki-web-landing .jw-grid,.juki-web-landing .jw-aida { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-bento .jw-service:first-child { grid-column:auto; } .juki-web-landing .jw-bento .jw-service:nth-child(4),.juki-web-landing .jw-section-pricing .jw-service:nth-child(2) { transform:none; } .juki-web-landing .jw-showcase-card:nth-child(2),.juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:0; } }
+    @media (max-width:900px) { .juki-web-landing .jw-hero-inner,.juki-web-landing .jw-columns,.juki-web-landing .jw-sticky-layout,.juki-web-landing .jw-showcase-grid,.juki-web-landing .jw-sticky-aida-wrapper { grid-template-columns:1fr; gap:32px; } .juki-web-landing .jw-sticky-offer,.juki-web-landing .jw-showcase-sticky,.juki-web-landing .jw-sticky-aida-nav { position:relative; top:auto; order:-1; } .juki-web-landing .jw-showcase-sticky { transform:none!important; text-align:left; } .juki-web-landing .jw-showcase-sticky .jw-eyebrow,.juki-web-landing .jw-showcase-sticky .jw-intro { margin-inline:0; } .juki-web-landing .jw-showcase-card { opacity:1; transform:none!important; } .juki-web-landing .jw-grid,.juki-web-landing .jw-aida { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-bento .jw-service:first-child { grid-column:auto; } .juki-web-landing .jw-bento .jw-service:nth-child(4),.juki-web-landing .jw-section-pricing .jw-service:nth-child(2) { transform:none; } .juki-web-landing .jw-showcase-card:nth-child(2),.juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:0; } }
     @media (max-width:620px) { .juki-web-landing .jw-container { width:min(100% - 24px,1180px); } .juki-web-landing .jw-hero-inner { padding:58px 0 52px; } .juki-web-landing .jw-proof-grid,.juki-web-landing .jw-grid,.juki-web-landing .jw-aida,.juki-web-landing .jw-related { grid-template-columns:1fr; } .juki-web-landing .jw-section,.juki-web-landing .jw-showcase { padding:58px 0; } .juki-web-landing .jw-actions .jw-btn { width:100%; } .juki-web-landing .jw-hero-visual { min-height:280px; } .juki-web-landing .jw-visual-note { right:0; bottom:4px; } }
     @media (prefers-reduced-motion:reduce) { .juki-web-landing *,.juki-web-landing *:before,.juki-web-landing *:after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } .juki-web-landing .jw-js .jw-reveal { opacity:1; transform:none; } }
 </style>
@@ -260,12 +264,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var progressBar = landing.querySelector('.jw-showcase-progress span');
     var showcase = landing.querySelector('.jw-showcase');
+    var showcaseCards = landing.querySelectorAll('.jw-showcase-card');
+    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var updateProgress = function () {
         if (!progressBar || !showcase) return;
         var rect = showcase.getBoundingClientRect();
         var travel = Math.max(1, rect.height - window.innerHeight);
         var progress = Math.min(1, Math.max(0, -rect.top / travel));
         progressBar.style.width = (progress * 100) + '%';
+
+        if (!reducedMotion && window.innerWidth > 900) {
+            showcase.style.setProperty('--showcase-shift', Math.round(progress * 92) + 'px');
+            showcase.classList.toggle('is-scrolling', progress > .08);
+            var viewportCenter = window.innerHeight * .52;
+            var closest = null;
+            var closestDistance = Infinity;
+            showcaseCards.forEach(function (card) {
+                var cardRect = card.getBoundingClientRect();
+                var distance = Math.abs((cardRect.top + cardRect.height / 2) - viewportCenter);
+                var focus = Math.max(0, 1 - distance / (window.innerHeight * .58));
+                card.style.transform = 'scale(' + (.9 + focus * .12).toFixed(3) + ')';
+                card.style.opacity = (.48 + focus * .52).toFixed(3);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closest = card;
+                }
+            });
+            showcaseCards.forEach(function (card) { card.classList.toggle('is-focus', card === closest); });
+        }
     };
     window.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
