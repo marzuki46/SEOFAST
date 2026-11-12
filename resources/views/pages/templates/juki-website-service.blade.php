@@ -152,14 +152,14 @@
     .juki-web-landing .jw-showcase-meta { display:flex; align-items:center; justify-content:space-between; max-width:560px; margin:26px 0 4px; padding-top:14px; border-top:1px solid rgba(232,201,130,.28); color:#aebaca; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; }
     .juki-web-landing .jw-showcase-meta strong { color:#e8c982; font-family:'Outfit',sans-serif; font-size:.85rem; letter-spacing:.04em; }
     .juki-web-landing .jw-showcase-cards { display:grid; gap:18vh; padding:12vh 0 18vh; }
-    .juki-web-landing .jw-showcase-card { min-height:58vh; display:flex; flex-direction:column; justify-content:center; margin-bottom:0; padding:42px; border:1px solid rgba(232,201,130,.23); border-radius:24px; background:rgba(255,255,255,.065); backdrop-filter:blur(8px); opacity:.52; transform:scale(.88); transform-origin:center; transition:transform .18s ease-out,opacity .18s ease-out,border-color .35s ease,background .35s ease,box-shadow .35s ease; }
+    .juki-web-landing .jw-showcase-card { min-height:58vh; display:flex; flex-direction:column; justify-content:center; margin-bottom:0; padding:42px; border:1px solid rgba(232,201,130,.32); border-radius:24px; background:rgba(255,255,255,.105); backdrop-filter:blur(8px); opacity:.82; transform:scale(.88); transform-origin:center; transition:transform .18s ease-out,opacity .18s ease-out,border-color .35s ease,background .35s ease,box-shadow .35s ease; }
     .juki-web-landing .jw-showcase-card.is-focus { opacity:1; border-color:#e8c982; background:rgba(255,255,255,.13); box-shadow:0 24px 60px rgba(0,0,0,.22); }
     .juki-web-landing .jw-showcase-card:hover { transform:translateX(8px); border-color:#e8c982; background:rgba(255,255,255,.11); }
     .juki-web-landing .jw-showcase-card:nth-child(2) { margin-left:36px; }
     .juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:72px; }
-    .juki-web-landing .jw-showcase-card .jw-card-label { color:#e8c982; }
+    .juki-web-landing .jw-showcase-card .jw-card-label { color:#f4d58f; }
     .juki-web-landing .jw-showcase-card h3 { max-width:580px; margin:20px 0 12px; color:#fff; font-size:clamp(1.6rem,3vw,2.45rem); line-height:1.08; letter-spacing:-.035em; }
-    .juki-web-landing .jw-showcase-card p { margin:0; color:#cbd5e1; line-height:1.7; }
+    .juki-web-landing .jw-showcase-card p { margin:0; color:#edf3fa; line-height:1.7; }
     .juki-web-landing .jw-showcase-number { display:flex; align-items:center; justify-content:space-between; color:#e8c982; font-family:'Outfit',sans-serif; font-size:2.5rem; font-weight:700; }
     .juki-web-landing .jw-showcase-progress { width:100%; height:2px; margin-top:34px; overflow:hidden; background:rgba(255,255,255,.18); }
     .juki-web-landing .jw-showcase-progress span { display:block; width:0; height:100%; background:var(--jw-gold); transition:width .15s linear; }
@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var distance = Math.abs((cardRect.top + cardRect.height / 2) - viewportCenter);
                 var focus = Math.max(0, 1 - distance / (window.innerHeight * .58));
                 card.style.transform = 'scale(' + (.88 + focus * .14).toFixed(3) + ')';
-                card.style.opacity = (.48 + focus * .52).toFixed(3);
+                card.style.opacity = (.76 + focus * .24).toFixed(3);
                 if (distance < closestDistance) {
                     closestDistance = distance;
                     closest = card;
