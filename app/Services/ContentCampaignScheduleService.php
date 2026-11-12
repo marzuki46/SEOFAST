@@ -80,7 +80,7 @@ class ContentCampaignScheduleService
 
     public function nextRunAt(ContentCampaign $campaign): CarbonImmutable
     {
-        $tz = $campaign->timezone ?: config('app.timezone', 'UTC');
+        $tz = 'Asia/Jakarta';
         $now = CarbonImmutable::now($tz);
         if ($campaign->schedule_type === 'fixed') {
             $hours = collect(explode(',', (string) $campaign->fixed_hours))
@@ -89,12 +89,12 @@ class ContentCampaignScheduleService
             foreach ($hours as $hour) {
                 $candidate = CarbonImmutable::parse($now->format('Y-m-d').' '.$hour, $tz);
                 if ($candidate->isFuture()) {
-                    return $candidate->setTimezone('UTC');
+                    return $candidate;
                 }
             }
             $first = $hours->first() ?: '09:00';
 
-            return CarbonImmutable::parse($now->addDay()->format('Y-m-d').' '.$first, $tz)->setTimezone('UTC');
+            return CarbonImmutable::parse($now->addDay()->format('Y-m-d').' '.$first, $tz);
         }
         $start = $now->setTime(7, 0);
         $end = $now->setTime(22, 0);
@@ -103,10 +103,10 @@ class ContentCampaignScheduleService
         for ($i = 0; $i < $slots; $i++) {
             $candidate = $start->addMinutes($i * $step + random_int(0, max(1, min(30, $step - 1))));
             if ($candidate->isFuture()) {
-                return $candidate->setTimezone('UTC');
+                return $candidate;
             }
         }
 
-        return $now->addMinutes(10)->setTimezone('UTC');
+        return $now->addMinutes(10);
     }
 }
