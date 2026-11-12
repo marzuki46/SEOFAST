@@ -540,27 +540,27 @@ document.addEventListener('DOMContentLoaded', function () {
         <a href="{{ url('/') }}" class="hover:text-brand-indigo transition-colors">Beranda</a>
         <span>/</span>
         <a href="{{ url('/jasa') }}" class="hover:text-brand-indigo transition-colors">Layanan</a>
-        @if(!empty($p['parent_url']) && !empty($p['parent_title']))
+        @php if (!empty($p['parent_url']) && !empty($p['parent_title'])): @endphp
             <span>/</span>
             <a href="{{ url($p['parent_url']) }}" class="hover:text-brand-indigo transition-colors">{{ $p['parent_title'] }}</a>
-        @endif
+        @php endif; @endphp
         <span>/</span>
         <span class="text-slate-900 font-medium">{{ $page->title }}</span>
     </nav>
 </div>
-@if(!empty($p['value_props']))
+@php if (!empty($p['value_props'])): @endphp
 <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        @foreach($p['value_props'] as $idx => $vp)
+        @php foreach ($p['value_props'] as $idx => $vp): @endphp
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
             <div class="text-xs font-bold text-brand-indigo uppercase tracking-wider mb-1">0{{ $idx + 1 }} · {{ $vp['tag'] }}</div>
             <div class="font-bold text-slate-900 text-sm mb-1 font-outfit">{{ $vp['title'] }}</div>
             <div class="text-xs text-slate-500 leading-relaxed">{{ $vp['desc'] }}</div>
         </div>
-        @endforeach
+        @php endforeach; @endphp
     </div>
 </section>
-@endif
+@php endif; @endphp
 <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-16 text-slate-700 leading-relaxed font-sans">
     <div class="prose prose-slate prose-lg max-w-none">
         {!! $page->body_raw !!}
