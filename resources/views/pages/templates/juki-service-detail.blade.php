@@ -10,10 +10,10 @@
     $p = $serviceParams ?? [];
     $isWebsiteService = trim($page->slug, '/') === 'jasa/website';
     $seoTitle = $isWebsiteService
-        ? 'Jasa Pembuatan Website Profesional di Solo | Juki'
+        ? 'Juki Web Developer Solo - Vendor / Jasa Pembuatan Website Profesional untuk UMKM dan Perusahaan'
         : ($page->meta_title ?: $page->title) . ' — ' . $siteName;
     $seoDescription = $isWebsiteService
-        ? 'Jasa pembuatan website profesional di Solo untuk company profile, landing page, toko online, dan aplikasi web. SEO-ready, cepat, dan fokus inquiry.'
+        ? 'Jasa pembuatan website di Solo dan Surakarta untuk membangun kepercayaan, mendapatkan inquiry, dan mengubah pencarian Google menjadi peluang bisnis.'
         : ($page->meta_description ?: ($p['lead'] ?? ''));
     $relatedLinks = $isWebsiteService ? [
         ['url' => '/jasa/seo', 'title' => 'Jasa SEO & Pencarian Lokal'],
@@ -31,8 +31,8 @@
 @section('head_extra')
 <script type="application/ld+json">
 {
-    "@@context": "https://schema.org",
-    "@@type": "Service",
+    "@context": "https://schema.org",
+    "@type": "Service",
     "name": "{{ $page->title }}",
     "serviceType": "{{ $p['category'] ?? 'Digital Development & Marketing Services' }}",
     "provider": {
@@ -41,7 +41,7 @@
         "url": "{{ url('/') }}",
         "telephone": "+{{ $waNumber }}"
     },
-    "areaServed": "Indonesia",
+    "areaServed": "Soloraya (Surakarta, Karanganyar, Sragen, Wonogiri, Boyolali, Klaten, Sukoharjo)",
     "description": "{{ $seoDescription }}",
     "url": "{{ $canonicalUrl }}"
 }
@@ -52,9 +52,9 @@
         '@context' => 'https://schema.org',
         '@type' => 'FAQPage',
         'mainEntity' => [
-            ['@type' => 'Question', 'name' => 'Berapa lama pembuatan website?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Waktu pengerjaan bergantung pada jenis dan ruang lingkup website. Setelah kebutuhan dipetakan, Juki memberikan rencana kerja dan milestone yang jelas.']],
-            ['@type' => 'Question', 'name' => 'Apakah website dibuat SEO-friendly?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Ya. Struktur heading, metadata, performa, responsif mobile, sitemap, dan fondasi on-page SEO disiapkan sejak proses pengembangan.']],
-            ['@type' => 'Question', 'name' => 'Apakah website bisa terhubung ke WhatsApp?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Bisa. Alur inquiry, tombol WhatsApp, formulir kontak, dan integrasi API dapat disesuaikan dengan kebutuhan bisnis.']],
+            ['@type' => 'Question', 'name' => 'Berapa harga pembuatan website?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Paket website bisnis mulai Rp 2.500.000, sistem informasi custom mulai Rp 10.000.000, dan solusi enterprise sesuai kebutuhan proyek.']],
+            ['@type' => 'Question', 'name' => 'Berapa lama pengerjaan website?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Website standar diselesaikan dalam waktu 1 sampai 2 minggu. Proyek custom atau sistem informasi disesuaikan dengan scope yang disepakati.']],
+            ['@type' => 'Question', 'name' => 'Apakah sudah termasuk SEO?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Ya. Struktur heading, metadata, performa, mobile-first, sitemap, dan schema disiapkan sejak awal agar mudah ditemukan di Google.']],
         ],
     ];
 @endphp
@@ -73,18 +73,16 @@
     .juki-web-landing .jw-hero-inner { position:relative; z-index:1; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr); gap:56px; align-items:center; padding:80px 0 72px; }
     .juki-web-landing .jw-eyebrow { display:inline-flex; align-items:center; gap:9px; color:#e8c982; font-size:.78rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
     .juki-web-landing .jw-eyebrow:before { content:""; width:28px; height:2px; background:var(--jw-gold); }
-    .juki-web-landing .jw-hero h1 { max-width:720px; margin:18px 0 20px; color:#fff; font-size:clamp(2.3rem,5vw,4.7rem); line-height:1.03; letter-spacing:-.055em; font-weight:800; }
+    .juki-web-landing .jw-hero h1 { max-width:720px; margin:18px 0 20px; color:#fff; font-size:clamp(2.2rem,4.8vw,4.2rem); line-height:1.06; letter-spacing:-.045em; font-weight:800; }
     .juki-web-landing .jw-hero h1 em { color:#e8c982; font-style:normal; }
-    .juki-web-landing .jw-lead { max-width:650px; color:#e4e9f0; font-size:clamp(1rem,1.7vw,1.2rem); line-height:1.75; }
-    .juki-web-landing .jw-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:30px; }
+    .juki-web-landing .jw-lead { max-width:650px; color:#e4e9f0; font-size:clamp(1rem,1.7vw,1.18rem); line-height:1.75; }
+    .juki-web-landing .jw-service-area { margin-top:20px; padding:14px 18px; border:1px solid rgba(232,201,130,.25); border-radius:12px; background:rgba(255,255,255,.05); font-size:.9rem; color:#f1f5f9; line-height:1.6; }
+    .juki-web-landing .jw-service-area strong { color:#e8c982; font-weight:700; }
+    .juki-web-landing .jw-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; }
     .juki-web-landing .jw-btn { min-height:48px; display:inline-flex; align-items:center; justify-content:center; gap:9px; padding:0 20px; border-radius:10px; font-weight:800; text-decoration:none; transition:transform .2s ease,box-shadow .2s ease,background .2s ease; }
     .juki-web-landing .jw-btn:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(206,154,69,.25); }
-    .juki-web-landing .jw-btn:focus-visible,.juki-web-landing a:focus-visible { outline:3px solid #fbbf24; outline-offset:3px; }
     .juki-web-landing .jw-btn-primary { background:var(--jw-gold); color:#15253f; }
     .juki-web-landing .jw-btn-ghost { border:1px solid rgba(232,201,130,.5); color:#fff; }
-    .juki-web-landing .jw-hero-card { padding:26px; border:1px solid rgba(232,201,130,.25); border-radius:20px; background:rgba(15,23,42,.45); box-shadow:0 24px 70px rgba(2,8,23,.28); backdrop-filter:blur(12px); }
-    .juki-web-landing .jw-card-label { color:#e8c982; font-size:.72rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
-    .juki-web-landing .jw-hero-card h2 { margin:10px 0 22px; color:#fff; font-size:1.45rem; line-height:1.25; }
     .juki-web-landing .jw-hero-visual { position:relative; min-height:390px; display:flex; align-items:center; justify-content:center; }
     .juki-web-landing .jw-browser { position:relative; width:min(100%,520px); overflow:hidden; border:1px solid rgba(232,201,130,.32); border-radius:18px; background:#fff; box-shadow:0 30px 70px rgba(0,0,0,.35); transform:rotate(1.5deg); }
     .juki-web-landing .jw-browser-bar { display:flex; align-items:center; gap:6px; height:34px; padding:0 13px; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
@@ -94,25 +92,29 @@
     .juki-web-landing .jw-visual-note { position:absolute; right:-18px; bottom:20px; max-width:220px; padding:15px 17px; border:1px solid rgba(232,201,130,.45); border-radius:13px; background:#fff; color:var(--jw-ink); box-shadow:0 15px 35px rgba(0,0,0,.2); }
     .juki-web-landing .jw-visual-note strong { display:block; font-family:'Outfit',sans-serif; font-size:1.05rem; }
     .juki-web-landing .jw-visual-note small { display:block; margin-top:4px; color:var(--jw-muted); line-height:1.45; }
-    .juki-web-landing .jw-check { display:flex; gap:10px; align-items:flex-start; margin:14px 0; color:#e4e9f0; line-height:1.5; }
-    .juki-web-landing .jw-check svg { flex:0 0 20px; margin-top:2px; color:#e8c982; }
     .juki-web-landing .jw-proof { background:#fff; border-bottom:1px solid var(--jw-line); }
     .juki-web-landing .jw-proof-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; padding:24px 0; }
     .juki-web-landing .jw-proof strong { display:block; font-size:1rem; }
     .juki-web-landing .jw-proof span { display:block; margin-top:4px; color:var(--jw-muted); font-size:.82rem; }
     .juki-web-landing .jw-section { padding:82px 0; }
-    .juki-web-landing .jw-section[data-reveal] { content-visibility:auto; contain-intrinsic-size:720px; }
     .juki-web-landing .jw-section-alt { background:#fff; }
     .juki-web-landing .jw-kicker { color:var(--jw-gold-dark); font-size:.75rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
     .juki-web-landing .jw-section h2 { max-width:780px; margin:10px 0 16px; font-size:clamp(1.75rem,3vw,2.55rem); line-height:1.12; letter-spacing:-.035em; font-weight:700; }
+    .juki-web-landing .jw-section-center { text-align:center; }
+    .juki-web-landing .jw-section-center h2,.juki-web-landing .jw-section-center .jw-kicker,.juki-web-landing .jw-section-center .jw-intro { margin-inline:auto; }
     .juki-web-landing .jw-intro { max-width:720px; color:var(--jw-muted); font-size:1.06rem; line-height:1.75; }
     .juki-web-landing .jw-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:32px; }
     .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(3,1fr); }
     .juki-web-landing .jw-service { display:flex; flex-direction:column; padding:25px; border:1px solid #e2e8f0; border-radius:16px; background:#fff; box-shadow:0 8px 24px rgba(15,23,42,.05); transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease; }
     .juki-web-landing .jw-service:hover { transform:translateY(-5px); border-color:#d4ad64; box-shadow:0 18px 36px rgba(154,107,22,.12); }
+    .juki-web-landing .jw-service-center { text-align:center; align-items:center; }
     .juki-web-landing .jw-service-icon { width:42px; height:42px; display:grid; place-items:center; margin-bottom:18px; border-radius:12px; background:var(--jw-soft); color:var(--jw-gold-dark); }
-    .juki-web-landing .jw-service h3 { margin:0 0 8px; font-size:1.05rem; }
-    .juki-web-landing .jw-service p { margin:0; color:var(--jw-muted); font-size:.9rem; line-height:1.65; }
+    .juki-web-landing .jw-service h3 { margin:0 0 8px; font-size:1.15rem; }
+    .juki-web-landing .jw-service p { margin:0 0 16px; color:var(--jw-muted); font-size:.92rem; line-height:1.65; flex-grow:1; }
+    .juki-web-landing .jw-price-tag { margin:10px 0 14px; font-family:'Outfit',sans-serif; font-size:1.6rem; font-weight:800; color:var(--jw-ink); }
+    .juki-web-landing .jw-pricing-list { list-style:none; padding:0; margin:0 0 20px; text-align:left; width:100%; border-top:1px solid #e2e8f0; padding-top:14px; }
+    .juki-web-landing .jw-pricing-list li { font-size:.88rem; color:var(--jw-muted); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+    .juki-web-landing .jw-pricing-list li svg { width:16px; height:16px; color:var(--jw-gold-dark); flex-shrink:0; }
     .juki-web-landing .jw-aida { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:34px; }
     .juki-web-landing .jw-step { padding:22px; border-top:3px solid var(--jw-gold); background:#f8f7f3; }
     .juki-web-landing .jw-step b { display:block; color:var(--jw-gold-dark); font-size:.75rem; letter-spacing:.12em; text-transform:uppercase; }
@@ -158,10 +160,17 @@
     .juki-web-landing .jw-section-pricing .jw-service:nth-child(2) { border:2px solid var(--jw-gold); transform:translateY(-12px); box-shadow:0 22px 42px rgba(154,107,22,.15); }
     .juki-web-landing .jw-section-pricing .jw-service:nth-child(2):before { content:'PALING DIPILIH'; position:absolute; top:0; right:0; padding:7px 12px; border-radius:0 0 0 10px; background:var(--jw-gold); color:var(--jw-ink); font-size:.62rem; font-weight:800; letter-spacing:.1em; }
     .juki-web-landing .jw-section-aida { background:linear-gradient(180deg,#fbf6eb 0%,#fff 100%); }
-    .juki-web-landing .jw-timeline { position:relative; }
-    .juki-web-landing .jw-timeline:before { content:""; position:absolute; top:50%; left:8%; right:8%; height:1px; background:#ddc58f; }
-    .juki-web-landing .jw-timeline .jw-step { position:relative; z-index:1; border:1px solid #eadfca; border-top:3px solid var(--jw-gold); border-radius:14px; background:rgba(255,255,255,.92); transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease; }
-    .juki-web-landing .jw-timeline .jw-step.is-active { transform:translateY(-10px); border-color:var(--jw-gold); box-shadow:0 18px 35px rgba(154,107,22,.14); }
+    .juki-web-landing .jw-sticky-aida-wrapper { display:grid; grid-template-columns:360px minmax(0,1fr); gap:48px; align-items:start; margin-top:36px; }
+    .juki-web-landing .jw-sticky-aida-nav { position:sticky; top:32px; display:grid; gap:10px; }
+    .juki-web-landing .jw-aida-nav-item { padding:18px 20px; border:1px solid #eadfca; border-radius:14px; background:#fff; color:var(--jw-muted); font-weight:700; text-align:left; cursor:pointer; transition:all .25s ease; box-shadow:0 4px 12px rgba(21,37,63,.03); }
+    .juki-web-landing .jw-aida-nav-item.is-active { background:var(--jw-ink); color:#fff; border-color:var(--jw-ink); transform:translateX(6px); box-shadow:0 10px 25px rgba(21,37,63,.15); }
+    .juki-web-landing .jw-aida-nav-item b { display:block; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--jw-gold); margin-bottom:4px; }
+    .juki-web-landing .jw-sticky-aida-content { display:grid; gap:24px; }
+    .juki-web-landing .jw-aida-content-card { padding:36px; border:1px solid #eadfca; border-radius:20px; background:#fff; box-shadow:0 12px 32px rgba(21,37,63,.06); opacity:.4; transform:translateY(16px); transition:all .4s cubic-bezier(.16,1,.3,1); }
+    .juki-web-landing .jw-aida-content-card.is-active { opacity:1; transform:none; border-color:var(--jw-gold); box-shadow:0 20px 45px rgba(154,107,22,.15); background:linear-gradient(135deg,#fff 0%,#fbf6eb 100%); }
+    .juki-web-landing .jw-aida-content-card b { color:var(--jw-gold-dark); font-size:.8rem; letter-spacing:.12em; text-transform:uppercase; }
+    .juki-web-landing .jw-aida-content-card h3 { margin:10px 0 12px; font-size:1.45rem; }
+    .juki-web-landing .jw-aida-content-card p { margin:0; color:var(--jw-muted); font-size:1.02rem; line-height:1.75; }
     .juki-web-landing .jw-section-seo { color:#fff; background:linear-gradient(135deg,#15253f,#213756); }
     .juki-web-landing .jw-section-seo h2,.juki-web-landing .jw-section-seo .jw-kicker { color:#fff; }
     .juki-web-landing .jw-section-seo .jw-kicker { color:#e8c982; }
@@ -174,13 +183,6 @@
     .juki-web-landing .jw-section-faq { background:#f8f7f3; }
     .juki-web-landing .jw-js .jw-reveal { opacity:0; transform:translateY(18px); transition:opacity .6s ease,transform .6s ease; }
     .juki-web-landing .jw-js .jw-reveal.is-visible { opacity:1; transform:none; }
-    .juki-web-landing .jw-longform { max-width:820px; }
-    .juki-web-landing .jw-longform h2 { margin-top:42px; }
-    .juki-web-landing .jw-longform h2:first-of-type { margin-top:28px; }
-    .juki-web-landing .jw-longform h3 { margin:28px 0 10px; font-size:1.3rem; line-height:1.25; letter-spacing:-.02em; }
-    .juki-web-landing .jw-longform p { max-width:780px; margin:0 0 16px; color:var(--jw-muted); font-size:1.02rem; line-height:1.85; }
-    .juki-web-landing .jw-longform a { color:#0369a1; font-weight:700; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:3px; }
-    .juki-web-landing .jw-longform { padding-left:clamp(0px,4vw,64px); border-left:3px solid var(--jw-gold); }
     .juki-web-landing .jw-list { display:grid; gap:13px; margin:24px 0 0; padding:0; list-style:none; }
     .juki-web-landing .jw-list li { display:flex; gap:11px; color:var(--jw-muted); line-height:1.55; }
     .juki-web-landing .jw-list svg { flex:0 0 20px; color:var(--jw-gold-dark); margin-top:2px; }
@@ -194,8 +196,8 @@
     .juki-web-landing .jw-final { padding:70px 0; background:var(--jw-ink); color:#fff; text-align:center; }
     .juki-web-landing .jw-final h2 { max-width:700px; margin:10px auto 16px; color:#fff; }
     .juki-web-landing .jw-final p { max-width:630px; margin:0 auto; color:#cbd5e1; line-height:1.7; }
-    @media (max-width:900px) { .juki-web-landing .jw-hero-inner,.juki-web-landing .jw-columns,.juki-web-landing .jw-sticky-layout,.juki-web-landing .jw-showcase-grid { grid-template-columns:1fr; gap:32px; } .juki-web-landing .jw-sticky-offer,.juki-web-landing .jw-showcase-sticky { position:relative; top:auto; order:-1; } .juki-web-landing .jw-grid,.juki-web-landing .jw-aida { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-bento .jw-service:first-child { grid-column:auto; } .juki-web-landing .jw-bento .jw-service:nth-child(4),.juki-web-landing .jw-section-pricing .jw-service:nth-child(2) { transform:none; } .juki-web-landing .jw-showcase-card:nth-child(2),.juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:0; } .juki-web-landing .jw-timeline:before { display:none; } }
-    @media (max-width:620px) { .juki-web-landing .jw-container { width:min(100% - 24px,1180px); } .juki-web-landing .jw-hero-inner { padding:58px 0 52px; } .juki-web-landing .jw-proof-grid,.juki-web-landing .jw-grid,.juki-web-landing .jw-aida,.juki-web-landing .jw-related { grid-template-columns:1fr; } .juki-web-landing .jw-section,.juki-web-landing .jw-showcase { padding:58px 0; } .juki-web-landing .jw-actions .jw-btn { width:100%; } .juki-web-landing .jw-hero-visual { min-height:280px; } .juki-web-landing .jw-visual-note { right:0; bottom:4px; } .juki-web-landing .jw-longform { padding-left:18px; } }
+    @media (max-width:900px) { .juki-web-landing .jw-hero-inner,.juki-web-landing .jw-columns,.juki-web-landing .jw-sticky-layout,.juki-web-landing .jw-showcase-grid,.juki-web-landing .jw-sticky-aida-wrapper { grid-template-columns:1fr; gap:32px; } .juki-web-landing .jw-sticky-offer,.juki-web-landing .jw-showcase-sticky,.juki-web-landing .jw-sticky-aida-nav { position:relative; top:auto; order:-1; } .juki-web-landing .jw-grid,.juki-web-landing .jw-aida { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-grid-3 { grid-template-columns:repeat(2,1fr); } .juki-web-landing .jw-bento .jw-service:first-child { grid-column:auto; } .juki-web-landing .jw-bento .jw-service:nth-child(4),.juki-web-landing .jw-section-pricing .jw-service:nth-child(2) { transform:none; } .juki-web-landing .jw-showcase-card:nth-child(2),.juki-web-landing .jw-showcase-card:nth-child(3) { margin-left:0; } }
+    @media (max-width:620px) { .juki-web-landing .jw-container { width:min(100% - 24px,1180px); } .juki-web-landing .jw-hero-inner { padding:58px 0 52px; } .juki-web-landing .jw-proof-grid,.juki-web-landing .jw-grid,.juki-web-landing .jw-aida,.juki-web-landing .jw-related { grid-template-columns:1fr; } .juki-web-landing .jw-section,.juki-web-landing .jw-showcase { padding:58px 0; } .juki-web-landing .jw-actions .jw-btn { width:100%; } .juki-web-landing .jw-hero-visual { min-height:280px; } .juki-web-landing .jw-visual-note { right:0; bottom:4px; } }
     @media (prefers-reduced-motion:reduce) { .juki-web-landing *,.juki-web-landing *:before,.juki-web-landing *:after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } .juki-web-landing .jw-js .jw-reveal { opacity:1; transform:none; } }
 </style>
 @endsection
@@ -204,18 +206,10 @@
 document.addEventListener('DOMContentLoaded', function () {
     var landing = document.querySelector('.juki-web-landing');
     if (!landing) return;
-
-    // Progressive enhancement: SSR content remains available without JavaScript.
     landing.classList.add('jw-js');
-    landing.querySelectorAll('img').forEach(function (image) {
-        if (!image.hasAttribute('loading')) image.setAttribute('loading', 'lazy');
-        image.setAttribute('decoding', 'async');
-    });
 
     var revealItems = landing.querySelectorAll('.jw-reveal');
-    if (!('IntersectionObserver' in window)) {
-        revealItems.forEach(function (item) { item.classList.add('is-visible'); });
-    } else {
+    if ('IntersectionObserver' in window) {
         var observer = new IntersectionObserver(function (entries, currentObserver) {
             entries.forEach(function (entry) {
                 if (!entry.isIntersecting) return;
@@ -224,11 +218,41 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
         revealItems.forEach(function (item) { observer.observe(item); });
+    } else {
+        revealItems.forEach(function (item) { item.classList.add('is-visible'); });
+    }
+
+    // Sticky AIDA Interactive Observer
+    var aidaCards = landing.querySelectorAll('.jw-aida-content-card');
+    var aidaNavItems = landing.querySelectorAll('.jw-aida-nav-item');
+    if ('IntersectionObserver' in window && aidaCards.length && aidaNavItems.length) {
+        var aidaObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    var idx = entry.target.getAttribute('data-aida-index');
+                    aidaCards.forEach(function (c) { c.classList.remove('is-active'); });
+                    aidaNavItems.forEach(function (n) { n.classList.remove('is-active'); });
+                    entry.target.classList.add('is-active');
+                    var activeNav = landing.querySelector('[data-aida-nav="' + idx + '"]');
+                    if (activeNav) activeNav.classList.add('is-active');
+                }
+            });
+        }, { rootMargin: '-30% 0px -40% 0px', threshold: 0.1 });
+        aidaCards.forEach(function (card) { aidaObserver.observe(card); });
+
+        aidaNavItems.forEach(function (nav) {
+            nav.addEventListener('click', function () {
+                var idx = nav.getAttribute('data-aida-nav');
+                var targetCard = landing.querySelector('[data-aida-index="' + idx + '"]');
+                if (targetCard) {
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        });
     }
 
     var progressBar = landing.querySelector('.jw-showcase-progress span');
     var showcase = landing.querySelector('.jw-showcase');
-    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var updateProgress = function () {
         if (!progressBar || !showcase) return;
         var rect = showcase.getBoundingClientRect();
@@ -238,30 +262,6 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     window.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
-
-    var timelineSteps = landing.querySelectorAll('[data-timeline-step]');
-    if ('IntersectionObserver' in window && timelineSteps.length) {
-        var timelineObserver = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                entry.target.classList.toggle('is-active', entry.isIntersecting);
-            });
-        }, { rootMargin: '-30% 0px -45% 0px', threshold: 0 });
-        timelineSteps.forEach(function (step) { timelineObserver.observe(step); });
-    }
-
-    var visual = landing.querySelector('.jw-browser');
-    if (visual && !reducedMotion && window.matchMedia('(pointer:fine)').matches) {
-        var heroVisual = landing.querySelector('.jw-hero-visual');
-        heroVisual.addEventListener('pointermove', function (event) {
-            var bounds = heroVisual.getBoundingClientRect();
-            var x = (event.clientX - bounds.left) / bounds.width - .5;
-            var y = (event.clientY - bounds.top) / bounds.height - .5;
-            visual.style.transform = 'perspective(900px) rotateY(' + (x * 4) + 'deg) rotateX(' + (y * -3) + 'deg) rotateZ(1.5deg)';
-        });
-        heroVisual.addEventListener('pointerleave', function () {
-            visual.style.transform = 'rotateZ(1.5deg)';
-        });
-    }
 });
 </script>
 @endsection
@@ -274,8 +274,11 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="jw-container jw-hero-inner">
             <div>
                 <span class="jw-eyebrow">Web engineering · SEO · conversion</span>
-                <h1>Website yang terlihat <em>profesional</em> dan bekerja untuk bisnis Anda.</h1>
+                <h1>Juki Web Developer Solo — Vendor / Jasa Pembuatan Website Profesional untuk UMKM dan Perusahaan</h1>
                 <p class="jw-lead">Jasa pembuatan website di Solo dan Surakarta untuk membangun kepercayaan, mendapatkan inquiry, dan mengubah pencarian Google menjadi peluang bisnis.</p>
+                <div class="jw-service-area">
+                    <strong>Wilayah Soloraya:</strong> Melayani semua klien di wilayah Surakarta, Karanganyar, Sragen, Wonogiri, Boyolali, Klaten, Sukoharjo dan sekitarnya.
+                </div>
                 <div class="jw-actions">
                     <a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin konsultasi jasa pembuatan website untuk bisnis saya.') }}">Konsultasi via WhatsApp <span aria-hidden="true">→</span></a>
                     <a class="jw-btn jw-btn-ghost" href="{{ url('/contact') }}">Kirim brief proyek</a>
@@ -290,9 +293,16 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         </div>
     </section>
+
     <section class="jw-proof" aria-label="Fokus layanan">
-        <div class="jw-container jw-proof-grid"><div><strong>Mobile-first</strong><span>Nyaman di setiap layar</span></div><div><strong>SEO-ready</strong><span>Struktur siap ditemukan</span></div><div><strong>Conversion-led</strong><span>CTA menuju inquiry</span></div><div><strong>Ownership penuh</strong><span>Aset tetap milik bisnis</span></div></div>
+        <div class="jw-container jw-proof-grid">
+            <div><strong>Mobile-first</strong><span>Nyaman di setiap layar</span></div>
+            <div><strong>SEO-ready</strong><span>Struktur siap ditemukan</span></div>
+            <div><strong>Conversion-led</strong><span>CTA menuju inquiry</span></div>
+            <div><strong>Ownership penuh</strong><span>Aset tetap milik bisnis</span></div>
+        </div>
     </section>
+
     <section class="jw-showcase" data-reveal>
         <div class="jw-container jw-showcase-grid">
             <div class="jw-showcase-sticky">
@@ -309,6 +319,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         </div>
     </section>
+
     <section class="jw-section" data-reveal>
         <div class="jw-container jw-sticky-layout">
             <div class="jw-scroll-column">
@@ -327,75 +338,199 @@ document.addEventListener('DOMContentLoaded', function () {
             </aside>
         </div>
     </section>
-    <section class="jw-section jw-section-benefits">
-        <div class="jw-container"><span class="jw-kicker">Satu website. Satu tujuan: lebih banyak inquiry.</span><h2>Yang Anda dapatkan bukan halaman cantik—tetapi aset bisnis yang siap bekerja.</h2><p class="jw-intro">Kami merancang pesan, struktur, tampilan, dan CTA berdasarkan cara calon pelanggan memilih jasa. Hasilnya terlihat profesional, mudah dipahami, dan punya jalur jelas menuju WhatsApp atau inquiry.</p>
-            <div class="jw-grid jw-bento">
-                <article class="jw-service"><div class="jw-service-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div><h3>Terlihat kredibel</h3><p>Visual premium, pesan yang tajam, dan struktur yang membuat calon pelanggan yakin untuk bertanya.</p></article>
-                <article class="jw-service"><div class="jw-service-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></div><h3>Siap ditemukan</h3><p>Fondasi SEO, heading, metadata, schema, dan internal link dibangun untuk search intent yang tepat.</p></article>
-                <article class="jw-service"><div class="jw-service-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></div><h3>Mudah dihubungi</h3><p>CTA WhatsApp, formulir, dan alur inquiry ditempatkan saat pengunjung sudah siap mengambil tindakan.</p></article>
-                <article class="jw-service"><div class="jw-service-icon"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M8 8h3v3H8zM13 8h3M13 12h3M8 16h8"/></svg></div><h3>Siap dikembangkan</h3><p>Mulai dari website layanan hingga sistem informasi, fondasinya dapat tumbuh mengikuti bisnis Anda.</p></article>
+
+    <!-- PRICING / SOLUSI WEBSITE UNTUK KEBUTUHAN BERBEDA (RATA TENGAH & DETAIL) -->
+    <section class="jw-section jw-section-pricing jw-section-alt">
+        <div class="jw-container jw-section-center">
+            <span class="jw-kicker">Pilih titik mulai Anda</span>
+            <h2>Solusi website untuk kebutuhan yang berbeda.</h2>
+            <p class="jw-intro">Setiap bisnis memiliki skala, anggaran, dan target operasional yang unik. Berikut rincian paket dan apa saja yang didapatkan secara transparan.</p>
+            <div class="jw-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 48px; text-align: left;">
+                
+                <article class="jw-service jw-service-center">
+                    <span class="jw-card-label">UMKM & Profesional</span>
+                    <h3>Website Bisnis</h3>
+                    <div class="jw-price-tag">Mulai Rp 2,5 juta</div>
+                    <p>Company profile, landing page, atau toko online untuk bisnis di Solo yang ingin tampil kredibel dan mulai menerima inquiry via WhatsApp.</p>
+                    <ul class="jw-pricing-list">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Domain & Hosting setup (opsional)</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Desain Responsive Mobile-First</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Struktur On-Page SEO-Ready</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Tombol & Alur Inquiry WhatsApp</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Revisi & Panduan Pengelolaan</li>
+                    </ul>
+                    <a class="jw-btn jw-btn-primary" style="width:100%; margin-top:auto;" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya tertarik Paket Website Bisnis mulai Rp 2.500.000.') }}">Tanya Paket Ini →</a>
+                </article>
+
+                <article class="jw-service jw-service-center" style="border: 2px solid var(--jw-gold);">
+                    <span class="jw-card-label" style="color:var(--jw-gold-dark);">Perusahaan & Operasional</span>
+                    <h3>Sistem Informasi</h3>
+                    <div class="jw-price-tag">Mulai Rp 10 juta</div>
+                    <p>CRM, ERP, inventory, POS, dashboard internal, atau aplikasi web custom yang dirancang mengikuti alur kerja perusahaan Anda.</p>
+                    <ul class="jw-pricing-list">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Arsitektur Database & Backend Aman</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Manajemen Hak Akses (Role/Permission)</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> REST API & Integrasi Eksternal</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Dashboard & Reporting Real-time</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Pelatihan Tim & Garansi Maintenance</li>
+                    </ul>
+                    <a class="jw-btn jw-btn-primary" style="width:100%; margin-top:auto;" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin konsultasi pembuatan Sistem Informasi / Aplikasi Web.') }}">Diskusikan Kebutuhan →</a>
+                </article>
+
+                <article class="jw-service jw-service-center">
+                    <span class="jw-card-label">Skala Lanjutan</span>
+                    <h3>Solusi Terintegrasi</h3>
+                    <div class="jw-price-tag" style="font-size:1.3rem; margin:16px 0;">Custom / Enterprise</div>
+                    <p>Kombinasi website, automated workflow, otomasi pemasaran, AI knowledge integration, dan optimasi SEO menyeluruh untuk korporasi.</p>
+                    <ul class="jw-pricing-list">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Multi-channel & Programmatic SEO</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Otomasi WhatsApp / CRM Webhook</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Keamanan & Performa High-Traffic</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Dedicated Technical Partner</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Ruang Lingkup Sesuai Kebutuhan</li>
+                    </ul>
+                    <a class="jw-btn jw-btn-primary" style="width:100%; margin-top:auto;" href="{{ url('/contact') }}">Kirim Brief Proyek →</a>
+                </article>
+
             </div>
         </div>
     </section>
-    <section class="jw-section jw-section-pricing jw-section-alt">
-        <div class="jw-container"><span class="jw-kicker">Pilih titik mulai Anda</span><h2>Solusi website untuk kebutuhan yang berbeda.</h2><div class="jw-grid"><article class="jw-service"><span class="jw-card-label">Mulai Rp 2,5 juta</span><h3>Website bisnis</h3><p>Company profile, landing page, atau toko online untuk bisnis yang ingin tampil profesional dan mulai menerima inquiry.</p><a class="jw-btn jw-btn-primary" style="margin-top:20px" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya tertarik Paket Website mulai Rp 2.500.000.') }}">Tanya paket ini →</a></article><article class="jw-service"><span class="jw-card-label">Mulai Rp 10 juta</span><h3>Sistem informasi</h3><p>CRM, ERP, inventory, POS, dashboard, atau aplikasi web custom yang mengikuti proses kerja perusahaan.</p><a class="jw-btn jw-btn-primary" style="margin-top:20px" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin konsultasi sistem informasi bisnis.') }}">Diskusikan kebutuhan →</a></article><article class="jw-service"><span class="jw-card-label">Custom / enterprise</span><h3>Solusi terintegrasi</h3><p>Website, SEO, otomasi, AI, dan integrasi API untuk kebutuhan khusus dengan scope yang disusun bersama.</p><a class="jw-btn jw-btn-primary" style="margin-top:20px" href="{{ url('/contact') }}">Kirim brief proyek →</a></article></div></div>
+
+    <!-- STICKY AIDA SECTION (SCROLL TERUS MUNCUL & PENJELASAN MASING-MASING) -->
+    <section class="jw-section jw-section-aida" aria-label="Alur AIDA Interaktif">
+        <div class="jw-container jw-section-center">
+            <span class="jw-kicker">Psikologi konversi</span>
+            <h2>Alur AIDA yang terasa natural, bukan teori di atas kertas.</h2>
+            <p class="jw-intro">Setiap pengunjung melewati fase mental yang sama sebelum memutuskan menghubungi Anda. Halaman ini dirancang mengikuti alur AIDA agar transisi dari pembaca menjadi klien terasa mulus.</p>
+            
+            <div class="jw-sticky-aida-wrapper">
+                <div class="jw-sticky-aida-nav">
+                    <button type="button" class="jw-aida-nav-item is-active" data-aida-nav="0"><b>01 · Attention</b> Perhatian Pertama</button>
+                    <button type="button" class="jw-aida-nav-item" data-aida-nav="1"><b>02 · Interest</b> Ketertarikan Kontekstual</button>
+                    <button type="button" class="jw-aida-nav-item" data-aida-nav="2"><b>03 · Desire</b> Keinginan & Bukti Nilai</button>
+                    <button type="button" class="jw-aida-nav-item" data-aida-nav="3"><b>04 · Action</b> Tindakan Nyata (Inquiry)</button>
+                </div>
+                <div class="jw-sticky-aida-content">
+                    <div class="jw-aida-content-card is-active" data-aida-index="0">
+                        <b>Tahap 01 — Attention (Perhatian)</b>
+                        <h3>Masalah langsung terasa di detik pertama kunjungan</h3>
+                        <p>Pengunjung yang datang dari pencarian Google di Solo langsung melihat headline yang relevan dengan kebutuhan bisnis mereka—tanpa basa-basi, tanpa animasi yang mengganggu, dan langsung menjawab apa yang Anda tawarkan.</p>
+                    </div>
+                    <div class="jw-aida-content-card" data-aida-index="1">
+                        <b>Tahap 02 — Interest (Ketertarikan)</b>
+                        <h3>Solusi dan nilai bisnis disusun seperti percakapan</h3>
+                        <p>Alih-alih daftar fitur teknis yang membosankan, kami menjelaskan bagaimana website menyelesaikan masalah operasional, menambah kepercayaan klien, dan merapikan brand perusahaan Anda di mata calon pembeli.</p>
+                    </div>
+                    <div class="jw-aida-content-card" data-aida-index="2">
+                        <b>Tahap 03 — Desire (Keinginan)</b>
+                        <h3>Transparansi harga dan kredibilitas menghilangkan keraguan</h3>
+                        <p>Calon pembeli sering ragu karena tidak tahu kisaran harga dan apa yang didapat. Kami memaparkan paket transparan, estimasi waktu, serta keunggulan kepemilikan penuh agar mereka yakin.</p>
+                    </div>
+                    <div class="jw-aida-content-card" data-aida-index="3">
+                        <b>Tahap 04 — Action (Tindakan)</b>
+                        <h3>Tombol WhatsApp & konsultasi hadir di saat yang tepat</h3>
+                        <p>Ketika pengunjung sudah memahami nilai dan memutuskan untuk bergerak, tombol WhatsApp dan formulir ringkas langsung siap diklik tanpa perlu mencari-cari di menu atau footer.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
-    <section class="jw-section jw-section-aida jw-section-alt" aria-label="Alur keputusan pelanggan">
-        <div class="jw-container"><span class="jw-kicker">Mengapa halaman ini efektif</span><h2>Alur AIDA yang terasa natural, bukan teori di atas kertas.</h2><div class="jw-aida jw-timeline"><article class="jw-step" data-timeline-step><b>01 · Attention</b><h3>Masalah langsung terasa</h3><p>Headline berbicara kepada bisnis yang ingin dipercaya dan mendapatkan inquiry.</p></article><article class="jw-step" data-timeline-step><b>02 · Interest</b><h3>Solusinya mudah dipahami</h3><p>Kartu manfaat menjelaskan apa yang dibangun dan untuk siapa.</p></article><article class="jw-step" data-timeline-step><b>03 · Desire</b><h3>Nilainya menjadi nyata</h3><p>Paket, harga awal, SEO, proses, dan kepemilikan mengurangi keraguan.</p></article><article class="jw-step" data-timeline-step><b>04 · Action</b><h3>CTA ada di saat yang tepat</h3><p>Pengunjung dapat langsung menghubungi Juki tanpa mencari-cari tombol.</p></article></div></div>
-    </section>
-    <section class="jw-section jw-section-seo"><div class="jw-container jw-columns"><div><span class="jw-kicker">Dibangun untuk ditemukan dan dipercaya</span><h2>Premium di mata pelanggan. Sehat di mata Google.</h2><p class="jw-intro">Keindahan visual tidak berdiri sendiri. Setiap halaman disusun agar mudah dipindai, cepat digunakan, dan memiliki konteks SEO yang jelas.</p></div><ul class="jw-list"><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Mobile-first, aksesibel, dan nyaman dibaca.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Meta title, schema, sitemap, canonical, dan internal link.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Struktur cepat, aman, dan siap dikembangkan.</span></li><li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Integrasi WhatsApp, formulir, API, dan kebutuhan bisnis.</span></li></ul></div></section>
+
+    <!-- METODE FUNNELING PERKONTENAN (TOFU, MOFU, BOFU) -->
     <section class="jw-section jw-section-alt">
-        <div class="jw-container"><span class="jw-kicker">Jasa pembuatan website profesional di Solo</span><h2>Semua yang penting untuk membuat calon pelanggan yakin.</h2><p class="jw-intro">Bukan artikel panjang. Bukan template yang diganti warna. Ini adalah sistem halaman yang memandu pengunjung dari “siapa Anda?” menjadi “bagaimana saya mulai?”.</p><div class="jw-grid jw-grid-3">
-            <article class="jw-service"><span class="jw-card-label">01 · Posisi</span><h3>Pesan yang langsung terbaca</h3><p>Headline menjelaskan layanan dan hasil yang dicari pelanggan. Untuk bisnis lokal, konteks Solo, Surakarta, dan area layanan muncul secara natural sehingga pengunjung dan Google memahami relevansinya.</p></article>
-            <article class="jw-service"><span class="jw-card-label">02 · Kepercayaan</span><h3>Brand yang terlihat matang</h3><p>Palet navy-gold, tipografi Outfit, hierarchy yang tegas, dan whitespace yang terukur membuat website terasa seperti aset bisnis—bukan halaman percobaan.</p></article>
-            <article class="jw-service"><span class="jw-card-label">03 · Keputusan</span><h3>CTA yang tidak disembunyikan</h3><p>Pengunjung selalu punya langkah berikutnya: konsultasi WhatsApp, kirim brief, atau pilih paket. Tidak perlu menggali sampai footer untuk menemukan cara menghubungi Anda.</p></article>
-            <article class="jw-service"><span class="jw-card-label">04 · Layanan</span><h3>Company profile yang menjual</h3><p>Tampilkan layanan, positioning, area kerja, proses, dan alasan memilih Anda dalam struktur yang mudah dipindai oleh pemilik bisnis, tim procurement, maupun calon partner.</p></article>
-            <article class="jw-service"><span class="jw-card-label">05 · Akuisisi</span><h3>Landing page yang fokus</h3><p>Satu campaign, satu target, satu CTA. Struktur AIDA bekerja di balik layout: perhatian, ketertarikan, keinginan, lalu action tanpa distraksi berlebihan.</p></article>
-            <article class="jw-service"><span class="jw-card-label">06 · Pertumbuhan</span><h3>SEO yang siap dilanjutkan</h3><p>Entity web developer Solo, web design, WordPress, Laravel, toko online, local SEO, Core Web Vitals, schema, dan WhatsApp dihubungkan secara natural ke search intent.</p></article>
-            <article class="jw-service"><span class="jw-card-label">07 · Operasional</span><h3>Lebih dari sekadar halaman</h3><p>Jika bisnis Anda membutuhkan dashboard, CRM, inventory, POS, database, REST API, autentikasi, atau sistem informasi, fondasi dapat berkembang tanpa membuang aset awal.</p></article>
-            <article class="jw-service"><span class="jw-card-label">08 · Ownership</span><h3>Kontrol tetap di tangan Anda</h3><p>Domain, data, source code, dan aset digital dibangun untuk menjadi milik bisnis. Setelah live, Anda mendapatkan penjelasan penggunaan dan dukungan melalui WhatsApp.</p></article>
-            <article class="jw-service"><span class="jw-card-label">09 · Lokal</span><h3>Dibuat dekat dengan kebutuhan Solo</h3><p>Mulai dari UMKM, jasa profesional, kontraktor, distributor, hingga perusahaan B2B di Solo Raya. Pesan dan CTA disesuaikan dengan cara pelanggan lokal mencari vendor.</p></article>
-        </div></div>
+        <div class="jw-container jw-section-center">
+            <span class="jw-kicker">Strategi SEO & Content Marketing</span>
+            <h2>Metode Funneling Perkontenan untuk Menjemput Traffic Google.</h2>
+            <p class="jw-intro">Website landing page utama tidak berdiri sendiri. Kami menghubungkannya dengan ekosistem konten artikel berstruktur <strong>TOFU, MOFU, BOFU</strong> agar otoritas SEO Anda tumbuh organik.</p>
+            
+            <div class="jw-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); text-align: left; margin-top: 36px;">
+                <article class="jw-service">
+                    <span class="jw-card-label">TOFU (Top of Funnel)</span>
+                    <h3>Edukasi & Jangkauan Luas</h3>
+                    <p>Artikel panduan, definisi, dan tips awal untuk menjaring pencari informasi di Solo yang baru menyadari kebutuhan digitalisasi bisnis.</p>
+                    <ul class="jw-pricing-list">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Target: Kata kunci informasional</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Fokus: Edukasi & kesadaran brand</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Tautan ke halaman layanan utama</li>
+                    </ul>
+                </article>
+
+                <article class="jw-service" style="border: 2px solid var(--jw-gold);">
+                    <span class="jw-card-label" style="color:var(--jw-gold-dark);">MOFU (Middle of Funnel)</span>
+                    <h3>Evaluasi & Perbandingan</h3>
+                    <p>Artikel studi kasus, perbandingan platform (misal WordPress vs Custom), dan tips memilih vendor web development yang tepat.</p>
+                    <ul class="jw-pricing-list">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Target: Kata kunci investigasi</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Fokus: Membangun pertimbangan</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Tautan ke studi kasus / LP spesifik</li>
+                    </ul>
+                </article>
+
+                <article class="jw-service">
+                    <span class="jw-card-label">BOFU (Bottom of Funnel)</span>
+                    <h3>Keputusan & Konversi</h3>
+                    <p>Artikel penentu, rincian biaya, dan panduan kerja sama yang langsung mengarah pada keputusan menggunakan jasa Anda.</p>
+                    <ul class="jw-pricing-list">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Target: Kata kunci transaksional</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Fokus: Mendorong inquiry WhatsApp</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4L19 6"/></svg> Tautan langsung ke tombol order/LP</li>
+                    </ul>
+                </article>
+            </div>
+        </div>
     </section>
-    <section class="jw-section">
-        <div class="jw-container"><span class="jw-kicker">Detail yang membuat perbedaan</span><h2>Kecil di layar. Besar pengaruhnya pada keputusan.</h2><div class="jw-grid jw-grid-3">
-            <article class="jw-service"><h3>Mobile-first</h3><p>Mayoritas pencarian terjadi dari ponsel. Layout, tombol, ukuran teks, dan jarak dirancang agar tetap nyaman disentuh dan dibaca tanpa zoom.</p></article>
-            <article class="jw-service"><h3>Search-ready</h3><p>Struktur H1, H2, metadata, canonical, sitemap, schema, dan internal link membantu mesin pencari membaca konteks halaman secara konsisten.</p></article>
-            <article class="jw-service"><h3>Fast by design</h3><p>Gambar, font, layout, dan komponen dipertimbangkan sejak awal agar halaman tidak terasa berat ketika calon pelanggan membukanya dari koneksi mobile.</p></article>
-            <article class="jw-service"><h3>Form yang jelas</h3><p>Inquiry tidak dibuat rumit. Pengunjung dapat menjelaskan kebutuhan dan langsung melanjutkan percakapan dengan konteks yang jelas melalui WhatsApp.</p></article>
-            <article class="jw-service"><h3>Siap diukur</h3><p>Struktur halaman memudahkan Anda membaca sumber inquiry, memperbaiki CTA, menambah konten, dan mengembangkan halaman layanan turunan.</p></article>
-            <article class="jw-service"><h3>Siap dipercaya</h3><p>Harga awal, estimasi, proses, area layanan, dan FAQ membantu calon klien mengurangi keraguan sebelum mengirim pesan pertama. Informasi penting hadir saat mereka membutuhkannya, bukan disembunyikan di balik jargon.</p></article>
-        </div></div>
+
+    <section class="jw-section jw-section-seo">
+        <div class="jw-container jw-columns">
+            <div>
+                <span class="jw-kicker">Dibangun untuk ditemukan dan dipercaya</span>
+                <h2>Premium di mata pelanggan. Sehat di mata Google.</h2>
+                <p class="jw-intro">Keindahan visual tidak berdiri sendiri. Setiap halaman disusun agar mudah dipindai, cepat digunakan, dan memiliki konteks SEO yang konsisten untuk wilayah Solo Raya.</p>
+            </div>
+            <ul class="jw-list">
+                <li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Mobile-first, aksesibel, dan nyaman dibaca di berbagai perangkat.</span></li>
+                <li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Meta title, schema service, sitemap, canonical, dan internal link.</span></li>
+                <li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Struktur cepat, aman, dan siap dikembangkan kapan saja.</span></li>
+                <li><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Integrasi WhatsApp, formulir inquiry, API, dan sistem bisnis.</span></li>
+            </ul>
+        </div>
     </section>
-    <section class="jw-section jw-section-alt">
-        <div class="jw-container"><span class="jw-kicker">Yang kami kerjakan untuk Anda</span><h2>Semua bagian penting dirancang untuk mengurangi keraguan pembeli.</h2><p class="jw-intro">Website yang menghasilkan inquiry tidak bergantung pada satu headline. Kepercayaan dibangun dari detail kecil yang konsisten—dari struktur menu sampai cara tombol kontak menjawab kebutuhan pengunjung.</p><div class="jw-grid jw-grid-3">
-            <article class="jw-service"><h3>Strategi pesan</h3><p>Kami menyaring keunggulan bisnis menjadi pesan yang mudah dipahami calon pelanggan. Tidak ada jargon teknis yang membuat pengunjung bingung dengan apa yang Anda jual.</p></article>
-            <article class="jw-service"><h3>Arsitektur halaman</h3><p>Menu, section, dan alur navigasi disusun berdasarkan prioritas bisnis. Pengunjung dapat menemukan layanan, manfaat, harga awal, dan langkah berikutnya tanpa tersesat.</p></article>
-            <article class="jw-service"><h3>Visual yang dipercaya</h3><p>Warna, tipografi, jarak, kartu, dan CTA mengikuti identitas Juki agar halaman terasa konsisten dengan brand utama dan tidak tampak seperti template acak.</p></article>
-            <article class="jw-service"><h3>Konten yang menjawab</h3><p>Setiap bagian menjawab pertanyaan pembeli: apakah layanan ini cocok, apa yang didapat, berapa titik mulainya, bagaimana prosesnya, dan siapa yang bisa dihubungi.</p></article>
-            <article class="jw-service"><h3>SEO yang masuk akal</h3><p>Keyword utama, entity, heading, metadata, FAQ, schema, dan internal link digunakan secara natural untuk membantu Google memahami layanan tanpa keyword stuffing.</p></article>
-            <article class="jw-service"><h3>CTA tanpa hambatan</h3><p>Tombol konsultasi membawa konteks proyek langsung ke WhatsApp. Calon klien tidak perlu mengulang dari awal hanya untuk menanyakan kebutuhan.</p></article>
-        </div></div>
+
+    <section class="jw-section jw-section-faq jw-section-alt">
+        <div class="jw-container jw-section-center">
+            <span class="jw-kicker">Pertanyaan umum</span>
+            <h2>Masih ingin memastikan sebelum mulai?</h2>
+            <div class="jw-faq" style="text-align: left; margin-inline: auto;">
+                <details><summary>Berapa harga pembuatan website?</summary><p>Paket website bisnis mulai Rp 2.500.000, sistem informasi custom mulai Rp 10.000.000, dan solusi enterprise disesuaikan dengan kebutuhan proyek Anda.</p></details>
+                <details><summary>Berapa lama pengerjaannya?</summary><p>Website standar dapat diselesaikan maksimal dalam waktu dua minggu. Proyek custom atau aplikasi web menyesuaikan tingkat kompleksitas.</p></details>
+                <details><summary>Apakah website sudah SEO-friendly?</summary><p>Ya. Struktur heading, metadata, schema, sitemap, performa, mobile-first, dan internal link disiapkan sejak awal agar mudah diindeks Google.</p></details>
+                <details><summary>Apakah melayani klien di luar Solo?</summary><p>Ya. Meskipun berbasis di Solo dan melayani seluruh wilayah Soloraya (Surakarta, Karanganyar, Sragen, Wonogiri, Boyolali, Klaten, Sukoharjo), kami juga menangani klien dari berbagai kota di Indonesia.</p></details>
+            </div>
+        </div>
     </section>
-    <section class="jw-section jw-section-alt"><div class="jw-container"><span class="jw-kicker">Bukan sekadar online</span><h2>Jadikan website sebagai tempat pertama pelanggan memilih Anda.</h2><p class="jw-intro">Saat pencarian berubah menjadi kunjungan, halaman ini bekerja sebagai perkenalan, sales deck, dan pintu konsultasi sekaligus. Itulah standar yang kami kejar untuk setiap website profesional di Solo.</p></div></section>
-    <section class="jw-section jw-section-process"><div class="jw-container"><span class="jw-kicker">Cara kerja sederhana</span><h2>Dari ide menjadi website yang siap dipakai.</h2><div class="jw-aida"><article class="jw-step"><b>01</b><h3>Konsultasi</h3><p>Ceritakan bisnis, target pelanggan, layanan, dan tujuan utama Anda.</p></article><article class="jw-step"><b>02</b><h3>Rancang</h3><p>Kami susun pesan, struktur halaman, visual, dan kebutuhan teknis.</p></article><article class="jw-step"><b>03</b><h3>Bangun</h3><p>Website dikembangkan responsif, SEO-ready, dan diuji sebelum live.</p></article><article class="jw-step"><b>04</b><h3>Tumbuhkan</h3><p>Setelah live, lanjutkan dengan SEO, konten, otomasi, atau AI.</p></article></div></div></section>
-    <section class="jw-section jw-section-related jw-section-alt"><div class="jw-container"><span class="jw-kicker">Layanan yang bisa mengikuti</span><h2>Website adalah fondasi. Pertumbuhan berikutnya ada di sini.</h2><p class="jw-intro">Hubungkan website Anda dengan layanan yang relevan ketika bisnis mulai tumbuh.</p><div class="jw-related">@foreach($relatedLinks as $rl)<a href="{{ url($rl['url']) }}"><span>{{ $rl['title'] }}</span><span aria-hidden="true">↗</span></a>@endforeach</div></div></section>
-    <section class="jw-section jw-section-faq jw-section-alt"><div class="jw-container"><span class="jw-kicker">Pertanyaan umum</span><h2>Masih ingin memastikan sebelum mulai?</h2><div class="jw-faq"><details><summary>Berapa harga website?</summary><p>Paket website mulai Rp 2.500.000. Sistem informasi mulai Rp 10.000.000. Kebutuhan custom dibahas berdasarkan fitur dan scope proyek.</p></details><details><summary>Berapa lama pengerjaannya?</summary><p>Website standar dapat diselesaikan maksimal dua minggu. Sistem modular sekitar satu bulan, sedangkan proyek custom menyesuaikan kompleksitas.</p></details><details><summary>Apakah website sudah SEO-friendly?</summary><p>Ya. Struktur heading, metadata, schema, sitemap, performa, mobile-first, dan internal link disiapkan sejak awal.</p></details><details><summary>Bisakah saya mulai dari kebutuhan sederhana?</summary><p>Bisa. Anda dapat memulai dari company profile atau landing page, lalu menambah SEO, katalog, otomasi, atau aplikasi ketika kebutuhan bisnis berkembang.</p></details><details><summary>Teknologi apa yang digunakan?</summary><p>Teknologi dipilih berdasarkan kebutuhan proyek, termasuk WordPress, Laravel, CodeIgniter, PHP modern, database, REST API, dan integrasi WhatsApp.</p></details><details><summary>Apa yang harus saya siapkan?</summary><p>Cukup sampaikan jenis bisnis, layanan utama, target pelanggan, referensi visual, dan tujuan website. Jika belum lengkap, kami bantu menyusunnya saat konsultasi.</p></details></div></div></section>
- <section class="jw-final"><div class="jw-container"><span class="jw-kicker" style="color:#e8c982">Punya proyek dalam pikiran?</span><h2>Website Anda seharusnya membantu menjual, bukan hanya terlihat ada.</h2><p>Ceritakan kebutuhan Anda. Kami bantu menentukan solusi yang paling masuk akal untuk bisnis, anggaran, dan target pelanggan Anda. Mulai dengan percakapan singkat tanpa komitmen dan dapatkan arah yang jelas untuk bisnis di Solo yang ingin tampil serius dan siap bertumbuh.</p><div class="jw-actions" style="justify-content:center"><a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin konsultasi jasa pembuatan website untuk bisnis saya.') }}">WhatsApp Saya <span aria-hidden="true">→</span></a><a class="jw-btn jw-btn-ghost" href="{{ url('/contact') }}">Kirim brief proyek</a></div></div></section>
+
+    <section class="jw-final">
+        <div class="jw-container">
+            <span class="jw-kicker" style="color:#e8c982">Punya proyek dalam pikiran?</span>
+            <h2>Website Anda seharusnya membantu menjual, bukan hanya terlihat ada.</h2>
+            <p>Ceritakan kebutuhan Anda. Kami bantu menentukan solusi yang paling masuk akal untuk bisnis, anggaran, dan target pelanggan Anda. Mulai dengan percakapan singkat via WhatsApp tanpa komitmen.</p>
+            <div class="jw-actions" style="justify-content:center">
+                <a class="jw-btn jw-btn-primary" href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin konsultasi jasa pembuatan website untuk bisnis saya.') }}">WhatsApp Saya <span aria-hidden="true">→</span></a>
+                <a class="jw-btn jw-btn-ghost" href="{{ url('/contact') }}">Kirim brief proyek</a>
+            </div>
+        </div>
+    </section>
 </main>
 @else
-<!-- Hero Section (Konsisten dengan Juki Hero + Produk) -->
 @include('partials.juki-hero', [
     'badge' => $p['badge'] ?? 'Layanan Spesialisasi Digital',
-     'heading' => $isWebsiteService ? 'Jasa Pembuatan Website Profesional untuk Bisnis Anda' : ($p['heading'] ?? $page->title),
-     'subheadline' => $isWebsiteService ? 'Bangun website cepat, responsif, aman, dan siap mendukung SEO serta konversi bisnis di Solo, Surakarta, dan seluruh Indonesia.' : ($p['lead'] ?? $page->meta_description),
+    'heading' => $isWebsiteService ? 'Jasa Pembuatan Website Profesional untuk Bisnis Anda' : ($p['heading'] ?? $page->title),
+    'subheadline' => $isWebsiteService ? 'Bangun website cepat, responsif, aman, dan siap mendukung SEO serta konversi bisnis di Solo, Surakarta, dan seluruh Indonesia.' : ($p['lead'] ?? $page->meta_description),
     'ctaPrimaryText' => 'Konsultasi via WhatsApp',
     'ctaPrimaryUrl' => 'https://wa.me/' . $waNumber . '?text=' . urlencode('Halo Tri Marzuki, saya tertarik konsultasi layanan ' . ($page->title)),
     'ctaSecondaryText' => 'Kirim Inquiry / RFQ',
     'ctaSecondaryUrl' => url('/contact'),
 ])
-
-<!-- Navigasi Breadcrumb & Parent Service -->
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
     <nav class="flex items-center text-xs sm:text-sm text-slate-500 gap-2 flex-wrap">
         <a href="{{ url('/') }}" class="hover:text-brand-indigo transition-colors">Beranda</a>
@@ -409,8 +544,6 @@ document.addEventListener('DOMContentLoaded', function () {
         <span class="text-slate-900 font-medium">{{ $page->title }}</span>
     </nav>
 </div>
-
-<!-- Key Highlights / 4 Value Props (Card Grid) -->
 @if(!empty($p['value_props']))
 <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -424,72 +557,10 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
 </section>
 @endif
-
-<!-- Article Body (1000+ Kata, Mengikuti Kaidah 1 H1 & Subheading Terstruktur) -->
 <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-16 text-slate-700 leading-relaxed font-sans">
     <div class="prose prose-slate prose-lg max-w-none">
-        @if($isWebsiteService)
-            <p class="lead"><strong>Website bisnis bukan sekadar tampilan online.</strong> Website yang tepat membantu calon pelanggan menemukan layanan Anda, memahami nilai yang ditawarkan, dan mengambil tindakan melalui WhatsApp atau formulir inquiry. Karena itu, Juki membangun website dengan kombinasi desain, rekayasa perangkat lunak, performa, keamanan, dan SEO.</p>
-
-            <h2>Mengapa Bisnis Membutuhkan Website yang Serius?</h2>
-            <p>Calon pelanggan biasanya memeriksa website sebelum menghubungi penyedia jasa. Website yang lambat, sulit digunakan di ponsel, atau tidak menjawab kebutuhan pengunjung dapat mengurangi kepercayaan dan membuat peluang hilang. Website profesional memberi bisnis Anda pusat informasi yang kredibel, mudah diperbarui, dan dapat ditemukan melalui mesin pencari.</p>
-
-            <h2>Website yang Mengubah Perhatian Menjadi Inquiry</h2>
-            <p>Juki menggunakan pendekatan <strong>AIDA</strong> agar halaman tidak hanya mengejar kunjungan, tetapi juga mengarahkan pengunjung menuju keputusan:</p>
-            <h3>Attention — Menarik Perhatian yang Tepat</h3>
-            <p>Pesan utama, struktur visual, dan headline menjelaskan layanan Anda sejak awal. Pengunjung langsung memahami siapa yang Anda bantu dan solusi apa yang tersedia.</p>
-            <h3>Interest — Menjawab Kebutuhan Pengunjung</h3>
-            <p>Konten membahas kebutuhan nyata bisnis: company profile, landing page, toko online, sistem informasi, integrasi WhatsApp, dan aplikasi web custom. Struktur informasi dibuat mudah dipindai di desktop maupun smartphone.</p>
-            <h3>Desire — Menunjukkan Manfaat dan Kepercayaan</h3>
-            <p>Website dirancang dengan fondasi SEO on-page, kode yang terawat, performa yang baik, dan alur konversi yang jelas. Hasilnya adalah aset digital yang dapat mendukung pemasaran, bukan sekadar brosur online.</p>
-            <h3>Action — Mengarahkan Pengunjung Menghubungi Anda</h3>
-            <p>Setiap halaman penting memiliki ajakan yang jelas untuk konsultasi, mengirim brief proyek, atau meminta penawaran. Anda dapat mengarahkan calon pelanggan ke WhatsApp atau halaman kontak sesuai alur penjualan bisnis.</p>
-
-            <h2>Jenis Website yang Dapat Kami Bangun</h2>
-            <h3>Website Company Profile</h3>
-            <p>Cocok untuk perusahaan, kontraktor, distributor, konsultan, dan penyedia jasa profesional yang membutuhkan kredibilitas digital dan struktur informasi yang rapi.</p>
-            <h3>Landing Page Bisnis</h3>
-            <p>Halaman fokus untuk kampanye iklan, promosi layanan, atau pengumpulan leads dengan pesan, bukti manfaat, dan CTA yang terarah.</p>
-            <h3>Toko Online dan Katalog Produk</h3>
-            <p>Bangun katalog produk yang mudah dikelola dengan alur order melalui WhatsApp atau integrasi pembayaran sesuai kebutuhan bisnis.</p>
-            <h3>Aplikasi Web dan Sistem Informasi</h3>
-            <p>Untuk kebutuhan operasional yang lebih kompleks, kami dapat membangun dashboard, CRM, ERP ringan, portal pelanggan, dan aplikasi web custom menggunakan teknologi yang sesuai.</p>
-
-            <h2>Fondasi SEO dan Performa Sejak Awal</h2>
-            <ul>
-                <li>Struktur heading dan konten yang mengikuti search intent.</li>
-                <li>Meta title, meta description, canonical, sitemap, dan schema markup.</li>
-                <li>Desain mobile-first dan navigasi yang mudah digunakan.</li>
-                <li>Optimasi kecepatan, gambar, dan Core Web Vitals.</li>
-                <li>Struktur internal link menuju layanan yang relevan.</li>
-                <li>Kode yang bersih dan perhatian pada keamanan formulir serta API.</li>
-            </ul>
-
-            <h2>Siap Membuat Website yang Mendukung Pertumbuhan Bisnis?</h2>
-            <p>Jika Anda membutuhkan <strong>jasa pembuatan website di Solo atau Surakarta</strong>, sampaikan jenis bisnis, tujuan website, fitur yang dibutuhkan, dan target pelanggan Anda. Juki akan membantu memetakan solusi yang paling sesuai, mulai dari website company profile hingga aplikasi web custom.</p>
-            <p><a href="https://wa.me/{{ $waNumber }}?text={{ urlencode('Halo Tri Marzuki, saya ingin konsultasi jasa pembuatan website untuk bisnis saya.') }}"><strong>Konsultasikan proyek website Anda melalui WhatsApp</strong></a> atau kirim brief melalui halaman kontak.</p>
-        @else
-            {!! $page->html_content ?: $page->content !!}
-        @endif
+        {!! $page->body_raw !!}
     </div>
-
-    <!-- Related Services Nav -->
-    @if(!empty($relatedLinks))
-    <div class="mt-12 pt-8 border-t border-slate-200">
-        <h3 class="text-xl font-bold text-slate-900 font-outfit mb-4">Layanan Terkait Lainnya</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            @foreach($relatedLinks as $rl)
-            <a href="{{ url($rl['url']) }}" class="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:border-brand-indigo hover:bg-slate-50 transition-all text-sm font-medium text-slate-800 group">
-                <span>{{ $rl['title'] }}</span>
-                <svg class="w-4 h-4 text-slate-400 group-hover:text-brand-indigo group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </a>
-            @endforeach
-        </div>
-    </div>
-    @endif
 </article>
-
-<!-- Call to Action Banner Terstandarisasi -->
-@include('partials.juki-project-inquiry')
 @endif
 @endsection
