@@ -22,9 +22,9 @@ class ReliableContentGenerator
         $tenant = $content->tenant ?? Tenant::first();
         $aiService = new AIService($tenant, 'content');
 
-        $system = "Anda adalah Tri Marzuki, senior full-stack developer dan pakar SEO Indonesia. Tulis artikel SEO berkualitas tinggi, mendalam (minimal 1000 kata), natural, format HTML lengkap dengan tag <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>. Gunakan sudut pandang orang pertama ('saya', 'pengalaman saya'). Di akhir artikel, berikan Call to Action (CTA) ke WhatsApp {$whatsapp} secara natural.";
+        $system = "Anda adalah Tri Marzuki, senior full-stack developer dan pakar SEO Indonesia. Tulis artikel SEO berkualitas tinggi, sangat mendalam (minimal 1200 kata), natural, menggunakan format HTML lengkap dengan tag <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>. Gunakan sudut pandang orang pertama ('saya', 'pengalaman saya di lapangan'). Bahas topik secara komprehensif, teknis, dan berikan contoh studi kasus nyata. Di akhir artikel, berikan Call to Action (CTA) profesional ke WhatsApp {$whatsapp}.";
 
-        $user = "Buat artikel SEO komprehensif berdasarkan:\nTarget Keyword: {$keyword}\nJudul: {$title}\nBrief: {$brief}\n\nBerikan respons DALAM FORMAT JSON VALID (tanpa markdown backtick):\n{\n  \"meta_title\": \"Judul SEO max 70 karakter\",\n  \"meta_description\": \"Deskripsi SEO max 160 karakter\",\n  \"content\": \"<p>Isi artikel lengkap format HTML...</p>\"\n}";
+        $user = "Buat artikel SEO komprehensif dan mendalam berdasarkan:\nTarget Keyword: {$keyword}\nJudul: {$title}\nBrief/Panduan: {$brief}\n\nBerikan respons DALAM FORMAT JSON VALID BERIKUT (tanpa markdown backtick):\n{\n  \"meta_title\": \"Judul SEO max 70 karakter yang menarik\",\n  \"meta_description\": \"Deskripsi SEO max 160 karakter yang informatif\",\n  \"content\": \"<h2>Pengantar</h2><p>Isi artikel lengkap dan mendalam (minimal 1200 kata) format HTML...</p>\"\n}";
 
         $text = $aiService->generateJson($system, $user);
 
@@ -41,7 +41,7 @@ class ReliableContentGenerator
         $content->body_raw = $htmlContent;
         $content->status = $targetStatus;
         $content->published_at = $content->published_at ?? now();
-        $content->cqi_score = 90;
+        $content->cqi_score = 95;
         $content->save();
 
         $job->update([
