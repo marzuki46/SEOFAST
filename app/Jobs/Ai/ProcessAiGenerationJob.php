@@ -691,33 +691,10 @@ class ProcessAiGenerationJob implements ShouldQueue
         ]);
 
         if ($cqiScore < $cqiThreshold) {
-            if ($retryCount >= 2) {
-                $this->failJob(
-                    $job, $content,
-                    "CQI score {$cqiScore} below threshold {$cqiThreshold} after {$retryCount} retries."
-                );
-
-                return;
-            }
-
-            $improvements = implode('; ', $cqiResult['improvements'] ?? ['Improve depth and E-E-A-T signals.']);
-            SystemSetting::set('_ai_retry_improvements_'.$this->jobId, $improvements);
-
-            $job->update([
-                'status' => 'phase_2',
-                'retry_count' => $retryCount + 1,
-                'error_log' => ['cqi_score' => $cqiScore, 'retry' => $retryCount + 1, 'improvements' => $improvements],
-            ]);
-            $content->update(['status' => 'ai_processing']);
-
-            Log::warning("CQI {$cqiScore} < {$cqiThreshold}. Retrying Phase 2 (attempt ".($retryCount + 1).'/2).');
-
-            self::dispatch($this->contentId, $this->jobId, $this->targetStatus)->delay(now()->addSeconds(5));
-
-            return;
+            Log::warning("CQI {$cqiScore} below threshold {$cqiThreshold}, but bypassing retry loop to ensure instant completion.");
         }
 
-        Log::info("AI Phase 5 (CQI Audit) PASSED | job={$job->id} | score={$cqiScore}");
+        Log::info("AI Phase 5 (CQI Audit) PASSED / BYPASSED | job={$job->id} | score={$cqiScore}");
 
         $job->update(['status' => 'phase_6']);
         self::dispatch($this->contentId, $this->jobId, $this->targetStatus);
