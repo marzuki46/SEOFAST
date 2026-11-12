@@ -381,14 +381,20 @@ class ContentCampaignController extends Controller
         Log::info("=== TRIGGER POST DIRECT EXECUTION FOR CAMPAIGN: {$campaign->id} ({$campaign->name}) ===");
 
         try {
+            $topicService = app(ContentCampaignService::class);
             $ideaCount = $campaign->topics()->where('status', 'idea')->count();
-            if ($ideaCount === 0) {
-                Log::info("Topic bank kosong untuk campaign {$campaign->id}. Menjalankan riset instan...");
-                $topicService = app(ContentCampaignService::class);
-                $topicService->generateTopics($campaign, max(3, $campaign->research_batch_size));
+            if ($ideaCount <= 1) {
+                Log::info("Topic bank menipis (sisa {$ideaCount}) untuk campaign {$campaign->id}. Menjalankan auto-replenish topik...");
+                $topicService->replenishTopicsAllFunnels($campaign, 3);
             }
 
             $topic = $campaign->topics()->where('status', 'idea')->orderBy('id')->first();
+            if (! $topic) {
+                Log::info("Topic bank kosong, mencoba generateTopics instan...");
+                $topicService->generateTopics($campaign, max(3, $campaign->research_batch_size));
+                $topic = $campaign->topics()->where('status', 'idea')->orderBy('id')->first();
+            }
+
             if (! $topic) {
                 return back()->with('error', 'Topic bank kosong dan riset AI gagal menghasilkan topik.');
             }
