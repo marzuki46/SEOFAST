@@ -296,7 +296,7 @@ class ContentCampaignController extends Controller
             'word_count_min' => ['required', 'integer', 'min:300', 'max:5000'],
             'word_count_max' => ['required', 'integer', 'min:400', 'max:8000', 'gte:word_count_min'],
             'cta_label' => ['nullable', 'string', 'max:120'],
-            'cta_url' => ['nullable', 'url', 'max:2048'],
+            'cta_url' => ['nullable', 'string', 'max:2048', $this->ctaUrlOrWhatsappRule()],
             'destination_url' => ['nullable', 'url', 'max:2048'],
         ]);
         $campaign->update($data);
@@ -424,7 +424,7 @@ class ContentCampaignController extends Controller
             'word_count_min' => ['required', 'integer', 'min:300', 'max:5000'],
             'word_count_max' => ['required', 'integer', 'min:400', 'max:8000', 'gte:word_count_min'],
             'cta_label' => ['nullable', 'string', 'max:120'],
-            'cta_url' => ['nullable', 'url', 'max:2048'],
+            'cta_url' => ['nullable', 'string', 'max:2048', $this->ctaUrlOrWhatsappRule()],
             'destination_url' => ['nullable', 'url', 'max:2048'],
             'auto_research' => ['nullable', 'boolean'],
             'research_batch_size' => ['required', 'integer', 'min:1', 'max:20'],
@@ -443,6 +443,19 @@ class ContentCampaignController extends Controller
         }
         $silo = SiloBlueprint::withoutGlobalScopes()->findOrFail($siloId);
         abort_unless(! $silo->product_id || (int) $silo->product_id === $productId, 422, 'Silo tersebut terkait produk lain.');
+    }
+
+    private function ctaUrlOrWhatsappRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            $value = trim((string) $value);
+            $isUrl = filter_var($value, FILTER_VALIDATE_URL) !== false;
+            $isWhatsapp = preg_match('/^\+?[0-9][0-9 .()\-]{7,24}$/', $value) === 1;
+
+            if (! $isUrl && ! $isWhatsapp) {
+                $fail('CTA harus berupa nomor WhatsApp atau URL yang valid.');
+            }
+        };
     }
 
     private function syncDestinationUrl(ContentCampaign $campaign): void
