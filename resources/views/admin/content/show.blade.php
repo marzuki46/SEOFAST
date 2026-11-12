@@ -38,7 +38,7 @@
                 </div>
                 
                 <div class="p-8 prose prose-slate max-w-none bg-white">
-                    {!! $content->html_body !!}
+                    {!! $content->rendered_html ?? $content->body_raw ?? '<p class="text-slate-400 italic">Belum ada konten dirender.</p>' !!}
                 </div>
             </div>
         </div>
