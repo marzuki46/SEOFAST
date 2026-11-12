@@ -587,7 +587,11 @@ class AIService
     private function call9Router(string $systemPrompt, string $userPrompt, array $options): array
     {
         $apiBase = $this->config['apiBase'] ?: 'https://api.9router.com/v1';
-        $url = rtrim($apiBase, '/') . '/chat/completions';
+        $apiBase = rtrim($apiBase, '/');
+        if (!str_ends_with($apiBase, '/v1')) {
+            $apiBase .= '/v1';
+        }
+        $url = $apiBase . '/chat/completions';
 
         $response = $this->getHttpClient()->withToken($this->config['apiKey'])
             ->timeout(300)
@@ -606,6 +610,39 @@ class AIService
             ]);
 
         $body = $response->json();
+
+        // Handle SSE streaming format from 9Router proxies (e.g. data: {...}\n\n)
+        if ($body === null && str_starts_with(ltrim($response->body()), 'data:')) {
+            $rawBody = $response->body();
+            $fullContent = '';
+            $lastUsage = [];
+            $lastModel = $options['model'] ?? $this->config['model'];
+            foreach (explode("\n", $rawBody) as $line) {
+                $line = trim($line);
+                if (!str_starts_with($line, 'data:')) continue;
+                $json = trim(substr($line, 5));
+                if ($json === '[DONE]' || $json === '') continue;
+                $chunk = json_decode($json, true);
+                if (!is_array($chunk)) continue;
+                $delta = $chunk['choices'][0]['delta']['content'] ?? null;
+                if ($delta !== null && $delta !== '') {
+                    $fullContent .= $delta;
+                }
+                if (isset($chunk['usage'])) {
+                    $lastUsage = $chunk['usage'];
+                }
+                if (isset($chunk['model'])) {
+                    $lastModel = $chunk['model'];
+                }
+            }
+            return [
+                'content'      => $fullContent,
+                'usage'        => $lastUsage,
+                'model'        => $lastModel,
+                '_format'      => 'sse_stream',
+                '_http_status' => $response->status(),
+            ];
+        }
 
         if (!$response->successful()) {
             throw new \RuntimeException(
