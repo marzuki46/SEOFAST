@@ -737,13 +737,11 @@ class ProcessAiGenerationJob implements ShouldQueue
             }
         }
 
-        if (in_array($stage, ['mofu', 'bofu'], true)) {
-            $campaignTarget = $content->campaignTarget()->first();
-            $campaignUrl = $campaignTarget?->landing_url ?: $content->campaign?->destination_url;
-            if ($campaignUrl) {
-                $anchor = $campaignTarget?->anchor_variations[0] ?? $campaignTarget?->keyword ?? $content->target_keyword;
-                $links .= "- Landing page resmi: [".e($anchor).']('.e($campaignUrl).")\n";
-            }
+        $campaignTarget = $content->campaignTarget()->first();
+        $campaignUrl = $campaignTarget?->landing_url ?: $content->campaign?->destination_url;
+        if ($campaignUrl) {
+            $anchor = $campaignTarget?->anchor_variations[0] ?? $campaignTarget?->keyword ?? $content->target_keyword;
+            $links .= "- Landing page resmi (Wajib ditautkan secara natural di dalam artikel): [".e($anchor).']('.e($campaignUrl).")\n";
         }
 
         return $links;
@@ -768,12 +766,10 @@ class ProcessAiGenerationJob implements ShouldQueue
             $allowedUrls[] = url('/blog/'.$item->slug);
             $allowedUrls[] = '/blog/'.ltrim($item->slug, '/');
         }
-        if (in_array($stage, ['mofu', 'bofu'], true)) {
-            $campaignTarget = $content->campaignTarget()->first();
-            $campaignUrl = $campaignTarget?->landing_url ?: $content->campaign?->destination_url;
-            if ($campaignUrl) {
-                $allowedUrls[] = rtrim($campaignUrl, '/');
-            }
+        $campaignTarget = $content->campaignTarget()->first();
+        $campaignUrl = $campaignTarget?->landing_url ?: $content->campaign?->destination_url;
+        if ($campaignUrl) {
+            $allowedUrls[] = rtrim($campaignUrl, '/');
         }
 
         // Remove only known campaign links that violate the funnel policy.
