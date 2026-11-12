@@ -32,7 +32,8 @@ class ReliableContentGenerator
             $rawText = is_string($text) ? $text : json_encode($text);
             $htmlContent = '<p>' . nl2br(htmlspecialchars($rawText)) . '</p>';
         } else {
-            $htmlContent = (new HtmlSanitizer($text['content']))->sanitize();
+            $sanitizer = new HtmlSanitizer();
+            $htmlContent = $sanitizer->sanitize((string)$text['content']);
             if ($text['meta_title'] ?? '') $content->meta_title = $text['meta_title'];
             if ($text['meta_description'] ?? '') $content->meta_description = $text['meta_description'];
         }

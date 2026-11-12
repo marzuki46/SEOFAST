@@ -409,13 +409,19 @@ class ContentCampaignController extends Controller
 
             // 3. Buat record Content & Job secara sinkron
             [$content, $job] = DB::transaction(function () use ($campaign, $topic, $slug, $scheduler) {
+                $siloId = $campaign->silo_blueprint_id;
+                if (!$siloId) {
+                    $firstSilo = \App\Models\SiloBlueprint::withoutGlobalScopes()->first();
+                    $siloId = $firstSilo?->id ?? 1;
+                }
+
                 $content = \App\Models\Content::create([
                     'tenant_id'          => $campaign->tenant_id,
                     'product_id'         => $campaign->product_id,
                     'campaign_id'        => $campaign->id,
                     'campaign_target_id' => $topic->campaign_target_id,
                     'content_topic_id'   => $topic->id,
-                    'silo_blueprint_id'  => $campaign->silo_blueprint_id,
+                    'silo_blueprint_id'  => $siloId,
                     'target_keyword'     => $topic->primary_keyword,
                     'slug'               => $slug,
                     'meta_title'         => $topic->title,
@@ -543,9 +549,13 @@ class ContentCampaignController extends Controller
 
     private function assertTenantAccess(ContentCampaign $campaign): void
     {
-        $tenantId = auth()->user()->tenant_id;
+        $user = auth()->user();
+        if (!$user) {
+            return;
+        }
+        $tenantId = $user->tenant_id;
         abort_unless(
-            auth()->user()->isAdmin() || $tenantId === null || (int) $campaign->tenant_id === (int) $tenantId,
+            $user->isAdmin() || $tenantId === null || (int) $campaign->tenant_id === (int) $tenantId,
             404
         );
     }
