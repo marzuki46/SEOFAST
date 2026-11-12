@@ -141,13 +141,12 @@
     .juki-web-landing .jw-check { display:flex; gap:10px; align-items:flex-start; margin:14px 0; color:#e4e9f0; line-height:1.5; }
     .juki-web-landing .jw-check svg { flex:0 0 20px; width:20px; height:20px; margin-top:2px; color:#e8c982; }
     .juki-web-landing .jw-sticky-offer .jw-btn { width:100%; margin-top:14px; }
-    .juki-web-landing .jw-showcase { position:relative; overflow:hidden; padding:96px 0; background:#15253f; color:#fff; }
+    .juki-web-landing .jw-showcase { position:relative; overflow:visible; padding:96px 0; background:#15253f; color:#fff; }
     .juki-web-landing .jw-showcase:before { content:""; position:absolute; inset:0; opacity:.22; background-image:linear-gradient(rgba(232,201,130,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(232,201,130,.14) 1px,transparent 1px); background-size:58px 58px; mask-image:linear-gradient(90deg,#000,transparent 80%); }
     .juki-web-landing .jw-showcase-grid { position:relative; display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:76px; align-items:start; }
-    .juki-web-landing .jw-showcase-sticky { position:sticky; top:28px; text-align:center; transform:translateX(calc(var(--showcase-shift, 0px) * -1)); transition:transform .12s linear,text-align .3s ease; }
+    .juki-web-landing .jw-showcase-sticky { position:sticky; top:24vh; align-self:start; text-align:center; }
     .juki-web-landing .jw-showcase-sticky .jw-eyebrow,.juki-web-landing .jw-showcase-sticky .jw-intro { margin-inline:auto; }
-    .juki-web-landing .jw-showcase.is-scrolling .jw-showcase-sticky { text-align:left; }
-    .juki-web-landing .jw-showcase.is-scrolling .jw-showcase-sticky .jw-eyebrow,.juki-web-landing .jw-showcase.is-scrolling .jw-showcase-sticky .jw-intro { margin-inline:0; }
+    .juki-web-landing .jw-showcase-sticky .jw-btn { margin-inline:auto; }
     .juki-web-landing .jw-showcase h2 { max-width:560px; margin:12px 0 18px; color:#fff; font-size:clamp(2rem,4vw,3.5rem); line-height:1.03; letter-spacing:-.05em; }
     .juki-web-landing .jw-showcase .jw-intro { color:#cbd5e1; }
     .juki-web-landing .jw-showcase-meta { display:flex; align-items:center; justify-content:space-between; max-width:560px; margin:26px 0 4px; padding-top:14px; border-top:1px solid rgba(232,201,130,.28); color:#aebaca; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; }
@@ -279,8 +278,6 @@ document.addEventListener('DOMContentLoaded', function () {
         progressBar.style.width = (progress * 100) + '%';
 
         if (!reducedMotion && window.innerWidth > 900) {
-            showcase.style.setProperty('--showcase-shift', Math.round(progress * 92) + 'px');
-            showcase.classList.toggle('is-scrolling', progress > .08);
             var viewportCenter = window.innerHeight * .52;
             var closest = null;
             var closestDistance = Infinity;
