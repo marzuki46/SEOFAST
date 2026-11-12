@@ -377,35 +377,63 @@ class ContentCampaignController extends Controller
     {
         $this->assertTenantAccess($campaign);
 
-        // Cari jadwal pending terdekat atau buat jadwal instan sekarang
-        $schedule = \App\Models\ContentCampaignSchedule::where('campaign_id', $campaign->id)
-            ->where('status', 'pending')
-            ->orderBy('scheduled_at')
-            ->first();
+        Log::info("=== TRIGGER POST INITIATED FOR CAMPAIGN: {$campaign->id} ({$campaign->name}) ===");
 
-        if (! $schedule) {
-            $schedule = \App\Models\ContentCampaignSchedule::create([
-                'tenant_id' => $campaign->tenant_id,
-                'campaign_id' => $campaign->id,
-                'scheduled_at' => now(),
-                'status' => 'pending',
-                'target_funnel_stage' => $campaign->funnel_mode === 'balanced' ? 'tofu' : $campaign->funnel_mode,
-            ]);
-        } else {
-            $schedule->update(['scheduled_at' => now()]);
+        try {
+            // Pastikan Topic Bank memiliki minimal 1 topik idea. Jika kosong, buat riset instan sekarang!
+            $ideaCount = $campaign->topics()->where('status', 'idea')->count();
+            if ($ideaCount === 0) {
+                Log::info("Topic bank kosong untuk campaign {$campaign->id}. Menjalankan riset instan...");
+                $topicService = app(\App\Services\ContentCampaignService::class);
+                $topicService->generateTopics($campaign, max(3, $campaign->research_batch_size));
+            }
+
+            // Cari jadwal pending terdekat atau buat jadwal instan sekarang
+            $schedule = \App\Models\ContentCampaignSchedule::where('campaign_id', $campaign->id)
+                ->where('status', 'pending')
+                ->orderBy('scheduled_at')
+                ->first();
+
+            if (! $schedule) {
+                $schedule = \App\Models\ContentCampaignSchedule::create([
+                    'tenant_id' => $campaign->tenant_id,
+                    'campaign_id' => $campaign->id,
+                    'scheduled_at' => now(),
+                    'status' => 'pending',
+                    'target_funnel_stage' => $campaign->funnel_mode === 'balanced' ? 'tofu' : $campaign->funnel_mode,
+                ]);
+            } else {
+                $schedule->update(['scheduled_at' => now()]);
+            }
+
+            Log::info("Campaign schedule resolved ID: {$schedule->id}. Dispatching GenerateCampaignContentJob...");
+
+            // Jalankan background job secara langsung dengan dispatch
+            \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id, true)->onQueue('ai');
+
+            // 🚀 JALANKAN WORKER SECARA OTOMATIS (SUPAYA TIDAK PERLU MENUNGGU CRON/WORKER EXTERNAL)
+            $php = PHP_BINARY;
+            $artisan = base_path('artisan');
+
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                if (function_exists('popen') && function_exists('pclose')) {
+                    pclose(popen("start /B {$php} {$artisan} queue:work database --queue=ai,default --stop-when-empty > NUL", "r"));
+                }
+            } else {
+                if (function_exists('exec')) {
+                    exec("{$php} {$artisan} queue:work database --queue=ai,default --stop-when-empty > /dev/null 2>&1 &");
+                }
+            }
+
+            Log::info("=== TRIGGER POST SUCCESS & WORKER DISPATCHED FOR CAMPAIGN: {$campaign->id} ===");
+
+            return back()->with('success', "🚀 Posting manual campaign '{$campaign->name}' berhasil dipicu! Konten sedang digenerate oleh AI di background (cek log jika ada kendala).");
+        } catch (\Throwable $e) {
+            Log::error("=== TRIGGER POST FAILED FOR CAMPAIGN {$campaign->id}: " . $e->getMessage() . " ===");
+            Log::error($e->getTraceAsString());
+
+            return back()->with('error', 'Gagal memicu posting: ' . $e->getMessage());
         }
-
-        // Jalankan background job secara langsung
-        // Manual posting must run once even when the campaign is paused/draft.
-        // Scheduled runs still require an active campaign inside the job.
-        \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id, true)->onQueue('ai');
-
-        // Pastikan jadwal siklus berikutnya tetap terjaga
-        if ($campaign->status === 'active') {
-            $scheduler->ensureNext($campaign->fresh());
-        }
-
-        return back()->with('success', "Posting manual campaign '{$campaign->name}' masuk antrean AI dan akan diproses segera oleh worker.");
     }
 
     private function validated(Request $request): array

@@ -33,18 +33,23 @@ class GenerateCampaignContentJob implements ShouldQueue
 
     public function handle(ContentCampaignService $topics, ContentCampaignScheduleService $scheduler): void
     {
+        Log::info("--- GenerateCampaignContentJob handle started for schedule ID: {$this->scheduleId} (runNow: " . ($this->runNow ? 'true' : 'false') . ") ---");
+
         $lock = Cache::lock('campaign-schedule:'.$this->scheduleId, 180);
         if (! $lock->get()) {
+            Log::warning("GenerateCampaignContentJob schedule ID {$this->scheduleId} is locked by another worker instance.");
             return;
         }
         try {
             $schedule = ContentCampaignSchedule::with('campaign')->find($this->scheduleId);
             if (! $schedule || $schedule->status !== 'pending' || $schedule->scheduled_at->isFuture()) {
+                Log::warning("GenerateCampaignContentJob schedule ID {$this->scheduleId} invalid state. Status: " . ($schedule?->status ?? 'null') . ", ScheduledAt: " . ($schedule?->scheduled_at ?? 'null'));
                 return;
             }
             $schedule->update(['status' => 'processing', 'locked_at' => now(), 'attempt_count' => $schedule->attempt_count + 1]);
             $campaign = $schedule->campaign;
             if (! $campaign || (! $this->runNow && $campaign->status !== 'active')) {
+                Log::warning("GenerateCampaignContentJob campaign inactive or missing for schedule ID {$this->scheduleId}");
                 $schedule->update(['status' => 'cancelled']);
 
                 return;
@@ -66,6 +71,7 @@ class GenerateCampaignContentJob implements ShouldQueue
             $remainingIdeaCount = ContentTopic::withoutGlobalScopes()->where('campaign_id', $campaign->id)->where('status', 'idea')->count();
             if ($remainingIdeaCount <= 1) {
                 try {
+                    Log::info("Replenishing topic bank for campaign ID {$campaign->id}...");
                     $topics->replenishTopicsAllFunnels($campaign, 5);
                 } catch (\Throwable $e) {
                     Log::warning('Auto replenish topics in job failed: '.$e->getMessage());
@@ -87,11 +93,14 @@ class GenerateCampaignContentJob implements ShouldQueue
             }
 
             if (! $topic) {
+                Log::error("GenerateCampaignContentJob failed: Topic bank empty for campaign ID {$campaign->id}");
                 $schedule->update(['status' => 'failed', 'error_message' => 'Topic bank kosong dan riset AI belum menghasilkan topik.']);
                 $scheduler->ensureNext($campaign);
 
                 return;
             }
+
+            Log::info("Selected topic ID {$topic->id} ({$topic->primary_keyword}) for schedule ID {$this->scheduleId}");
 
             $slug = Str::slug($topic->primary_keyword) ?: 'artikel';
             $base = $slug;
