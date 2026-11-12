@@ -73,7 +73,11 @@ class PageController extends Controller
 
         $standalone = ['juki-landing', 'juki-about', 'juki-services', 'juki-service-detail'];
         if (in_array($template, $standalone, true)) {
-            if ($template === 'juki-service-detail' && trim($page->slug, '/') !== 'jasa/website') {
+            if ($template === 'juki-service-detail' && trim($page->slug, '/') === 'jasa/website') {
+                return view('pages.templates.juki-website-service', compact('page'));
+            }
+
+            if ($template === 'juki-service-detail') {
                 return view('pages.templates.juki-service-modern', compact('page'));
             }
 
