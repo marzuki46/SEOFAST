@@ -407,9 +407,11 @@
                         </div>
                     </div>
 
-                    <input type="hidden" name="language" value="id">
-                    <input type="hidden" name="funnel_mode" value="balanced">
-                    <input type="hidden" name="research_batch_size" value="5">
+                     <input type="hidden" name="language" value="id">
+                     <input type="hidden" name="funnel_mode" value="balanced">
+                     <input type="hidden" name="word_count_min" value="900">
+                     <input type="hidden" name="word_count_max" value="1400">
+                     <input type="hidden" name="research_batch_size" value="5">
                     <input type="hidden" name="publish_status" value="published">
                     <input type="hidden" name="timezone" value="Asia/Jakarta">
                     <input type="hidden" name="auto_research" value="1">
