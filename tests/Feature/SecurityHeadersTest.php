@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\ForceHttps;
 use App\Http\Middleware\ValidateHost;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ class SecurityHeadersTest extends TestCase
 
     public function test_security_headers_are_present(): void
     {
-        $response = $this->withoutMiddleware(\App\Http\Middleware\ForceHttps::class)
+        $response = $this->withoutMiddleware(ForceHttps::class)
             ->withServerVariables(['HTTPS' => 'on'])
             ->get('/sitemap.xml');
 
@@ -33,7 +33,7 @@ class SecurityHeadersTest extends TestCase
 
         try {
             $request = Request::create('https://juki.eu.org.renovasirumah.my.id/', 'GET');
-            $middleware = new ValidateHost();
+            $middleware = new ValidateHost;
 
             $this->expectException(HttpException::class);
             $middleware->handle($request, fn ($req) => response('ok'));
@@ -49,11 +49,30 @@ class SecurityHeadersTest extends TestCase
 
         try {
             $request = Request::create('https://juki.eu.org/', 'GET');
-            $middleware = new ValidateHost();
+            $middleware = new ValidateHost;
 
             $response = $middleware->handle($request, fn ($req) => response('ok'));
             $this->assertEquals('ok', $response->getContent());
         } finally {
+            app()->detectEnvironment(fn () => $previous);
+        }
+    }
+
+    public function test_validate_host_accepts_app_url_host(): void
+    {
+        $previous = app()->environment();
+        $previousUrl = config('app.url');
+        app()->detectEnvironment(fn () => 'production');
+        config(['app.url' => 'https://seofast.test']);
+
+        try {
+            $request = Request::create('https://seofast.test/produk', 'GET');
+            $middleware = new ValidateHost;
+
+            $response = $middleware->handle($request, fn ($req) => response('ok'));
+            $this->assertEquals('ok', $response->getContent());
+        } finally {
+            config(['app.url' => $previousUrl]);
             app()->detectEnvironment(fn () => $previous);
         }
     }
@@ -65,7 +84,7 @@ class SecurityHeadersTest extends TestCase
 
         try {
             $request = Request::create('https://www.juki.eu.org/', 'GET');
-            $middleware = new ValidateHost();
+            $middleware = new ValidateHost;
 
             $response = $middleware->handle($request, fn ($req) => response('ok'));
             $this->assertEquals('ok', $response->getContent());

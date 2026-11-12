@@ -1,0 +1,255 @@
+openapi: 3.1.0
+info:
+  title: GEO Content Agent API
+  version: 0.1.0
+  description: MVP API contract for dashboard-independent and n8n workflows.
+servers:
+  - url: https://agent.example.com/api/v1
+security:
+  - ApiKeyAuth: []
+paths:
+  /websites:
+    get:
+      operationId: listWebsites
+      responses:
+        '200':
+          description: Websites visible to the API key.
+    post:
+      operationId: createWebsite
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebsiteRequest'
+      responses:
+        '201':
+          description: Website created and credential validated.
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /websites/{websiteId}:
+    get:
+      operationId: getWebsite
+      parameters:
+        - $ref: '#/components/parameters/WebsiteId'
+      responses:
+        '200':
+          description: Website configuration with secrets masked.
+  /websites/{websiteId}/connection-test:
+    post:
+      operationId: testWebsiteConnection
+      parameters:
+        - $ref: '#/components/parameters/WebsiteId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '202':
+          $ref: '#/components/responses/AcceptedJob'
+  /audit-runs:
+    post:
+      operationId: createAuditRun
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAuditRunRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/AcceptedJob'
+  /audit-runs/{auditRunId}:
+    get:
+      operationId: getAuditRun
+      parameters:
+        - name: auditRunId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Audit status, progress, usage, and result links.
+  /audit-runs/{auditRunId}/findings:
+    get:
+      operationId: listAuditFindings
+      parameters:
+        - name: auditRunId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Evidence-backed findings.
+  /proposals:
+    post:
+      operationId: createProposal
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [websiteId, pageSnapshotId]
+              properties:
+                websiteId: { type: integer }
+                pageSnapshotId: { type: integer }
+                findingIds:
+                  type: array
+                  items: { type: integer }
+                useAi: { type: boolean, default: true }
+                instruction: { type: string, maxLength: 2000 }
+      responses:
+        '202':
+          $ref: '#/components/responses/AcceptedJob'
+  /proposals/{proposalId}:
+    get:
+      operationId: getProposal
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+      responses:
+        '200':
+          description: Proposal, semantic changes, old/new preview, and status.
+  /proposals/{proposalId}/approve:
+    post:
+      operationId: approveProposal
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Proposal approved.
+        '409':
+          description: Invalid state or version conflict.
+  /proposals/{proposalId}/reject:
+    post:
+      operationId: rejectProposal
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, maxLength: 2000 }
+      responses:
+        '200':
+          description: Proposal rejected.
+  /proposals/{proposalId}/publish:
+    post:
+      operationId: publishProposal
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                wordpressStatus:
+                  type: string
+                  enum: [draft, pending, publish]
+                  default: draft
+      responses:
+        '202':
+          $ref: '#/components/responses/AcceptedJob'
+        '409':
+          description: Proposal is not approved or remote content changed.
+  /jobs/{jobId}:
+    get:
+      operationId: getJob
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Job state and related resource links.
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 16, maxLength: 128 }
+    WebsiteId:
+      name: websiteId
+      in: path
+      required: true
+      schema: { type: integer }
+    ProposalId:
+      name: proposalId
+      in: path
+      required: true
+      schema: { type: integer }
+  schemas:
+    CreateWebsiteRequest:
+      type: object
+      required: [name, websiteUrl, wordpressUsername, wordpressApplicationPassword]
+      properties:
+        name: { type: string, maxLength: 120 }
+        websiteUrl: { type: string, format: uri }
+        wordpressApiBase: { type: string, format: uri }
+        wordpressUsername: { type: string, maxLength: 100 }
+        wordpressApplicationPassword: { type: string, minLength: 8, writeOnly: true }
+        autonomousEnabled: { type: boolean, default: false }
+        contentScoringEnabled: { type: boolean, default: false }
+        monthlyTokenBudget: { type: integer, minimum: 0, nullable: true }
+    CreateAuditRunRequest:
+      type: object
+      required: [websiteId]
+      properties:
+        websiteId: { type: integer }
+        urls:
+          type: array
+          maxItems: 25
+          items: { type: string, format: uri }
+        discoverFromSitemap: { type: boolean, default: false }
+        maxUrls: { type: integer, minimum: 1, maximum: 100, default: 25 }
+        includeContentScoring: { type: boolean, default: false }
+        includeAiProposal: { type: boolean, default: false }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+  responses:
+    AcceptedJob:
+      description: Background job accepted.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  jobId: { type: string }
+                  statusUrl: { type: string, format: uri-reference }
+              meta: { type: object }
+              error: { type: 'null' }
+    ValidationError:
+      description: Validation failed.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { type: 'null' }
+              meta: { type: object }
+              error: { $ref: '#/components/schemas/Error' }

@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SystemSetting;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class InstallController extends Controller
 {
@@ -17,7 +18,7 @@ class InstallController extends Controller
         }
 
         $requirements = $this->checkRequirements();
-        $hasErrors = collect($requirements)->contains(fn($r) => !$r['ok']);
+        $hasErrors = collect($requirements)->contains(fn ($r) => ! $r['ok']);
 
         return view('install.wizard', compact('requirements', 'hasErrors'));
     }
@@ -27,6 +28,7 @@ class InstallController extends Controller
         if (file_exists(storage_path('installed'))) {
             return redirect()->route('home');
         }
+
         return view('install.admin');
     }
 
@@ -50,9 +52,10 @@ class InstallController extends Controller
         if (file_exists(storage_path('installed'))) {
             return redirect()->route('home');
         }
-        if (!session()->has('install.admin')) {
+        if (! session()->has('install.admin')) {
             return redirect()->route('install.welcome');
         }
+
         return view('install.database');
     }
 
@@ -73,11 +76,11 @@ class InstallController extends Controller
             $data['db_database'], $data['db_username'], $data['db_password']
         );
 
-        if (!$test['ok']) {
+        if (! $test['ok']) {
             return back()->withErrors(['db_connection' => $test['error']])->withInput();
         }
 
-        return redirect()->route('install.run');
+        return view('install.confirm');
     }
 
     public function run()
@@ -89,7 +92,7 @@ class InstallController extends Controller
         $db = session('install.db');
         $admin = session('install.admin');
 
-        if (!$db || !$admin) {
+        if (! $db || ! $admin) {
             return redirect()->route('install.welcome');
         }
 
@@ -115,28 +118,28 @@ class InstallController extends Controller
             $output[] = 'Database credentials saved';
 
             Artisan::call('key:generate', ['--force' => true]);
-            $output[] = 'App key generated: ' . trim(Artisan::output());
+            $output[] = 'App key generated: '.trim(Artisan::output());
 
             Artisan::call('migrate', ['--force' => true]);
-            $output[] = 'Migrations ran: ' . trim(Artisan::output());
+            $output[] = 'Migrations ran: '.trim(Artisan::output());
 
-            $user = \App\Models\User::create([
+            $user = User::create([
                 'name' => 'Admin',
                 'email' => $admin['admin_email'],
                 'password' => Hash::make($admin['admin_password']),
+                'role' => 'admin',
             ]);
-            $user->assignRole('super-admin');
-            $output[] = 'Admin user created: ' . $admin['admin_email'];
+            $output[] = 'Admin user created: '.$admin['admin_email'];
 
             Artisan::call('db:seed', ['--force' => true]);
-            $output[] = 'Database seeded: ' . trim(Artisan::output());
+            $output[] = 'Database seeded: '.trim(Artisan::output());
 
             Artisan::call('storage:link');
             $output[] = 'Storage linked';
 
-            \App\Models\SystemSetting::set('site_name', $admin['site_name']);
+            SystemSetting::set('site_name', $admin['site_name']);
             if ($admin['site_description']) {
-                \App\Models\SystemSetting::set('seo_global_meta_description', $admin['site_description']);
+                SystemSetting::set('seo_global_meta_description', $admin['site_description']);
             }
             $output[] = 'Site settings saved';
 
@@ -147,12 +150,10 @@ class InstallController extends Controller
                 'site_name' => $admin['site_name'],
                 'app_url' => $admin['app_url'],
                 'admin_email' => $admin['admin_email'],
-                'admin_password' => $admin['admin_password'],
                 'db_host' => $db['db_host'],
                 'db_port' => $db['db_port'],
                 'db_database' => $db['db_database'],
                 'db_username' => $db['db_username'],
-                'db_password' => $db['db_password'] ?? '',
             ];
 
             session()->forget(['install.db', 'install.admin']);
@@ -161,41 +162,55 @@ class InstallController extends Controller
                 ->with('output', $output)
                 ->with('credentials', $creds);
         } catch (\Exception $e) {
-            $output[] = 'ERROR: ' . $e->getMessage();
+            $output[] = 'ERROR: '.$e->getMessage();
+
             return view('install.result', ['output' => $output, 'error' => true]);
         }
     }
 
     public function complete()
     {
-        if (!file_exists(storage_path('installed'))) {
+        if (! file_exists(storage_path('installed'))) {
             return redirect()->route('install.welcome');
         }
+
         return view('install.complete');
     }
 
     protected function updateEnv(string $key, string $value): void
     {
         $path = base_path('.env');
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             file_put_contents($path, '');
         }
         $content = file_get_contents($path);
 
-        if (str_contains($content, "{$key}=")) {
+        $encodedValue = $this->encodeEnvValue($value);
+
+        if (preg_match('/^'.preg_quote($key, '/').'=/m', $content)) {
             $pattern = "/^{$key}=.*/m";
-            $escaped = str_replace(['\\', '$'], ['\\\\', '\\$'], $value);
-            $content = preg_replace($pattern, "{$key}={$escaped}", $content);
+            $content = preg_replace($pattern, "{$key}={$encodedValue}", $content);
         } else {
-            $content .= "\n{$key}={$value}\n";
+            $content .= "\n{$key}={$encodedValue}\n";
         }
 
         file_put_contents($path, $content);
     }
 
+    protected function encodeEnvValue(string $value): string
+    {
+        $value = str_replace(["\r", "\n"], '', $value);
+
+        if ($value === '' || preg_match('/[\s#="\'\\\\$]/', $value)) {
+            return '"'.addcslashes($value, '\\"').'"';
+        }
+
+        return $value;
+    }
+
     protected function testDbConnection(string $host, string $port, string $db, string $user, string $pass): array
     {
-        $key = 'install_test_' . md5($host . $port . $db . $user);
+        $key = 'install_test_'.md5($host.$port.$db.$user);
         $config = config('database.connections.mysql');
         $config['host'] = $host;
         $config['port'] = $port;
@@ -204,9 +219,10 @@ class InstallController extends Controller
         $config['password'] = $pass;
 
         try {
-            $connection = \Illuminate\Support\Facades\DB::connectUsing($key, $config);
+            $connection = DB::connectUsing($key, $config);
             $connection->getPdo();
-            \Illuminate\Support\Facades\DB::purge($key);
+            DB::purge($key);
+
             return ['ok' => true, 'error' => null];
         } catch (\Exception $e) {
             return ['ok' => false, 'error' => $e->getMessage()];
@@ -217,7 +233,7 @@ class InstallController extends Controller
     {
         return [
             'php_version' => [
-                'label' => 'PHP ' . phpversion(),
+                'label' => 'PHP '.phpversion(),
                 'ok' => version_compare(phpversion(), '8.3.0', '>='),
                 'note' => 'Minimal PHP 8.3',
             ],

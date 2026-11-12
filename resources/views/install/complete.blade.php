@@ -26,7 +26,7 @@
             </div>
             <h1 class="text-2xl font-bold font-outfit text-slate-900 mb-2">Instalasi Berhasil!</h1>
             <p class="text-slate-500 text-sm mb-2">SEOFAST telah berhasil diinstal.</p>
-            <p class="text-slate-400 text-xs">Simpan kredensial di bawah ini. Jangan bagikan ke siapapun.</p>
+            <p class="text-slate-400 text-xs">Gunakan email dan password yang Anda masukkan pada tahap sebelumnya.</p>
         </div>
 
         @if(session('credentials'))
@@ -38,8 +38,6 @@
                     Data Installasi
                 </h2>
                 <div class="flex gap-2">
-                    <button onclick="copyCreds()" class="px-3 py-1.5 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-lg text-xs font-bold transition">Copy</button>
-                    <button onclick="downloadTxt()" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-bold transition">Download .txt</button>
                 </div>
             </div>
 
@@ -47,17 +45,15 @@
                 <div class="flex justify-between p-2 bg-slate-50 rounded-lg"><span class="text-slate-500">Website</span><span class="font-semibold text-slate-900">{{ $c['site_name'] }}</span></div>
                 <div class="flex justify-between p-2 bg-slate-50 rounded-lg"><span class="text-slate-500">URL</span><span class="font-semibold text-slate-900">{{ $c['app_url'] }}</span></div>
                 <div class="flex justify-between p-2 bg-slate-50 rounded-lg"><span class="text-slate-500">Admin Email</span><span class="font-semibold text-slate-900">{{ $c['admin_email'] }}</span></div>
-                <div class="flex justify-between p-2 bg-slate-50 rounded-lg"><span class="text-slate-500">Admin Password</span><span class="font-semibold text-slate-900 font-mono text-amber-700">{{ $c['admin_password'] }}</span></div>
                 <hr class="border-slate-200 my-2">
                 <div class="flex justify-between p-2 bg-slate-50 rounded-lg"><span class="text-slate-500">DB Host</span><span class="font-semibold text-slate-900">{{ $c['db_host'] }}:{{ $c['db_port'] }}</span></div>
                 <div class="flex justify-between p-2 bg-slate-50 rounded-lg"><span class="text-slate-500">DB Name</span><span class="font-semibold text-slate-900">{{ $c['db_database'] }}</span></div>
                 <div class="flex justify-between p-2 bg-slate-50 rounded-lg"><span class="text-slate-500">DB User</span><span class="font-semibold text-slate-900">{{ $c['db_username'] }}</span></div>
-                <div class="flex justify-between p-2 bg-slate-50 rounded-lg"><span class="text-slate-500">DB Password</span><span class="font-semibold text-slate-900 font-mono">{{ $c['db_password'] ?: '(kosong)' }}</span></div>
             </div>
 
             <p class="text-xs text-amber-600 mt-4 flex items-center gap-1">
                 <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
-                Simpan data ini. Password tidak bisa dipulihkan jika hilang.
+                Password tidak ditampilkan atau disimpan di halaman hasil instalasi.
             </p>
         </div>
         @endif
@@ -81,58 +77,5 @@
         </div>
     </div>
 
-    <script>
-        function getCredsText() {
-            @if(session('credentials'))
-            @php $c = session('credentials'); @endphp
-            return [
-                '================================',
-                ' SEOFAST — Data Installasi',
-                '================================',
-                '',
-                'Website    : {{ $c['site_name'] }}',
-                'URL        : {{ $c['app_url'] }}',
-                '',
-                '--- Admin ---',
-                'Email      : {{ $c['admin_email'] }}',
-                'Password   : {{ $c['admin_password'] }}',
-                '',
-                '--- Database ---',
-                'Host       : {{ $c['db_host'] }}:{{ $c['db_port'] }}',
-                'Database   : {{ $c['db_database'] }}',
-                'Username   : {{ $c['db_username'] }}',
-                'Password   : {{ $c['db_password'] ?: '(kosong)' }}',
-                '',
-                'Disimpan: {{ now()->format('Y-m-d H:i:s') }}',
-                '================================',
-            ].join('\n');
-            @else
-            return '';
-            @endif
-        }
-
-        function copyCreds() {
-            const text = getCredsText();
-            if (!text) return;
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = event.target;
-                const orig = btn.textContent;
-                btn.textContent = 'Copied!';
-                setTimeout(() => btn.textContent = orig, 2000);
-            });
-        }
-
-        function downloadTxt() {
-            const text = getCredsText();
-            if (!text) return;
-            const blob = new Blob([text], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'seofast-credentials.txt';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-    </script>
 </body>
 </html>

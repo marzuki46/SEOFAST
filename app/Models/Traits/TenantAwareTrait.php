@@ -6,24 +6,36 @@ use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * TenantAwareTrait — kept for compatibility but tenant isolation is DISABLED.
- * All data is globally visible to the Super Admin.
+ * Applies tenant isolation for tenant-bound users while preserving public reads
+ * and the global super-admin view used by this single-site CMS.
  */
 trait TenantAwareTrait
 {
     protected static function bootTenantAwareTrait(): void
     {
-        // Tenant scope is disabled — no isolation applied.
-        static::addGlobalScope(new TenantScope());
+        static::addGlobalScope(new TenantScope);
+
+        static::creating(function ($model): void {
+            $tenantId = auth()->user()?->tenant_id;
+            if ($tenantId !== null && empty($model->tenant_id)) {
+                $model->tenant_id = $tenantId;
+            }
+        });
     }
 
     public function scopeForCurrentTenant(Builder $query): Builder
     {
-        return $query; // No filtering — all data is global
+        $tenantId = auth()->user()?->tenant_id;
+
+        return $tenantId === null
+            ? $query
+            : $query->where($query->getModel()->qualifyColumn('tenant_id'), $tenantId);
     }
 
     public function getTenantId(): ?int
     {
-        return null;
+        $tenantId = $this->getAttribute('tenant_id');
+
+        return $tenantId === null ? null : (int) $tenantId;
     }
 }

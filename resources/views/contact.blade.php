@@ -217,7 +217,7 @@
         </div>
         <div class="rounded-2xl overflow-hidden shadow-xl border border-[#E2E8F0]">
             <iframe
-                src="https://www.google.com/maps?q=-7.5992,110.7987&z=14&output=embed"
+                src="https://www.google.com/maps?q=-7.5992,110.7987&amp;z=14&amp;output=embed"
                 class="w-full h-80 lg:h-96"
                 style="border:0;"
                 loading="lazy"

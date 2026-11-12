@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Tenant;
-use App\Models\User;
 use App\Models\TenantApiCredential;
+use App\Models\User;
 use Google\Client as GoogleClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
@@ -16,6 +16,7 @@ class GscOAuthTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Tenant $tenant;
 
     protected function setUp(): void
@@ -41,7 +42,7 @@ class GscOAuthTest extends TestCase
         config([
             'services.google.client_id' => 'test-client-id',
             'services.google.client_secret' => 'test-client-secret',
-            'services.google.redirect_uri' => 'http://seofast.test/admin/gsc/callback',
+            'services.google.redirect' => 'http://seofast.test/admin/gsc/callback',
         ]);
     }
 
@@ -49,7 +50,7 @@ class GscOAuthTest extends TestCase
     {
         $response = $this->get(route('admin.gsc.auth'));
 
-        $response->assertRedirect('/login');
+        $response->assertRedirect(route('login'));
     }
 
     public function test_redirects_to_google_oauth_when_authenticated_with_tenant(): void
@@ -61,11 +62,11 @@ class GscOAuthTest extends TestCase
         $mockClient->shouldReceive('setAccessType')->once()->with('offline');
         $mockClient->shouldReceive('setPrompt')->once()->with('consent');
         $mockClient->shouldReceive('addScope')->twice();
-        
+
         $mockClient->shouldReceive('setState')->once()->with(Mockery::on(function ($state) {
             return is_string($state) && strlen($state) === 40;
         }));
-        
+
         $mockClient->shouldReceive('createAuthUrl')
             ->once()
             ->andReturn('https://accounts.google.com/o/oauth2/auth?client_id=test-client-id');

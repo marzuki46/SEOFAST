@@ -10,7 +10,7 @@ class ForceHttps
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->isSecure() && !app()->environment('local')) {
+        if (! $request->isSecure() && ! app()->environment(['local', 'testing'])) {
             return redirect()->secure($request->getRequestUri(), 301);
         }
 

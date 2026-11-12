@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\HasSeoMeta;
 use Illuminate\Database\Eloquent\Model;
 
 class Page extends Model
 {
-    use \App\Traits\HasSeoMeta;
+    use HasSeoMeta;
 
     protected $fillable = [
         'title',
@@ -81,15 +82,9 @@ class Page extends Model
 
     public static function renderPostsGrid(int $cols, int $limit): string
     {
-        $posts = \App\Models\Content::where('status', 'published')
-            ->whereNotNull('body_raw')
+        $posts = Content::where('status', 'published')
+            ->hasBodyContent()
             ->where('published_at', '<=', now())
-            ->where('body_raw', '!=', '{"id":""}')
-            ->where('body_raw', '!=', '{"en":""}')
-            ->where(function($q) {
-                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
-                  ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
-            })
             ->with('siloBlueprint')
             ->orderBy('published_at', 'desc')
             ->take($limit)
@@ -108,7 +103,7 @@ class Page extends Model
             default => 'sm:grid-cols-2 lg:grid-cols-3',
         };
 
-        $html = '<div class="grid gap-6 ' . $gridClass . '">';
+        $html = '<div class="grid gap-6 '.$gridClass.'">';
         foreach ($posts as $post) {
             $html .= view('blog.partials.card', ['post' => $post])->render();
         }
@@ -119,7 +114,7 @@ class Page extends Model
 
     public static function renderProductsGrid(int $cols, int $limit): string
     {
-        $products = \App\Models\Product::where('is_active', true)
+        $products = Product::where('is_active', true)
             ->orderBy('created_at', 'desc')
             ->take($limit)
             ->get();
@@ -137,7 +132,7 @@ class Page extends Model
             default => 'sm:grid-cols-2 lg:grid-cols-3',
         };
 
-        $html = '<div class="grid gap-6 ' . $gridClass . '">';
+        $html = '<div class="grid gap-6 '.$gridClass.'">';
         foreach ($products as $product) {
             $html .= view('products.partials.card', ['product' => $product])->render();
         }
@@ -148,34 +143,36 @@ class Page extends Model
 
     public static function renderFeaturedProduct(): string
     {
-        $product = \App\Models\Product::where('is_active', true)
+        $product = Product::where('is_active', true)
             ->where('is_featured', true)
             ->first();
 
-        if (!$product) {
-            $product = \App\Models\Product::where('is_active', true)
+        if (! $product) {
+            $product = Product::where('is_active', true)
                 ->orderBy('purchase_count', 'desc')
                 ->first();
         }
 
-        if (!$product) {
+        if (! $product) {
             return '';
         }
 
-        $route       = route('products.show', $product->slug);
-        $contactUrl  = url('/contact');
+        $route = route('products.show', $product->slug);
+        $contactUrl = url('/contact');
         $rawFeatures = $product->features;
-        if (is_string($rawFeatures)) { $rawFeatures = json_decode($rawFeatures, true) ?? []; }
-        $features    = is_array($rawFeatures) ? array_slice($rawFeatures, 0, 5) : [];
-        $badge       = $product->is_featured ? 'Produk Unggulan' : 'Best Seller';
-        $priceLabel  = $product->displayPriceFormatted();
-        $soldCount   = number_format($product->purchase_count ?? 0);
-        $name        = e($product->name);
-        $desc        = e($product->description);
-        $isDev       = $product->isDevelopment();
-        $origLabel   = $product->originalPriceFormatted();
+        if (is_string($rawFeatures)) {
+            $rawFeatures = json_decode($rawFeatures, true) ?? [];
+        }
+        $features = is_array($rawFeatures) ? array_slice($rawFeatures, 0, 5) : [];
+        $badge = $product->is_featured ? 'Produk Unggulan' : 'Best Seller';
+        $priceLabel = $product->displayPriceFormatted();
+        $soldCount = number_format($product->purchase_count ?? 0);
+        $name = e($product->name);
+        $desc = e($product->description);
+        $isDev = $product->isDevelopment();
+        $origLabel = $product->originalPriceFormatted();
         $priceHeading = $isDev ? 'Harga Development' : 'Harga Mulai';
-        $devBadgeHtml = $isDev ? '<div style="font-size:0.8rem;color:#94a3b8;margin-top:0.3rem"><span style="text-decoration:line-through;opacity:0.6">' . $origLabel . '</span> <span style="display:inline-block;padding:0.1rem 0.5rem;font-size:0.65rem;font-weight:700;background:rgba(251,191,36,0.15);color:#fbbf24;border-radius:9999px;text-transform:uppercase">Early Bird</span></div>' : '';
+        $devBadgeHtml = $isDev ? '<div style="font-size:0.8rem;color:#94a3b8;margin-top:0.3rem"><span style="text-decoration:line-through;opacity:0.6">'.$origLabel.'</span> <span style="display:inline-block;padding:0.1rem 0.5rem;font-size:0.65rem;font-weight:700;background:rgba(251,191,36,0.15);color:#fbbf24;border-radius:9999px;text-transform:uppercase">Early Bird</span></div>' : '';
 
         // Build feature pills
         $pillsHtml = '';
@@ -183,9 +180,9 @@ class Page extends Model
             $label = is_string($f) ? $f : ($f['title'] ?? $f['feature'] ?? '');
             if ($label) {
                 $pillsHtml .= '<li class="flex items-center gap-2 text-sm text-slate-200">'
-                    . '<svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
-                    . e($label)
-                    . '</li>';
+                    .'<svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+                    .e($label)
+                    .'</li>';
             }
         }
 
@@ -259,15 +256,9 @@ HTML;
 
     public static function renderHotPosts(int $limit): string
     {
-        $posts = \App\Models\Content::where('status', 'published')
-            ->whereNotNull('body_raw')
+        $posts = Content::where('status', 'published')
+            ->hasBodyContent()
             ->where('published_at', '<=', now())
-            ->where('body_raw', '!=', '{"id":""}')
-            ->where('body_raw', '!=', '{"en":""}')
-            ->where(function($q) {
-                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
-                  ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
-            })
             ->orderBy('published_at', 'desc')
             ->take($limit)
             ->get();
@@ -279,7 +270,9 @@ HTML;
         $html = '<div class="space-y-4">';
         $rank = 1;
         foreach ($posts as $post) {
-            $color = match ($rank) { 1 => 'from-amber-400 to-amber-600', 2 => 'from-slate-400 to-slate-500', 3 => 'from-amber-700 to-amber-800', default => 'from-slate-300 to-slate-400' };
+            $color = match ($rank) {
+                1 => 'from-amber-400 to-amber-600', 2 => 'from-slate-400 to-slate-500', 3 => 'from-amber-700 to-amber-800', default => 'from-slate-300 to-slate-400'
+            };
             $html .= <<<HTML
 <a href="{$post->slug}" class="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all group">
     <div class="w-10 h-10 rounded-xl bg-gradient-to-br {$color} flex items-center justify-center text-white font-bold text-sm shrink-0">{$rank}</div>

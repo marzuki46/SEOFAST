@@ -15,14 +15,8 @@ class HomeController extends Controller
     {
         // Get the latest 3 published articles with actual content (not UUID/empty)
         $recentPosts = Content::where('status', 'published')
-            ->whereNotNull('body_raw')
+            ->hasBodyContent()
             ->where('published_at', '<=', now())
-            ->where('body_raw', '!=', '{"id":""}')
-            ->where('body_raw', '!=', '{"en":""}')
-            ->where(function ($q) {
-                $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.id')) != ''")
-                  ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(body_raw, '$.en')) != ''");
-            })
             ->with('siloBlueprint')
             ->orderBy('published_at', 'desc')
             ->take(3)

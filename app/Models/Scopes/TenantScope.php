@@ -13,6 +13,12 @@ class TenantScope implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
-        // Tenant concept removed based on user request. All data is global.
+        $tenantId = auth()->user()?->tenant_id;
+
+        // Public content and the super-admin remain global. A tenant-bound account
+        // can never read rows belonging to another tenant.
+        if ($tenantId !== null && $model->getTable() !== 'tenants') {
+            $builder->where($model->qualifyColumn('tenant_id'), $tenantId);
+        }
     }
 }

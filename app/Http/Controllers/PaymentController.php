@@ -23,8 +23,9 @@ class PaymentController extends Controller
 
         Log::info('Midtrans notification received', ['payload' => $payload]);
 
-        if (!$this->midtrans->verifyCallbackSignature($payload)) {
+        if (! $this->midtrans->verifyCallbackSignature($payload)) {
             Log::warning('Midtrans notification signature mismatch', ['payload' => $payload]);
+
             return response()->json(['error' => 'Invalid signature'], 403);
         }
 
@@ -34,8 +35,9 @@ class PaymentController extends Controller
 
         $order = BuyerOrder::where('order_number', $orderId)->first();
 
-        if (!$order) {
+        if (! $order) {
             Log::warning('Midtrans notification: order not found', ['order_id' => $orderId]);
+
             return response()->json(['error' => 'Order not found'], 404);
         }
 
@@ -55,19 +57,15 @@ class PaymentController extends Controller
      */
     public function finish(Request $request)
     {
-        $orderId = $request->query('order_id');
+        $orderId = $this->authorizedOrderId($request);
 
-        if (!$orderId) {
-            $orderId = session('pending_order');
-        }
-
-        if (!$orderId) {
+        if (! $orderId) {
             return redirect()->route('home')->with('error', 'Order reference not found.');
         }
 
         $order = BuyerOrder::where('order_number', $orderId)->first();
 
-        if (!$order) {
+        if (! $order) {
             return redirect()->route('home')->with('error', 'Order not found.');
         }
 
@@ -92,7 +90,8 @@ class PaymentController extends Controller
      */
     public function pending(Request $request)
     {
-        $orderId = $request->query('order_id') ?? session('pending_order');
+        $orderId = $this->authorizedOrderId($request);
+
         return view('payment.pending', compact('orderId'));
     }
 
@@ -101,8 +100,27 @@ class PaymentController extends Controller
      */
     public function error(Request $request)
     {
-        $orderId = $request->query('order_id') ?? session('pending_order');
+        $orderId = $this->authorizedOrderId($request);
+
         return view('payment.error', compact('orderId'));
+    }
+
+    private function authorizedOrderId(Request $request): ?string
+    {
+        $requested = $request->query('order_id');
+        $pending = $request->session()->get('pending_order');
+
+        if (is_string($requested) && is_string($pending) && hash_equals($pending, $requested)) {
+            return $requested;
+        }
+
+        $buyer = auth('buyer')->user();
+        if (is_string($requested) && $buyer
+            && BuyerOrder::where('order_number', $requested)->where('buyer_id', $buyer->id)->exists()) {
+            return $requested;
+        }
+
+        return is_string($pending) ? $pending : null;
     }
 
     /**
