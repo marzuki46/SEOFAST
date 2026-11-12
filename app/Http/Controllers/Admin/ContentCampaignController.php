@@ -396,14 +396,16 @@ class ContentCampaignController extends Controller
         }
 
         // Jalankan background job secara langsung
-        \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id);
+        // Manual posting must run once even when the campaign is paused/draft.
+        // Scheduled runs still require an active campaign inside the job.
+        \App\Jobs\Ai\GenerateCampaignContentJob::dispatch($schedule->id, true)->onQueue('ai');
 
         // Pastikan jadwal siklus berikutnya tetap terjaga
         if ($campaign->status === 'active') {
             $scheduler->ensureNext($campaign->fresh());
         }
 
-        return back()->with('success', "Trigger posting berhasil dijadwalkan untuk campaign '{$campaign->name}'. Job telah masuk antrean.");
+        return back()->with('success', "Posting manual campaign '{$campaign->name}' masuk antrean AI dan akan diproses segera oleh worker.");
     }
 
     private function validated(Request $request): array

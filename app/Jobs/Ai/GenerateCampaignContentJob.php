@@ -26,7 +26,7 @@ class GenerateCampaignContentJob implements ShouldQueue
 
     public int $timeout = 120;
 
-    public function __construct(public int $scheduleId)
+    public function __construct(public int $scheduleId, public bool $runNow = false)
     {
         $this->onQueue('ai');
     }
@@ -44,7 +44,7 @@ class GenerateCampaignContentJob implements ShouldQueue
             }
             $schedule->update(['status' => 'processing', 'locked_at' => now(), 'attempt_count' => $schedule->attempt_count + 1]);
             $campaign = $schedule->campaign;
-            if (! $campaign || $campaign->status !== 'active') {
+            if (! $campaign || (! $this->runNow && $campaign->status !== 'active')) {
                 $schedule->update(['status' => 'cancelled']);
 
                 return;
