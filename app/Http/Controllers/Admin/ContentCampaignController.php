@@ -378,10 +378,9 @@ class ContentCampaignController extends Controller
     {
         $this->assertTenantAccess($campaign);
 
-        Log::info("=== TRIGGER POST SYNC / PROGRESSBAR INITIATED FOR CAMPAIGN: {$campaign->id} ({$campaign->name}) ===");
+        Log::info("=== TRIGGER POST DIRECT EXECUTION FOR CAMPAIGN: {$campaign->id} ({$campaign->name}) ===");
 
         try {
-            // 1. Pastikan Topic Bank memiliki minimal 1 topik idea. Jika kosong, buat riset instan sekarang!
             $ideaCount = $campaign->topics()->where('status', 'idea')->count();
             if ($ideaCount === 0) {
                 Log::info("Topic bank kosong untuk campaign {$campaign->id}. Menjalankan riset instan...");
@@ -389,13 +388,9 @@ class ContentCampaignController extends Controller
                 $topicService->generateTopics($campaign, max(3, $campaign->research_batch_size));
             }
 
-            // 2. Ambil 1 topik idea pertama
             $topic = $campaign->topics()->where('status', 'idea')->orderBy('id')->first();
             if (! $topic) {
-                return response()->json([
-                    'success' => false,
-                    'error'   => 'Topic bank kosong dan riset AI gagal menghasilkan topik. Periksa API Key / kuota AI Anda.'
-                ], 422);
+                return back()->with('error', 'Topic bank kosong dan riset AI gagal menghasilkan topik.');
             }
 
             $topic->update(['status' => 'processing']);
@@ -407,14 +402,13 @@ class ContentCampaignController extends Controller
                 $slug = $base.'-'.$counter++;
             }
 
-            // 3. Buat record Content & Job secara sinkron
-            [$content, $job] = DB::transaction(function () use ($campaign, $topic, $slug, $scheduler) {
-                $siloId = $campaign->silo_blueprint_id;
-                if (!$siloId) {
-                    $firstSilo = \App\Models\SiloBlueprint::withoutGlobalScopes()->first();
-                    $siloId = $firstSilo?->id ?? 1;
-                }
+            $siloId = $campaign->silo_blueprint_id;
+            if (!$siloId) {
+                $firstSilo = SiloBlueprint::withoutGlobalScopes()->first();
+                $siloId = $firstSilo?->id ?? 1;
+            }
 
+            [$content, $job] = DB::transaction(function () use ($campaign, $topic, $slug, $siloId, $scheduler) {
                 $content = \App\Models\Content::create([
                     'tenant_id'          => $campaign->tenant_id,
                     'product_id'         => $campaign->product_id,
@@ -444,23 +438,21 @@ class ContentCampaignController extends Controller
                 return [$content, $job];
             });
 
-            Log::info("Campaign content prepared sync: content_id={$content->id}, job_id={$job->id}. Returning for progressbar execution...");
+            Log::info("Campaign content prepared sync: content_id={$content->id}, job_id={$job->id}. Running ReliableContentGenerator...");
 
-            return response()->json([
-                'success'    => true,
-                'content_id' => $content->id,
-                'job_id'     => $job->id,
-                'title'      => $content->meta_title,
-                'keyword'    => $content->target_keyword,
-            ]);
+            $generator = new \App\Services\ReliableContentGenerator();
+            $generator->generateAndSave($content, $job, 'published');
+
+            Log::info("=== TRIGGER POST COMPLETED SUCCESSFULLY FOR CONTENT {$content->id} ===");
+
+            return redirect()->route('admin.content-campaigns.index')
+                ->with('success', "🚀 Artikel '{$content->meta_title}' berhasil digenerate dan dipublikasikan!");
+
         } catch (\Throwable $e) {
-            Log::error("=== TRIGGER POST SYNC FAILED FOR CAMPAIGN {$campaign->id}: " . $e->getMessage() . " ===");
+            Log::error("=== TRIGGER POST FAILED FOR CAMPAIGN {$campaign->id}: " . $e->getMessage() . " ===");
             Log::error($e->getTraceAsString());
 
-            return response()->json([
-                'success' => false,
-                'error'   => $e->getMessage(),
-            ], 500);
+            return back()->with('error', 'Gagal memicu posting: ' . $e->getMessage());
         }
     }
 
