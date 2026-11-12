@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="jw-container jw-hero-inner">
             <div>
                 <span class="jw-eyebrow">Juki Web Developer Solo</span>
-                <h1>Vendor / Jasa Pembuatan Website Profesional untuk UMKM dan Perusahaan</h1>
+                <h1>Vendor / Jasa Pembuatan Website Profesional untuk UMKM dan Perusahaan di Solo</h1>
                 <p class="jw-lead">Jasa pembuatan website di Solo dan Surakarta untuk membangun kepercayaan, mendapatkan inquiry, dan mengubah pencarian Google menjadi peluang bisnis.</p>
                 <div class="jw-service-area">
                     <strong>Wilayah Soloraya:</strong> Melayani semua klien di wilayah Surakarta, Karanganyar, Sragen, Wonogiri, Boyolali, Klaten, Sukoharjo dan sekitarnya.
