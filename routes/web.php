@@ -406,6 +406,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/update-cache', [InfrastructureController::class, 'updateCache'])->name('update-cache');
             Route::post('/restart-queue', [InfrastructureController::class, 'restartQueue'])->name('restart-queue');
             Route::post('/queue-status', [InfrastructureController::class, 'queueStatus'])->name('queue-status');
+            Route::post('/worker/start', [InfrastructureController::class, 'startQueueWorker'])->name('worker.start');
+            Route::post('/worker/stop', [InfrastructureController::class, 'stopQueueWorker'])->name('worker.stop');
+            Route::post('/worker/restart', [InfrastructureController::class, 'restartQueueWorker'])->name('worker.restart');
         });
 
         // System Settings & Cache

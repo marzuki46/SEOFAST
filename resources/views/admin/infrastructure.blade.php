@@ -169,6 +169,42 @@
         </div>
     </div>
 
+    <!-- Permanent Worker -->
+    <div class="mt-8 bg-white rounded-xl border border-slate-200">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-4">
+            <div>
+                <h3 class="text-base font-semibold text-slate-900 font-outfit">Permanent Queue Worker</h3>
+                <p class="text-xs text-slate-500 mt-1">Memproses antrean <strong>ai, default</strong> terus-menerus.</p>
+            </div>
+            <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold {{ $queueWorker['running'] ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
+                <span class="h-2 w-2 rounded-full {{ $queueWorker['running'] ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>
+                {{ $queueWorker['running'] ? 'Running (PID '.$queueWorker['pid'].')' : 'Stopped' }}
+            </span>
+        </div>
+        <div class="px-6 py-5 flex flex-wrap items-center gap-4">
+            @if(PHP_OS_FAMILY !== 'Windows')
+                @if($queueWorker['running'])
+                    <form method="POST" action="{{ route('admin.infrastructure.worker.restart') }}" onsubmit="this.querySelector('button').disabled=true">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 transition-all">Restart Worker</button>
+                    </form>
+                    <form method="POST" action="{{ route('admin.infrastructure.worker.stop') }}" onsubmit="return confirm('Hentikan worker permanen?')">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 transition-all">Stop Worker</button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('admin.infrastructure.worker.start') }}" onsubmit="this.querySelector('button').disabled=true">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-all">Start Permanent Worker</button>
+                    </form>
+                @endif
+                <span class="text-xs text-slate-500">Log: <code>storage/logs/queue-worker.log</code></span>
+            @else
+                <p class="text-sm text-slate-500">Kontrol worker permanen dari dashboard dijalankan di server Linux production.</p>
+            @endif
+        </div>
+    </div>
+
     <!-- Current .env Preview (read-only) -->
     <div class="mt-8 bg-white rounded-xl border border-slate-200">
         <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
