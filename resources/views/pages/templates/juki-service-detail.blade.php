@@ -68,7 +68,6 @@
 @endif
 @endsection
 
-@if($isWebsiteService)
 @section('styles')
 <style>
     .juki-web-landing { --jw-ink:#15253f; --jw-muted:#526174; --jw-gold:#ce9a45; --jw-gold-dark:#9a6b16; --jw-soft:#fbf6eb; --jw-line:#eadfca; color:var(--jw-ink); background:#f8f7f3; font-family:'Plus Jakarta Sans','Inter',ui-sans-serif,system-ui,sans-serif; }
@@ -271,7 +270,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
-@endif
 
 @section('content')
 @if($isWebsiteService)
