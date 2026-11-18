@@ -61,6 +61,8 @@ Data & Informasi Bisnis Pendukung:\n{$businessData}
             if ($text['meta_description'] ?? '') $content->meta_description = $text['meta_description'];
         }
 
+        $htmlContent = app(ContentLinkEnforcer::class)->enforce($content, $htmlContent, $ctaUrl, $ctaLabel);
+
         $content->body_raw = $htmlContent;
         $content->status = $targetStatus;
         $content->published_at = $content->published_at ?? now();

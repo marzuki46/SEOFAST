@@ -857,6 +857,7 @@ class ProcessAiGenerationJob implements ShouldQueue
         if ($content->campaign_id) {
             $finalBody = $this->enforceCampaignFunnelLinks($content, $finalBody);
         }
+        $finalBody = app(\App\Services\ContentLinkEnforcer::class)->enforce($content, $finalBody);
 
         $contentHash = hash('sha256', $finalBody);
         $cqiScore = (int) ($critique['cqi_score'] ?? 80);
