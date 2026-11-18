@@ -32,6 +32,7 @@
                 'storage' => 'Storage/S3',
                 'payment' => 'Payment Gateway',
                 'whatsapp' => 'WhatsApp & Anti-Spam',
+                'indexing' => 'RSS/WebSub Ping',
             ];
         @endphp
 
@@ -310,7 +311,7 @@
                                 </div>
                             </div>
                         </div>
-                    @elseif($key === 'whatsapp')
+                        @elseif($key === 'whatsapp')
                         <div class="space-y-6 max-w-4xl">
                             <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-4 mb-6 text-sm">
                                 <strong>WhatsApp &amp; Anti-Spam:</strong> atur nomor WhatsApp untuk tombol wa.me, token Fonnte untuk kirim pesan dari dashboard Admin → Inquiries, dan filter anti-spam untuk form kontak / live chat / enterprise.
@@ -411,7 +412,13 @@
                             </div>
                         </div>
                         <input type="hidden" name="expected_checkboxes" value='["antispam_enabled","whatsapp_floating_enabled"]'>
-                    @else
+                        @elseif($key === 'indexing')
+                            <div>
+                                <label class="block text-base font-semibold text-slate-800 mb-1.5">RSS/WebSub &amp; XML-RPC Update Providers</label>
+                                <textarea name="rss_ping_providers" rows="14" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-brand-indigo focus:ring-brand-indigo text-sm px-4 py-2 font-mono" spellcheck="false">{{ $settings['indexing']['rss_ping_providers'] ?? \App\Services\IndexNowService::defaultProvidersText() }}</textarea>
+                                <p class="text-xs text-slate-500 mt-2">Satu URL per baris. Provider WebSub menerima notifikasi publish feed; endpoint lainnya menerima XML-RPC ping. Notifikasi dikirim melalui queue setelah konten berstatus published.</p>
+                            </div>
+                        @else
                             <div class="p-8 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
                                 Konfigurasi {{ $label }} tidak tersedia atau sudah dipindahkan.
                             </div>

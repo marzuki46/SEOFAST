@@ -14,6 +14,23 @@ class Capture404
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if ($this->isTrackableRequest($request) && $this->isScannerProbe($request)) {
+            $key = 'scanner-probe:'.($request->ip() ?: 'unknown');
+            $attempts = max(1, (int) config('security.scanner_probe_attempts', 3));
+            $decay = max(60, (int) config('security.scanner_probe_decay_seconds', 600));
+
+            // The third probe is redirected to a harmless page. The first two
+            // remain 404/403 so legitimate security tools can still verify the
+            // path is unavailable. This throttle uses the cache store, not SQL.
+            if (RateLimiter::attempts($key) >= $attempts - 1) {
+                RateLimiter::hit($key, $decay);
+
+                return redirect()->route('home');
+            }
+
+            RateLimiter::hit($key, $decay);
+        }
+
         if ($this->isTrackableRequest($request)) {
             $key = '4xx-throttle:'.($request->ip() ?: 'unknown');
             $limit = max(1, (int) config('security.four_xx_per_minute', 30));

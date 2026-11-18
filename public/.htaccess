@@ -7,7 +7,11 @@
 
     # Reject common scanner probes before Laravel boots and opens a database
     # connection. These paths are not part of this application.
-    RewriteRule ^(?:\.env(?:\..*)?|\.git(?:/|$)|wp-admin(?:/|$)|wp-includes(?:/|$)|wp-content(?:/|$)|xmlrpc\.php$|wlwmanifest\.xml$|phpinfo\.php$|adminer(?:/|$)) - [F,L,NC]
+    RewriteRule (^|/)\.env(?:[./_-].*)?$ - [F,L,NC]
+    RewriteRule (^|/)\.(?:git|svn|hg)(?:/.*)?$ - [F,L,NC]
+    RewriteRule (^|/)(?:\.aws|\.docker|wp-admin|wp-includes|wp-content|phpmyadmin|adminer)(?:/.*)?$ - [F,L,NC]
+    RewriteRule (^|/).*(?:phpinfo|server-status|xmlrpc)\.php$ - [F,L,NC]
+    RewriteRule (^|/)(?:.*\.(?:sql|sqlite|bak|old|orig|swp|log|ini|conf|yml|yaml|pem|key|p12)|(?:credentials|secrets|service-account|gcp-key|google-credentials)\.json)$ - [F,L,NC]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

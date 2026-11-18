@@ -25,6 +25,7 @@ class SystemSettingController extends Controller
             'queue'      => SystemSetting::group('queue'),
             'api'        => SystemSetting::group('api'),
             'whatsapp'   => SystemSetting::group('whatsapp'),
+            'indexing'   => SystemSetting::group('indexing'),
         ];
 
         return view('admin.settings.system', compact('settings'));
