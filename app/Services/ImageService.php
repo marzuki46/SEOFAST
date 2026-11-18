@@ -338,25 +338,15 @@ class ImageService
 
             // 1. Coba AI Image Generator (9Router / OpenAI / Flux)
             try {
-                $ready = $this->downloadAiIllustration($title, $keyword, $sourcePath);
+                $ready = $this->downloadAiIllustration($title, $keyword, $cleanSlug, $sourcePath);
             } catch (\Throwable $e) {
-                Log::notice('AI image provider failed, trying stock fallback: '.$e->getMessage());
+                Log::notice('AI image provider failed: '.$e->getMessage());
             }
 
-            // 2. Fallback Stock Image Curated (Unsplash High-Res)
             if (! $ready) {
-                try {
-                    // Include the article identity so repeated generic topics do
-                    // not deterministically receive the same stock image.
-                    $ready = $this->downloadStockFallback($title.' '.$keyword.' '.$slug.' '.microtime(true), $sourcePath);
-                } catch (\Throwable $e) {
-                    Log::notice('Stock fallback failed: '.$e->getMessage());
-                }
-            }
+                Log::error('AI featured image was not generated; no non-AI fallback is used.');
 
-            // 3. Fallback Canvas Minimalis jika semua koneksi luar gagal
-            if (! $ready) {
-                $this->generateMinimalCanvas($title, $sourcePath);
+                return null;
             }
 
             $imageInfo = @getimagesize($sourcePath);
@@ -556,7 +546,7 @@ class ImageService
         return $result;
     }
 
-    private function downloadAiIllustration(string $title, string $keyword, string $destination): bool
+    private function downloadAiIllustration(string $title, string $keyword, string $slug, string $destination): bool
     {
         $apiBase = SystemSetting::get('9router_api_base', 'https://9route.dari.eu.org');
         $apiKey = SystemSetting::get('9router_api_key', '');
@@ -580,7 +570,7 @@ class ImageService
         $visualConcept = 'A clear editorial visual metaphor for '.($keyword ?: $title).', showing one central subject with a structured supporting system around it. Variation code '.$variation.'; use a distinct composition, viewpoint, and supporting objects from other articles.';
         $mainSubject = 'the central business or technology concept from the topic, presented as a polished simplified diagram or editorial object';
         $masterPrompt = SystemSetting::get('9router_image_master_prompt') ?: <<<'PROMPT'
-Create a professional editorial technical illustration for a web development and SEO blog.
+Create a professional Indonesian editorial infographic for a web development, SEO, and digital business blog.
 
 Topic: {topic}
 
@@ -590,21 +580,27 @@ Visual concept:
 Main subject:
 {main_subject}
 
+Infographic direction:
+Use a clear visual hierarchy with a strong top title area, 2–4 structured content panels,
+simple icons, arrows or connectors, and concise Indonesian labels derived from the topic.
+The result should explain the topic at a glance like a premium business checklist or framework.
+Use readable short labels only; never add random or meaningless text.
+
 Style:
-clean editorial technology illustration, structured composition, premium SaaS visual language,
-subtle depth, realistic but simplified, professional and trustworthy.
+clean editorial technology infographic, structured composition, premium SaaS visual language,
+subtle depth, crisp vector-like icons, professional and trustworthy.
 
 Brand direction:
 dark navy background #15253F, warm orange accent #FF6B35, gold highlights #CE9A45,
 cream secondary tones, high contrast, restrained color palette, consistent Juki web identity.
 
 Composition:
-16:9 landscape, clear focal subject centered or positioned right, generous negative space,
-suitable for a blog hero image, no clutter, consistent framing across the article library.
+16:9 landscape, clear focal subject and readable panel hierarchy, generous negative space,
+suitable for a blog hero image and social sharing, no clutter, distinct composition for this article.
 
 Do not include:
-unreadable text, random letters, fake logos, watermarks, excessive neon,
-generic stock-photo style, distorted UI elements, long text inside the image.
+random letters, fake logos, watermarks, excessive neon, generic stock-photo style,
+distorted UI elements, dense paragraphs, or claims not supported by the topic.
 PROMPT;
         $prompt = str_replace(
             ['{topic}', '{visual_concept}', '{main_subject}'],
@@ -644,6 +640,8 @@ PROMPT;
         curl_close($ch);
 
         if ($raw === false || $status < 200 || $status >= 300) {
+            Log::warning("AI image request failed with HTTP status {$status}.");
+
             return false;
         }
 
@@ -667,7 +665,13 @@ PROMPT;
             curl_close($imgCh);
         }
 
-        return $bytes !== false && strlen($bytes) > 200 && file_put_contents($destination, $bytes) !== false;
+        if ($bytes === false || strlen($bytes) <= 200) {
+            Log::warning('AI image response did not contain usable image bytes.');
+
+            return false;
+        }
+
+        return file_put_contents($destination, $bytes) !== false;
     }
 
     private function downloadStockFallback(string $context, string $destination): bool
