@@ -12,7 +12,7 @@ class ContentCampaignPromptService
     {
         return [
             'keyword_prompt' => SystemSetting::get('apc_keyword_prompt') ?: <<<'PROMPT'
-Riset keyword-first. Buat keyword utama 2-4 kata yang benar-benar dicari, berbeda dari semua keyword lama, tidak memakai nama brand sebagai keyword utama, dan sesuai target landing page. Buat judul natural 45-65 karakter; untuk Bahasa Indonesia gunakan “Cara”, bukan “Panduan”. Hindari judul klise AI dan keyword cannibalization.
+Riset keyword-first. Buat keyword utama 2-4 kata yang benar-benar dicari, berbeda dari semua keyword lama, tidak memakai nama brand sebagai keyword utama, dan sesuai target landing page. Buat judul natural 45-65 karakter; untuk Bahasa Indonesia gunakan “Cara”, bukan “Panduan”. Hindari judul klise AI, pola “Pengembangan Web dengan ...: Kelebihan dan Kekurangan”, pengulangan keyword, dan keyword cannibalization. Judul harus terdengar seperti ditulis editor Indonesia untuk pembaca nyata.
 PROMPT,
             'entity_prompt' => SystemSetting::get('apc_entity_prompt') ?: <<<'PROMPT'
 Untuk setiap topik, hasilkan entity utama, sinonim, atribut, subtopik, pertanyaan terkait, istilah industri, dan variasi anchor yang benar-benar relevan. Entity harus membantu cakupan semantik artikel, bukan daftar keyword acak. Gunakan bahasa target campaign dan hindari pengulangan entity yang sudah sering dipakai.

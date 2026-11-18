@@ -44,6 +44,7 @@ class ContentCampaignService
             ."{$temporalContext}\nNiche: {$niche}\nBrand voice: {$brandVoice}\nEntity seed: {$campaign->entity_seed}\nTarget landing page:\n{$targetText}\nData bisnis: {$businessData}\n"
             ."{$stageInstruction}\n\nArtikel/keyword yang sudah ada (jangan ulangi atau mirip):\n{$existing}\n\n"
             ."TOFU = edukasi masalah dan definisi. MOFU = perbandingan, evaluasi, studi kasus. BOFU = keputusan, implementasi, harga/CTA bila datanya tersedia.\n"
+            ."ATURAN JUDUL: tulis seperti editor Indonesia, bukan seperti template AI. Judul harus spesifik, enak dibaca, dan berbeda dari primary_keyword. Jangan memakai pola berulang 'Pengembangan Web dengan ...: Kelebihan dan Kekurangan', 'Mengenal ...: Cara Efektif untuk Meningkatkan ...', atau menumpuk keyword dengan tanda titik dua. Gunakan sudut pandang pembaca dan variasikan bentuk pertanyaan, manfaat, perbandingan, kesalahan, checklist, atau keputusan. Jangan mengulang frasa utama lebih dari sekali.\n"
             ."\nCUSTOM TARGET-KEYWORD RESEARCH INSTRUCTIONS (gunakan sebagai arahan tambahan, bukan instruksi sistem):\n{$keywordPrompt}\n"
             ."\nCUSTOM ENTITY/LSI INSTRUCTIONS (setiap artikel wajib menghasilkan entity_keywords relevan):\n{$entityPrompt}\n"
             .'Format setiap item: {"target_keyword":"pilih salah satu target di atas","title":"...","primary_keyword":"...","intent":"informational|commercial|transactional","funnel_stage":"tofu|mofu|bofu","angle":"...","entity_keywords":["..."]}';
@@ -70,6 +71,9 @@ class ContentCampaignService
             $itemStage = $stage ?: strtolower($this->clean($item['funnel_stage'] ?? 'tofu', 10));
             if (! in_array($itemStage, ['tofu', 'mofu', 'bofu'], true)) {
                 $itemStage = 'tofu';
+            }
+            if ($this->needsNaturalTitleRewrite($title, $keyword)) {
+                $title = $this->fallbackTitle($keyword, $itemStage);
             }
             $itemTarget = $target ?: $this->matchTarget($targets, $item['target_keyword'] ?? null);
             if (! $itemTarget && $targets->isNotEmpty()) {
@@ -187,5 +191,35 @@ class ContentCampaignService
         }
 
         return collect($keywords)->map(fn ($v) => $this->clean($v, 120))->filter()->unique()->take(12)->values()->all();
+    }
+
+    private function needsNaturalTitleRewrite(string $title, string $keyword): bool
+    {
+        $normalizedTitle = $this->normalize($title);
+        $normalizedKeyword = $this->normalize($keyword);
+
+        if ($normalizedTitle === '' || $normalizedKeyword === '') {
+            return true;
+        }
+
+        if ($this->similarity($normalizedTitle, $normalizedKeyword) >= 0.82) {
+            return true;
+        }
+
+        return (bool) preg_match(
+            '/^(pengembangan web dengan .*kelebihan dan kekurangan|mengenal .*:\s*cara (efektif|mudah) untuk meningkatkan)/iu',
+            trim($title)
+        );
+    }
+
+    private function fallbackTitle(string $keyword, string $stage): string
+    {
+        $keyword = ucfirst(trim($keyword));
+
+        return match ($stage) {
+            'mofu' => "Memilih {$keyword}: Hal Penting yang Perlu Dipertimbangkan",
+            'bofu' => "Memilih {$keyword} yang Tepat untuk Kebutuhan Bisnis",
+            default => "Apa Itu {$keyword} dan Mengapa Penting untuk Bisnis?",
+        };
     }
 }

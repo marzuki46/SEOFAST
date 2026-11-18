@@ -34,6 +34,10 @@
     }
     .juki-chat-scroll {
         min-height: 0;
+        overscroll-behavior: contain;
+    }
+    .juki-chat-panel {
+        touch-action: pan-y;
     }
     @media (max-width: 640px) {
         .juki-chat-panel {
@@ -50,9 +54,9 @@
     }
 </style>
 
-<div x-data="{ open: false, sent: false }" x-cloak>
+<div x-data="{ open: false, sent: false, touchStartX: null }" x-cloak>
     {{-- Chat Panel --}}
-    <div id="juki-chat-panel" x-show="open" role="dialog" aria-modal="false" aria-labelledby="juki-chat-title" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-4"
+    <div id="juki-chat-panel" x-show="open" role="dialog" aria-modal="false" aria-labelledby="juki-chat-title" @touchstart.passive="touchStartX = $event.touches[0].clientX" @touchend="if (touchStartX !== null && $event.changedTouches[0].clientX - touchStartX > 70) { open = false; sent = false; } touchStartX = null" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-4"
          class="juki-chat-panel fixed bottom-24 right-6 z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl bg-white shadow-2xl shadow-black/30">
         {{-- Header --}}
         <div class="bg-gradient-to-r from-[#075E54] to-[#128C7E] text-white px-4 py-3 flex items-center gap-3">

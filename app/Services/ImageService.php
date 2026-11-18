@@ -671,30 +671,36 @@ PROMPT;
     {
         $context = strtolower($context);
         $images = [
+            'wordpress' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1600&q=85',
+            'laravel' => 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1600&q=85',
+            'codeigniter' => 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=1600&q=85',
+            'php' => 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1600&q=85',
+            'ecommerce' => 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1600&q=85',
+            'toko online' => 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1600&q=85',
+            'performa' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1600&q=85',
+            'kecepatan' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1600&q=85',
+            'seo' => 'https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=1600&q=85',
             'ai' => 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1600&q=85',
-            'seo' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1600&q=85',
+            'automasi' => 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=85',
+            'automation' => 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=85',
+            'security' => 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1600&q=85',
             'server' => 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1600&q=85',
             'network' => 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1600&q=85',
-            'security' => 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1600&q=85',
-            'website' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1600&q=85',
-            'web' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1600&q=85',
-            'computer' => 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=1600&q=85',
-            'code' => 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1600&q=85',
-            'coding' => 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1600&q=85',
-            'google' => 'https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=1600&q=85',
             'cloud' => 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1600&q=85',
             'data' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1600&q=85',
             'business' => 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=85',
-            'automation' => 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=85',
+            'website' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1600&q=85',
+            'web' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1600&q=85',
         ];
 
-        $selectedUrl = $images['website'];
-        foreach ($images as $keyword => $candidate) {
-            if (str_contains($context, $keyword)) {
-                $selectedUrl = $candidate;
-                break;
-            }
-        }
+        // Prefer the most specific matching topic instead of the generic
+        // "website" keyword, which previously made nearly every fallback image
+        // identical. If no topic matches, choose a stable variant by context.
+        $matches = collect($images)
+            ->filter(fn (string $candidate, string $keyword) => str_contains($context, $keyword))
+            ->sortByDesc(fn (string $candidate, string $keyword) => mb_strlen($keyword));
+        $selectedUrl = $matches->first()
+            ?: array_values($images)[abs(crc32($context)) % count($images)];
 
         $ch = curl_init($selectedUrl);
         curl_setopt_array($ch, [
