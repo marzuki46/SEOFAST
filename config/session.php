@@ -18,7 +18,9 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    // Avoid a database round-trip for every anonymous request. Production can
+    // still opt into Redis/database explicitly through SESSION_DRIVER.
+    'driver' => env('SESSION_DRIVER', 'file'),
 
     /*
     |--------------------------------------------------------------------------

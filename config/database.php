@@ -61,7 +61,9 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+                // Never keep MySQL connections alive between PHP requests.
+                \PDO::ATTR_PERSISTENT => false,
+            ], static fn ($value) => $value !== null) : [],
         ],
 
         'mariadb' => [
@@ -81,7 +83,8 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+                \PDO::ATTR_PERSISTENT => false,
+            ], static fn ($value) => $value !== null) : [],
         ],
 
         'pgsql' => [
