@@ -165,7 +165,7 @@
                 </div>
 
                 <!-- Basis Data Terkini Perusahaan -->
-                <div class="rounded-2xl border border-blue-100 bg-blue-50/40 p-5 space-y-3">
+                 <div class="rounded-2xl border border-blue-100 bg-blue-50/40 p-5 space-y-3">
                     <div class="flex items-center gap-2">
                         <span class="text-lg">📊</span>
                         <h3 class="font-bold text-blue-900 text-sm">Bahan Pembuatan Konten & Basis Data Bisnis Terkini</h3>
@@ -173,8 +173,17 @@
                     <p class="text-xs leading-relaxed text-blue-800">
                         Masukkan data faktual layanan Anda (keunggulan jasa, paket harga, garansi, jangkauan kota, nomor kontak WA, dsb). <strong>AI akan otomatis memprioritaskan data ini saat meriset topik dan menyusun konten baru</strong>.
                     </p>
-                    <textarea name="business_data" rows="6" placeholder="Contoh:&#10;- Layanan: Jasa Pembuatan Website Company Profile, Toko Online, dan Landing Page SEO.&#10;- Keunggulan: Loading ultra cepat, mobile friendly, include domain .com & hosting SSD.&#10;- Kontak WhatsApp resmi: 0812xxxxxx (Konsultasi Gratis)&#10;- Rute layanan: Solo, Jogja, Semarang, dan seluruh Indonesia." class="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm shadow-sm outline-none focus:border-indigo-500 font-mono text-xs">{{ $globalSettings['business_data'] }}</textarea>
-                </div>
+                     <textarea name="business_data" rows="6" placeholder="Contoh:&#10;- Layanan: Jasa Pembuatan Website Company Profile, Toko Online, dan Landing Page SEO.&#10;- Keunggulan: Loading ultra cepat, mobile friendly, include domain .com & hosting SSD.&#10;- Kontak WhatsApp resmi: 0812xxxxxx (Konsultasi Gratis)&#10;- Rute layanan: Solo, Jogja, Semarang, dan seluruh Indonesia." class="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm shadow-sm outline-none focus:border-indigo-500 font-mono text-xs">{{ $globalSettings['business_data'] }}</textarea>
+                 </div>
+
+                 <div class="rounded-2xl border border-violet-100 bg-violet-50/40 p-5 space-y-3">
+                     <div class="flex items-center gap-2">
+                         <span class="text-lg">🧩</span>
+                         <h3 class="font-bold text-violet-900 text-sm">Entitas Inti dan Cakupan Topik</h3>
+                     </div>
+                     <p class="text-xs leading-relaxed text-violet-800">Masukkan istilah yang wajib dipahami dan dibahas secara natural, misalnya layanan, teknologi, lokasi, tipe pelanggan, masalah, manfaat, dan proses kerja. AI akan mengembangkan variasinya dan menyebarkannya ke beberapa bagian artikel.</p>
+                     <textarea name="entity_seed" rows="4" placeholder="Contoh:&#10;jasa pembuatan website, website company profile, toko online, landing page, SEO lokal Solo, optimasi kecepatan, keamanan website, maintenance, UMKM, integrasi WhatsApp" class="w-full rounded-xl border border-violet-200 bg-white p-3.5 text-sm shadow-sm outline-none focus:border-violet-500 font-mono text-xs">{{ $globalSettings['entity_seed'] }}</textarea>
+                 </div>
 
                 <!-- Default CTA -->
                 <div class="rounded-2xl border border-slate-200 bg-slate-50/60 p-5 space-y-4">

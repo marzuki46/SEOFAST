@@ -214,9 +214,45 @@
 
                 </header>
 
-                <!-- Markdown Content rendered as HTML -->
+                @php
+                    $articleChunks = preg_split('/(?<=<\/p>)/i', (string) $post->html_body, -1, PREG_SPLIT_NO_EMPTY);
+                    $articleHasMiddleCards = $relatedPosts->count() > 0 && count($articleChunks) > 2;
+                    $articleInsertAt = $articleHasMiddleCards ? max(1, (int) ceil(count($articleChunks) / 2)) : count($articleChunks);
+                @endphp
+
+                <!-- Article body with contextual related cards in the middle -->
                 <div class="prose max-w-none border-t border-slate-200 pt-8">
-                    {!! $post->html_body !!}
+                    {!! implode('', array_slice($articleChunks, 0, $articleInsertAt)) !!}
+                </div>
+
+                @if($articleHasMiddleCards)
+                    <section class="my-12 rounded-3xl border border-brand-indigo/15 bg-gradient-to-br from-slate-50 via-white to-indigo-50/60 p-5 sm:p-8" aria-labelledby="related-middle-title">
+                        <div class="mb-6 flex items-end justify-between gap-4">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-[0.18em] text-brand-indigo">Bacaan lanjutan</p>
+                                <h2 id="related-middle-title" class="mt-2 font-outfit text-2xl font-extrabold tracking-tight text-slate-900">Masih berkaitan dengan kebutuhan Anda</h2>
+                            </div>
+                            <a href="{{ route('blog.index') }}" class="hidden text-sm font-bold text-brand-indigo hover:text-brand-purple sm:inline-flex">Lihat semua artikel →</a>
+                        </div>
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
+                            @foreach($relatedPosts as $rel)
+                                <a href="{{ route('blog.show', $rel->slug) }}" class="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-brand-indigo/30 hover:shadow-lg">
+                                    <div class="aspect-[16/9] overflow-hidden bg-slate-100">
+                                        <img src="{{ $rel->featured_image_url ?: asset('images/seofast-placeholder.svg') }}" alt="{{ $rel->featured_image_alt ?? $rel->title }}" loading="lazy" width="640" height="360" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+                                    </div>
+                                    <div class="flex flex-1 flex-col p-5">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-brand-indigo">{{ $rel->siloBlueprint->silo_name ?? 'Artikel terkait' }}</span>
+                                        <h3 class="mt-2 line-clamp-3 font-outfit text-lg font-bold leading-snug text-slate-900 group-hover:text-brand-indigo">{{ $rel->title }}</h3>
+                                        <span class="mt-auto pt-5 text-sm font-bold text-slate-600 group-hover:text-brand-indigo">Baca artikel →</span>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
+                <div class="prose max-w-none">
+                    {!! implode('', array_slice($articleChunks, $articleInsertAt)) !!}
                 </div>
 
                 <!-- Share Buttons -->
@@ -236,46 +272,16 @@
                 <!-- Author Bio Card -->
                 <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm mt-12 flex gap-4 items-start">
                     <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-indigo to-brand-purple flex items-center justify-center font-outfit font-extrabold text-white text-md shadow-lg shadow-brand-indigo/10">
-                        {{ strtoupper(substr(\App\Models\SystemSetting::get('author_name', config('app.name') . ' Intelligence Engine'), 0, 1)) }}
+                            {{ strtoupper(substr(\App\Models\SystemSetting::get('author_name', 'Tri Marzuki'), 0, 1)) }}
                     </div>
                     <div>
-                        <h4 class="font-outfit font-bold text-slate-900 text-base">Written by {{ \App\Models\SystemSetting::get('author_name', config('app.name') . ' Intelligence Engine') }}</h4>
+                        <h4 class="font-outfit font-bold text-slate-900 text-base">Ditulis oleh {{ \App\Models\SystemSetting::get('author_name', 'Tri Marzuki') }} — Founder Juki Web Developer Solo</h4>
                         <p class="text-slate-600 text-sm mt-1 leading-relaxed">
-                            {{ \App\Models\SystemSetting::get('author_bio', 'This article was generated and optimized using the SEOFAST content engine, utilizing semantic keyword planning, structural silo logic, and automated GSC inspection verification.') }}
+                            {{ \App\Models\SystemSetting::get('author_bio', 'Tri Marzuki membantu UMKM dan perusahaan di Solo Raya membangun website, aplikasi web, SEO, dan automasi digital yang lebih aman, terarah, dan mudah dikembangkan.') }}
                         </p>
                     </div>
                 </div>
 
-                {{-- Related Articles --}}
-                @if($relatedPosts->count() > 0)
-                    <div class="pt-12 border-t border-slate-200">
-                        <h3 class="font-outfit font-bold text-2xl text-slate-900 mb-6">Related Articles</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            @foreach($relatedPosts as $rel)
-                                <a href="{{ route('blog.show', $rel->slug) }}"
-                                   class="p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between group">
-                                    <div>
-                                        <span class="text-[10px] text-slate-400 font-mono uppercase mb-2 block">
-                                            {{ $rel->published_at ? $rel->published_at->format('M d, Y') : '' }}
-                                        </span>
-                                        <h4 class="font-outfit font-bold text-slate-900 text-sm group-hover:text-brand-indigo transition-colors line-clamp-2 mb-2">
-                                            {{ $rel->title }}
-                                        </h4>
-                                        <p class="text-slate-500 text-xs leading-relaxed line-clamp-2">
-                                            {{ $rel->excerpt }}
-                                        </p>
-                                    </div>
-                                    <span class="mt-4 text-xs font-bold text-brand-indigo flex items-center gap-1">
-                                        Read Article
-                                        <svg class="w-3 h-3 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </span>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
             </div>
 
             <!-- Table of Contents & Categories Sidebar (Right 1 Column) -->
@@ -324,4 +330,3 @@
     </div>
 </section>
 @endsection
-

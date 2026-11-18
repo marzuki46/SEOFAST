@@ -29,6 +29,20 @@ class ReliableContentGenerator
         $brandVoice = $campaign?->brand_voice ?: 'Otoritatif, Solutif, Informatif, Profesional';
         $audience = $campaign?->audience ?: 'Pemilik Bisnis, Calon Klien, Pengambil Keputusan';
         $businessData = $campaign?->business_data ?: '';
+        $topicEntities = $topic?->entity_keywords;
+        if (! is_array($topicEntities)) {
+            $topicEntities = preg_split('/[,;\n]+/', (string) $topicEntities) ?: [];
+        }
+        $seedEntities = preg_split('/[,;\n]+/', (string) ($campaign?->entity_seed ?: '')) ?: [];
+        $entityTerms = collect(array_merge($topicEntities, $seedEntities))
+            ->map(fn ($item) => trim((string) $item))
+            ->filter(fn (string $item) => mb_strlen($item) >= 2)
+            ->unique(fn (string $item) => mb_strtolower($item))
+            ->values()
+            ->all();
+        $entityCoverage = $entityTerms !== []
+            ? "\nEntitas yang wajib dibahas secara tersebar dan natural: ".implode(', ', $entityTerms).". Setiap entitas harus muncul minimal satu kali dalam kalimat bermakna. Jangan menaruhnya sebagai daftar keyword dan jangan memaksakan istilah yang tidak relevan.\n"
+            : '';
         $customContentPrompt = $campaign?->content_prompt ?: '';
         $minWords = $campaign?->word_count_min ?: 1000;
         $maxWords = $campaign?->word_count_max ?: 1500;
@@ -41,6 +55,7 @@ class ReliableContentGenerator
         $system = "Anda adalah penulis profesional, editor, dan pakar SEO Indonesia yang menulis dengan gaya penulisan: {$brandVoice}. Niche: {$niche}. Target Audiens: {$audience}. Tulis artikel SEO berkualitas tinggi, sangat mendalam (antara {$minWords} sampai {$maxWords} kata), natural, menggunakan format HTML lengkap dengan tag <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>, serta tabel perbandingan (Markdown/HTML) jika relevan. 
 Hindari klise AI ('Di era digital', 'Mari kita telusuri', dll). Gunakan sudut pandang orang pertama ('saya', 'pengalaman saya'). 
 Data & Informasi Bisnis Pendukung:\n{$businessData}
+{$entityCoverage}
 ";
 
         if ($customContentPrompt) {
@@ -49,6 +64,7 @@ Data & Informasi Bisnis Pendukung:\n{$businessData}
 
         $user = "{$temporalContext}\n\nBuat artikel SEO komprehensif dan mendalam berdasarkan brief spesifik topik berikut:\nTarget Keyword: {$keyword}\nJudul Utama: {$title}\nTahap Funnel: {$funnelStage}\nSudut Pandang / Angle: {$angle}\nBrief Konten / Panduan Khusus:\n{$brief}\n\nDi akhir artikel, sertakan Call to Action (CTA) profesional berikan link tombol/teks ke URL: {$ctaUrl} dengan label: {$ctaLabel}.\n\nBerikan respons DALAM FORMAT JSON VALID BERIKUT (tanpa markdown backtick):\n{\n  \"meta_title\": \"Judul SEO max 70 karakter yang menarik\",\n  \"meta_description\": \"Deskripsi SEO max 160 karakter yang informatif\",\n  \"content\": \"<h2>Pengantar</h2><p>Isi artikel lengkap dan mendalam (minimal {$minWords} kata) format HTML...</p>\"\n}";
 
+        $user .= $entityCoverage;
         $text = $aiService->generateJson($system, $user);
 
         if (!is_array($text) || empty($text['content'])) {

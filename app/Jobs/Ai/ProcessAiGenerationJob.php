@@ -104,6 +104,51 @@ class ProcessAiGenerationJob implements ShouldQueue
             : "Write in {$lang}. Use natural, fluent language.";
     }
 
+    /**
+     * Build one shared business/entity brief for every writing phase. The
+     * topic planner stores useful entities on ContentTopic, while the brand
+     * settings store the reusable business vocabulary for all campaigns.
+     */
+    private function campaignContext(Content $content): array
+    {
+        $campaign = $content->campaign;
+        $topic = $content->contentTopic;
+        $topicEntities = $topic?->entity_keywords;
+        if (! is_array($topicEntities)) {
+            $topicEntities = preg_split('/[,;\n]+/', (string) $topicEntities) ?: [];
+        }
+
+        $seedEntities = preg_split('/[,;\n]+/', (string) ($campaign?->entity_seed ?? '')) ?: [];
+        $entities = collect(array_merge($topicEntities, $seedEntities))
+            ->map(fn ($item) => trim((string) $item))
+            ->filter(fn (string $item) => mb_strlen($item) >= 2)
+            ->unique(fn (string $item) => mb_strtolower($item))
+            ->values()
+            ->all();
+
+        return [
+            'niche' => trim((string) ($campaign?->niche ?? '')),
+            'brand_voice' => trim((string) ($campaign?->brand_voice ?? '')),
+            'audience' => trim((string) ($campaign?->audience ?? '')),
+            'business_data' => trim((string) ($campaign?->business_data ?? '')),
+            'entities' => $entities,
+        ];
+    }
+
+    private function entityCoverageInstruction(Content $content, string $lang = 'id'): string
+    {
+        $context = $this->campaignContext($content);
+        if ($context['entities'] === []) {
+            return '';
+        }
+
+        $entityText = implode(', ', $context['entities']);
+
+        return $lang === 'id'
+            ? "\n\n### CAKUPAN ENTITAS WAJIB\nBahas istilah berikut secara natural dan tersebar pada bagian yang relevan (bukan sebagai daftar keyword): {$entityText}. Hubungkan entitas dengan masalah pembaca, contoh, proses, manfaat, risiko, atau pertimbangan bisnis. Gunakan variasi sinonim seperlunya, tetapi jangan menghilangkan entitas inti. Setiap entitas wajib muncul setidaknya satu kali dalam konteks kalimat yang bermakna. Jangan memaksakan entitas yang tidak relevan."
+            : "\n\n### REQUIRED ENTITY COVERAGE\nDiscuss these terms naturally across relevant sections (never as a keyword dump): {$entityText}. Connect them to reader problems, examples, processes, benefits, risks, or business considerations. Use natural synonyms where appropriate, but do not omit core entities. Each entity must appear at least once in a meaningful sentence. Do not force irrelevant entities.";
+    }
+
     private function runPhase1(Content $content, AiGenerationJob $job): void
     {
         $keyword = $content->target_keyword;
@@ -145,6 +190,13 @@ class ProcessAiGenerationJob implements ShouldQueue
         if ($campaign?->entity_prompt) {
             $userPrompt .= "\n\nCAMPAIGN ENTITY/LSI PROMPT (gunakan sebagai arahan tambahan):\n"
                 .mb_substr(strip_tags($campaign->entity_prompt), 0, 50000);
+        }
+        $context = $this->campaignContext($content);
+        $userPrompt .= "\n\nBUSINESS CONTEXT FOR ENTITY RESEARCH:\n"
+            ."Niche: {$context['niche']}\nAudience: {$context['audience']}\n"
+            ."Business facts:\n".mb_substr($context['business_data'], 0, 15000);
+        if ($context['entities'] !== []) {
+            $userPrompt .= "\nExisting entity vocabulary to expand, not merely repeat: ".implode(', ', $context['entities']);
         }
 
         $result = $aiService->generateJson($sysPrompt, $userPrompt);
@@ -287,6 +339,10 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         $lsiText = implode(', ', $lsiList);
         $entityText = ! empty($entityList) ? implode(', ', $entityList) : '';
+        if ($content->campaign) {
+            $content->setRelation('campaign', app(ContentCampaignPromptService::class)->applyDefaults($content->campaign));
+        }
+        $context = $this->campaignContext($content);
 
         Log::info("AI Phase 2 (Draft) START | job={$job->id} | keyword={$keyword}");
 
@@ -390,6 +446,7 @@ class ProcessAiGenerationJob implements ShouldQueue
 - LINKS: Never invent a domain, brand URL, source URL, or affiliate link. Use only the mandatory internal links supplied below. If no valid URL is supplied, do not create a link.";
 
         $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n{$styleReq}{$antiSlopDirectives}";
+        $requirements .= $this->entityCoverageInstruction($content, $lang);
         $campaign = $content->campaign;
         if ($campaign) {
             $campaign = app(ContentCampaignPromptService::class)->applyDefaults($campaign);
@@ -413,6 +470,9 @@ class ProcessAiGenerationJob implements ShouldQueue
         if ($entityText) {
             $userPrompt .= "Entity Keywords: {$entityText}\n";
         }
+        $userPrompt .= "\nBusiness context (use only as factual background; do not invent claims):\n"
+            ."Niche: {$context['niche']}\nBrand voice: {$context['brand_voice']}\nAudience: {$context['audience']}\n"
+            .mb_substr($context['business_data'], 0, 15000)."\n";
         $userPrompt .= "\n{$requirements}\n{$linkInstructions}{$frameworkInstructions}{$eeatInstructions}";
 
         // Inject retry improvements from failed CQI audit
@@ -534,7 +594,9 @@ class ProcessAiGenerationJob implements ShouldQueue
             "You are a Subject Matter Expert in {lang}. Provide highly detailed, deeply researched answers to the following 'Critical Questions' in paragraph form. DO NOT generate code blocks, HTML, or technical implementations. Write in natural language only. Return ONLY the answers in Markdown formatting."
         );
         $sysPrompt = strtr($sysTemplate, ['{lang}' => $lang, '{keyword}' => $keyword, '{tone}' => $tone]);
-        $userPrompt = "{$li}\n\nTopic: **{$keyword}**\n\nQuestions to Answer:\n- {$criticalQs}\n\n{$styleReq}";
+        $context = $this->campaignContext($content);
+        $userPrompt = "{$li}\n\nTopic: **{$keyword}**\n\nBusiness context:\nNiche: {$context['niche']}\nAudience: {$context['audience']}\n{$context['business_data']}\n\nQuestions to Answer:\n- {$criticalQs}\n\n{$styleReq}";
+        $userPrompt .= $this->entityCoverageInstruction($content, $lang);
 
         $aiService = new AIService($content->tenant, 'default');
         $answers = $aiService->generate($sysPrompt, $userPrompt);
@@ -583,6 +645,7 @@ class ProcessAiGenerationJob implements ShouldQueue
 
         $tone = $content->content_tone ?? $content->siloBlueprint?->content_tone ?? 'formal';
         $styleReq = $this->styleInstructions($lang, $tone);
+        $context = $this->campaignContext($content);
 
         $sysP5 = SystemSetting::get(
             'ai_prompt_phase5_sys',
@@ -596,7 +659,8 @@ class ProcessAiGenerationJob implements ShouldQueue
             '{brand_names}' => $brandNames,
             '{brand_positioning}' => $brandPositioning,
         ]);
-        $userP5 = "{$li}\n\nKeyword: **{$keyword}**\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}\n\n{$styleReq}";
+        $userP5 = "{$li}\n\nKeyword: **{$keyword}**\n\nBusiness context:\nNiche: {$context['niche']}\nAudience: {$context['audience']}\n{$context['business_data']}\n\nOriginal Draft:\n{$draft}\n\nDetailed Answers to weave in:\n{$answers}\n\n{$styleReq}"
+            .$this->entityCoverageInstruction($content, $lang);
 
         $aiService = new AIService($content->tenant, 'default');
         $combined = $aiService->generate($sysP5, $userP5);
@@ -627,7 +691,9 @@ class ProcessAiGenerationJob implements ShouldQueue
         ]);
         $sysP6 .= "\n\n{$styleReq}";
         $sysP6 .= "\n\nCRITICAL: Wrap your ENTIRE final HTML output inside <article_body> and </article_body> tags. Do not include any text outside these tags.";
-        $userP6 = "{$li}\n\nKeyword: **{$keyword}**\n\nArticle:\n{$combined}";
+        $userP6 = "{$li}\n\nKeyword: **{$keyword}**\n\nArticle:\n{$combined}"
+            .$this->entityCoverageInstruction($content, $lang)
+            ."\nPreserve the article's factual business context and do not remove meaningful entity coverage while polishing the HTML.";
 
         $finalBody = $aiService->generate($sysP6, $userP6);
 

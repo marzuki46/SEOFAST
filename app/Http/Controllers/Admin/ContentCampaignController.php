@@ -60,8 +60,9 @@ class ContentCampaignController extends Controller
             'model_writer' => SystemSetting::get('apc_model_writer', 'gemini-2.0-flash'),
             'niche' => SystemSetting::get('apc_niche', 'Jasa & Solusi Bisnis Digital'),
             'brand_voice' => SystemSetting::get('apc_brand_voice', 'Otoritatif, Solutif, Informatif, Profesional'),
-            'audience' => SystemSetting::get('apc_audience', 'Pemilik Bisnis, Calon Klien, Pengambil Keputusan'),
-            'business_data' => SystemSetting::get('apc_business_data', ''),
+             'audience' => SystemSetting::get('apc_audience', 'Pemilik Bisnis, Calon Klien, Pengambil Keputusan'),
+             'business_data' => SystemSetting::get('apc_business_data', ''),
+             'entity_seed' => SystemSetting::get('apc_entity_seed', ''),
             'cta_type' => SystemSetting::get('apc_cta_type', 'whatsapp'),
             'cta_label' => SystemSetting::get('apc_cta_label', 'Hubungi Kami via WhatsApp'),
             'cta_url' => SystemSetting::get('apc_cta_url', ''),
@@ -94,8 +95,9 @@ class ContentCampaignController extends Controller
             'model_writer' => ['nullable', 'string'],
             'niche' => ['nullable', 'string', 'max:255'],
             'brand_voice' => ['nullable', 'string', 'max:255'],
-            'audience' => ['nullable', 'string', 'max:500'],
-            'business_data' => ['nullable', 'string', 'max:15000'],
+             'audience' => ['nullable', 'string', 'max:500'],
+             'business_data' => ['nullable', 'string', 'max:15000'],
+             'entity_seed' => ['nullable', 'string', 'max:500'],
             'cta_type' => ['nullable', 'string', 'max:50'],
             'cta_label' => ['nullable', 'string', 'max:120'],
             'cta_url' => ['nullable', 'string', 'max:2048'],
@@ -156,9 +158,12 @@ class ContentCampaignController extends Controller
         if (isset($validated['audience'])) {
             SystemSetting::set('apc_audience', $validated['audience'], 'content');
         }
-        if (isset($validated['business_data'])) {
-            SystemSetting::set('apc_business_data', $validated['business_data'], 'content');
-        }
+         if (isset($validated['business_data'])) {
+             SystemSetting::set('apc_business_data', $validated['business_data'], 'content');
+         }
+         if (isset($validated['entity_seed'])) {
+             SystemSetting::set('apc_entity_seed', $validated['entity_seed'], 'content');
+         }
         if (isset($validated['cta_type'])) {
             SystemSetting::set('apc_cta_type', $validated['cta_type'], 'content');
         }
