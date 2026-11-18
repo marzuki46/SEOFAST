@@ -53,7 +53,7 @@ class ReliableContentGenerator
         $temporalContext = app(ContentCampaignPromptService::class)->temporalContext($campaign?->timezone ?: 'Asia/Jakarta');
 
         $system = "Anda adalah penulis profesional, editor, dan pakar SEO Indonesia yang menulis dengan gaya penulisan: {$brandVoice}. Niche: {$niche}. Target Audiens: {$audience}. Tulis artikel SEO berkualitas tinggi, sangat mendalam (antara {$minWords} sampai {$maxWords} kata), natural, menggunakan format HTML lengkap dengan tag <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li>, serta tabel perbandingan (Markdown/HTML) jika relevan. 
-Hindari klise AI ('Di era digital', 'Mari kita telusuri', dll). Gunakan sudut pandang orang pertama ('saya', 'pengalaman saya'). 
+Hindari klise AI ('Di era digital', 'Mari kita telusuri', dll). Gunakan sudut pandang orang pertama ('saya', 'pengalaman saya'). Setiap H2 wajib membahas minimal dua paragraf substantif dan artikel harus mencakup konteks masalah, strategi, langkah implementasi, risiko atau trade-off, serta cara mengukur hasil. Gunakan contoh konkret dari data bisnis yang tersedia tanpa mengarang angka, harga, klien, atau hasil.
 Data & Informasi Bisnis Pendukung:\n{$businessData}
 {$entityCoverage}
 ";

@@ -12,6 +12,17 @@ class ContentLinkEnforcer
     {
         $brandName = trim((string) SystemSetting::get('site_name', config('app.name', 'Juki')));
         $homeUrl = url('/');
+        $campaign = $content->campaign;
+        $ctaUrl = $this->normalizeCtaUrl($ctaUrl ?: $campaign?->cta_url ?: SystemSetting::get('apc_cta_url', ''));
+
+        // Remove the old generic sentence if no real landing page is available.
+        if (! $content->campaignTarget?->landing_url && ! $campaign?->destination_url) {
+            $html = preg_replace(
+                '/<p[^>]*>\s*Jika Anda sedang menilai kebutuhan serupa,\s*lihat\s*Lihat solusi yang relevan.*?<\/p>/isu',
+                '',
+                $html
+            ) ?? $html;
+        }
 
         if (! $this->hasHref($html, $homeUrl)) {
             $brandLink = '<a href="'.e($homeUrl).'">'.e($brandName).'</a>';
@@ -19,10 +30,9 @@ class ContentLinkEnforcer
         }
 
         $contextualLinks = [];
-        $campaign = $content->campaign;
         $landingUrl = $content->campaignTarget?->landing_url ?: $campaign?->destination_url;
         if ($landingUrl && $this->isHttpUrl($landingUrl) && ! $this->hasHref($html, $landingUrl)) {
-            $label = $content->campaignTarget?->keyword ?: 'Lihat solusi yang relevan';
+            $label = $content->campaignTarget?->keyword ?: $campaign?->name ?: 'solusi digital untuk bisnis Anda';
             $contextualLinks[] = 'Jika Anda sedang menilai kebutuhan serupa, lihat <a href="'.e($landingUrl).'">'.e($label).'</a> untuk bisnis Anda.';
         }
 
@@ -69,5 +79,27 @@ class ContentLinkEnforcer
     {
         return (bool) filter_var($url, FILTER_VALIDATE_URL)
             && in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true);
+    }
+
+    private function normalizeCtaUrl(?string $url): ?string
+    {
+        $url = trim((string) $url);
+        if ($url === '') {
+            return null;
+        }
+        if ($this->isHttpUrl($url)) {
+            return $url;
+        }
+
+        $digits = preg_replace('/\D+/', '', $url) ?: '';
+        if (strlen($digits) >= 8) {
+            if (str_starts_with($digits, '0')) {
+                $digits = '62'.substr($digits, 1);
+            }
+
+            return 'https://wa.me/'.$digits;
+        }
+
+        return null;
     }
 }

@@ -124,6 +124,69 @@
     .prose tr:hover td {
         background-color: #f8fafc;
     }
+
+    /* Dynamic article HTML must never widen the viewport on small screens. */
+    .article-main-grid,
+    .article-column,
+    .article-column .prose,
+    .article-column header {
+        min-width: 0;
+        max-width: 100%;
+    }
+    .article-column .prose {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+    .article-column .prose img,
+    .article-column .prose video,
+    .article-column .prose iframe {
+        max-width: 100%;
+        height: auto;
+    }
+    .article-column .prose table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .article-column .prose pre {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    @media (max-width: 767px) {
+        .article-main-grid {
+            display: block;
+        }
+        .article-column {
+            width: 100%;
+        }
+        .article-column h1 {
+            font-size: clamp(1.8rem, 8vw, 2.5rem);
+            line-height: 1.15;
+            overflow-wrap: anywhere;
+        }
+        .article-column .prose h2 {
+            font-size: 1.45rem;
+            line-height: 1.25;
+        }
+        .article-column .prose h3 {
+            font-size: 1.2rem;
+            line-height: 1.3;
+        }
+        .article-column .prose p,
+        .article-column .prose li {
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+        .article-column .prose table {
+            font-size: 0.875rem;
+        }
+        .article-column .prose th,
+        .article-column .prose td {
+            min-width: 9rem;
+            padding: 0.65rem 0.75rem;
+        }
+    }
 </style>
 
 @endsection
@@ -170,10 +233,10 @@
 <!-- Article Main Section -->
 <section class="py-16">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-12">
+        <div class="article-main-grid grid min-w-0 grid-cols-1 gap-12 lg:grid-cols-4">
             
             <!-- Article Body (Left 3 Columns) -->
-            <div class="lg:col-span-3 space-y-8">
+            <div class="article-column min-w-0 space-y-8 lg:col-span-3">
                 <!-- Header -->
                 <header class="space-y-6">
                     <div class="flex flex-wrap items-center gap-4 text-sm">

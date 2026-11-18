@@ -346,7 +346,9 @@ class ImageService
             // 2. Fallback Stock Image Curated (Unsplash High-Res)
             if (! $ready) {
                 try {
-                    $ready = $this->downloadStockFallback($title.' '.$keyword, $sourcePath);
+                    // Include the article identity so repeated generic topics do
+                    // not deterministically receive the same stock image.
+                    $ready = $this->downloadStockFallback($title.' '.$keyword.' '.$slug.' '.microtime(true), $sourcePath);
                 } catch (\Throwable $e) {
                     Log::notice('Stock fallback failed: '.$e->getMessage());
                 }
@@ -574,7 +576,8 @@ class ImageService
         }
 
         $topic = trim($title.' '.$keyword);
-        $visualConcept = 'A clear editorial visual metaphor for '.($keyword ?: $title).', showing one central subject with a structured supporting system around it.';
+        $variation = substr(hash('sha256', $title.'|'.$keyword.'|'.$slug.'|'.microtime(true)), 0, 10);
+        $visualConcept = 'A clear editorial visual metaphor for '.($keyword ?: $title).', showing one central subject with a structured supporting system around it. Variation code '.$variation.'; use a distinct composition, viewpoint, and supporting objects from other articles.';
         $mainSubject = 'the central business or technology concept from the topic, presented as a polished simplified diagram or editorial object';
         $masterPrompt = SystemSetting::get('9router_image_master_prompt') ?: <<<'PROMPT'
 Create a professional editorial technical illustration for a web development and SEO blog.
@@ -689,8 +692,11 @@ PROMPT;
             'cloud' => 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1600&q=85',
             'data' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1600&q=85',
             'business' => 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=85',
+            'bisnis' => 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1600&q=85',
             'website' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1600&q=85',
+            'landing page' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1600&q=85',
             'web' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1600&q=85',
+            'solo' => 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1600&q=85',
         ];
 
         // Prefer the most specific matching topic instead of the generic
@@ -699,8 +705,10 @@ PROMPT;
         $matches = collect($images)
             ->filter(fn (string $candidate, string $keyword) => str_contains($context, $keyword))
             ->sortByDesc(fn (string $candidate, string $keyword) => mb_strlen($keyword));
-        $selectedUrl = $matches->first()
-            ?: array_values($images)[abs(crc32($context)) % count($images)];
+        $matchingUrls = array_values($matches->all());
+        $selectedUrl = $matchingUrls !== []
+            ? $matchingUrls[abs(crc32($context)) % count($matchingUrls)]
+            : array_values($images)[abs(crc32($context)) % count($images)];
 
         $ch = curl_init($selectedUrl);
         curl_setopt_array($ch, [

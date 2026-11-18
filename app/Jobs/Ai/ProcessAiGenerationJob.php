@@ -445,7 +445,7 @@ class ProcessAiGenerationJob implements ShouldQueue
 - INCLUDE: Add comparison tables (Markdown format) or structured step-by-step lists where appropriate to maximize reader utility.
 - LINKS: Never invent a domain, brand URL, source URL, or affiliate link. Use only the mandatory internal links supplied below. If no valid URL is supplied, do not create a link.";
 
-        $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n{$styleReq}{$antiSlopDirectives}";
+        $requirements = "Requirements:\n- Minimum 1000 words\n- Use H2 and H3 headings\n- Bold LSI keywords in the text\n- Naturally integrate Entity keywords\n- Follow the framework structure exactly\n- Meet all E-E-A-T signals\n- Bahas minimal 4 sudut pembahasan berbeda: konteks masalah, strategi atau pilihan, langkah implementasi, risiko atau trade-off, pengukuran hasil, dan rekomendasi keputusan.\n- Setiap H2 harus memiliki minimal 2 paragraf substantif atau kombinasi paragraf, contoh, dan langkah praktis. Jangan mengulang definisi yang sama dengan kata berbeda.\n- Sertakan contoh konkret yang relevan dengan audiens dan data bisnis yang tersedia; jangan mengarang angka, harga, klien, atau hasil.\n{$styleReq}{$antiSlopDirectives}";
         $requirements .= $this->entityCoverageInstruction($content, $lang);
         $campaign = $content->campaign;
         if ($campaign) {
@@ -923,7 +923,17 @@ class ProcessAiGenerationJob implements ShouldQueue
         if ($content->campaign_id) {
             $finalBody = $this->enforceCampaignFunnelLinks($content, $finalBody);
         }
-        $finalBody = app(\App\Services\ContentLinkEnforcer::class)->enforce($content, $finalBody);
+        $campaign = $content->campaign;
+        $ctaUrl = $campaign?->cta_url ?: SystemSetting::get('apc_cta_url', '');
+        if (! $ctaUrl) {
+            $ctaUrl = 'https://wa.me/6282213028718';
+        }
+        $finalBody = app(\App\Services\ContentLinkEnforcer::class)->enforce(
+            $content,
+            $finalBody,
+            $ctaUrl,
+            $campaign?->cta_label ?: SystemSetting::get('apc_cta_label', 'Hubungi Kami via WhatsApp')
+        );
 
         $contentHash = hash('sha256', $finalBody);
         $cqiScore = (int) ($critique['cqi_score'] ?? 80);
