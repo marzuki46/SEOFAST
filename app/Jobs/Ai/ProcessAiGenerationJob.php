@@ -726,7 +726,7 @@ class ProcessAiGenerationJob implements ShouldQueue
             ->where('id', '<>', $content->id)
             ->whereNotIn('status', ['idea', 'ai_processing'])
             ->whereHas('contentTopic', fn ($query) => $query->whereIn('funnel_stage', $allowedStages))
-            ->latest('id')->limit(12)->get(['id', 'slug', 'title', 'target_keyword', 'content_topic_id']);
+            ->latest('id')->limit(12)->get(['id', 'slug', 'meta_title', 'target_keyword', 'content_topic_id']);
 
         if ($related->isNotEmpty()) {
             $links .= "- Artikel campaign yang boleh ditautkan:\n";

@@ -57,7 +57,7 @@ class ContentLinkEnforcer
             ->whereHas('contentTopic', fn ($query) => $query->whereIn('funnel_stage', $allowedStages))
             ->latest('published_at')
             ->limit(3)
-            ->get(['slug', 'title', 'target_keyword'])
+            ->get(['slug', 'meta_title', 'target_keyword'])
             ->map(fn (Content $item) => '<a href="'.e(url('/blog/'.$item->slug)).'">'.e($item->title ?: $item->target_keyword).'</a>')
             ->implode(' · ');
     }
